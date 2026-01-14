@@ -10,7 +10,7 @@ import Badges from "./pages/UiElements/Badges";
 import Avatars from "./pages/UiElements/Avatars";
 import Buttons from "./pages/UiElements/Buttons";
 import LineChart from "./pages/Charts/LineChart";
-import BarChart from "./pages/Charts/BarChart";
+import Messages from "./pages/Messages";
 import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
@@ -18,6 +18,42 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
+import Customers from "./pages/Ecommerce/Customers";
+import Orders from "./pages/Ecommerce/Orders";
+import Invoices from "./pages/Ecommerce/Invoices";
+import Shop from "./pages/Ecommerce/Shop";
+import Shop2 from "./pages/Ecommerce/Shop2";
+import SingleProduct from "./pages/Ecommerce/SingleProduct";
+import Cart from "./pages/Ecommerce/Cart";
+import Cart2 from "./pages/Ecommerce/Cart2";
+import Cart3 from "./pages/Ecommerce/Cart3";
+import Pay from "./pages/Ecommerce/Pay";
+import Analytics from "./pages/Dashboard/Analytics";
+import Fintech from "./pages/Dashboard/Fintech";
+import Community from "./pages/Community";
+import Finance from "./pages/Finance";
+import JobBoard from "./pages/JobBoard";
+import Tasks from "./pages/Tasks";
+import Inbox from "./pages/Inbox";
+import Campaigns from "./pages/Campaigns";
+import Settings from "./pages/Settings";
+import Feed from "./pages/Community/Feed";
+import Members from "./pages/Community/Members";
+import Transactions from "./pages/Finance/Transactions";
+import Cards from "./pages/Finance/Cards";
+import JobListing from "./pages/JobBoard/JobListing";
+import PostJob from "./pages/JobBoard/PostJob";
+import TaskList from "./pages/Tasks/TaskList";
+import TaskBoard from "./pages/Tasks/TaskBoard";
+import AccountSettings from "./pages/Settings/AccountSettings";
+import SecuritySettings from "./pages/Settings/SecuritySettings";
+import NotificationSettings from "./pages/Settings/NotificationSettings";
+import Changelog from "./pages/Utility/Changelog";
+import Support from "./pages/Utility/Support";
+import FAQ from "./pages/Utility/FAQ";
+import StepOne from "./pages/Onboarding/StepOne";
+import StepTwo from "./pages/Onboarding/StepTwo";
+import ResetPassword from "./pages/Authpages/ResetPassword";
 
 export default function App() {
   return (
@@ -28,6 +64,63 @@ export default function App() {
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/" element={<Home />} />
+
+            {/* E-Commerce */}
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop-2" element={<Shop2 />} />
+            <Route path="/single-product" element={<SingleProduct />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/cart-2" element={<Cart2 />} />
+            <Route path="/cart-3" element={<Cart3 />} />
+            <Route path="/pay" element={<Pay />} />
+
+            {/* Remaining Pages */}
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/fintech" element={<Fintech />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/finance" element={<Finance />} />
+            <Route path="/job-board" element={<JobBoard />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/inbox" element={<Inbox />} />
+            <Route path="/campaigns" element={<Campaigns />} />
+            <Route path="/settings" element={<Settings />} />
+
+            {/* Community Sub-pages */}
+            <Route path="/community/feed" element={<Feed />} />
+            <Route path="/community/profile" element={<UserProfiles />} />
+            <Route path="/community/members" element={<Members />} />
+
+            {/* Finance Sub-pages */}
+            <Route path="/finance/transactions" element={<Transactions />} />
+            <Route path="/finance/cards" element={<Cards />} />
+
+            {/* Job Board Sub-pages */}
+            <Route path="/job-board/listing" element={<JobListing />} />
+            <Route path="/job-board/post" element={<PostJob />} />
+
+            {/* Tasks Sub-pages */}
+            <Route path="/tasks/list" element={<TaskList />} />
+            <Route path="/tasks/board" element={<TaskBoard />} />
+
+            {/* Settings Sub-pages */}
+            <Route path="/settings/account" element={<AccountSettings />} />
+            <Route path="/settings/security" element={<SecuritySettings />} />
+            <Route path="/settings/notifications" element={<NotificationSettings />} />
+
+            {/* Utility Sub-pages */}
+            <Route path="/utility/changelog" element={<Changelog />} />
+            <Route path="/utility/support" element={<Support />} />
+            <Route path="/utility/faq" element={<FAQ />} />
+
+            {/* Onboarding */}
+            <Route path="/onboarding/step-1" element={<StepOne />} />
+            <Route path="/onboarding/step-2" element={<StepTwo />} />
+
+            {/* UI Components */}
+            <Route path="/ui/buttons" element={<Buttons />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
@@ -50,12 +143,13 @@ export default function App() {
 
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
+            <Route path="/messages" element={<Messages />} />
           </Route>
 
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
