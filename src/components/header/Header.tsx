@@ -48,16 +48,14 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
           </button>
 
           <Link to="/" className="lg:hidden">
-            <img
-              className="dark:hidden"
-              src="./images/logo/logo.svg"
-              alt="Logo"
-            />
-            <img
-              className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
-              alt="Logo"
-            />
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 font-black text-white bg-[#3B82F6] rounded-lg text-lg shadow-sm">
+                D
+              </div>
+              <span className="text-xl font-extrabold tracking-tighter text-gray-900 dark:text-white uppercase">
+                Dash<span className="text-[#3B82F6]">board</span>
+              </span>
+            </div>
           </Link>
 
           <div className="hidden lg:block">

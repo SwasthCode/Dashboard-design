@@ -83,10 +83,10 @@ const DateRangePicker: React.FC = () => {
                     key={i}
                     onClick={() => handleDateClick(i)}
                     className={`h-10 w-full flex items-center justify-center cursor-pointer text-sm relative transition-colors
-            ${inRange ? "bg-brand-100 dark:bg-brand-500/10" : "hover:bg-gray-100 dark:hover:bg-gray-800"}
-            ${start ? "!bg-brand-500 text-white rounded-l-lg" : ""}
-            ${end ? "!bg-brand-500 text-white rounded-r-lg" : ""}
-            ${!start && !end && inRange ? "text-brand-600 dark:text-brand-400" : "text-gray-700 dark:text-gray-300"}
+            ${inRange ? "bg-blue-50 dark:bg-blue-500/10" : "hover:bg-gray-100 dark:hover:bg-gray-800"}
+            ${start ? "!bg-blue-600 text-white rounded-l-lg" : ""}
+            ${end ? "!bg-blue-600 text-white rounded-r-lg" : ""}
+            ${!start && !end && inRange ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"}
             ${i === 1 && !start && !end ? "font-bold" : ""}
           `}
                 >

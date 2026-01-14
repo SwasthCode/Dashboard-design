@@ -345,6 +345,8 @@ const AppSidebar: React.FC = () => {
   );
 
   return (
+
+
     <aside
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
         ${isExpanded || isMobileOpen
@@ -362,7 +364,7 @@ const AppSidebar: React.FC = () => {
         className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
           }`}
       >
-        <Link to="/">
+        {/* <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <img
@@ -387,6 +389,17 @@ const AppSidebar: React.FC = () => {
               width={32}
               height={32}
             />
+          )}
+        </Link> */}
+
+        <Link to="/" className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 font-black text-black bg-[#F8CB46] rounded-xl shrink-0 text-xl shadow-sm border border-[#E5B539]">
+            D
+          </div>
+          {(isExpanded || isHovered || isMobileOpen) && (
+            <span className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white uppercase">
+              DASH<span className="text-[#F8CB46]">BOARD</span>
+            </span>
           )}
         </Link>
       </div>

@@ -19,7 +19,7 @@ export default function UserDropdown() {
         onClick={toggleDropdown}
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-gray-900 flex items-center justify-center">
+        <span className="mr-3 overflow-hidden rounded-full h-11 w-11  flex items-center justify-center">
           <img src="/images/logo/logo-icon.svg" alt="User" className="w-6 h-6" />
         </span>
 
