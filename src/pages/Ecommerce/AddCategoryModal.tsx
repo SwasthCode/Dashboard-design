@@ -88,17 +88,6 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
                     />
                 </div>
 
-                <div className="mb-4">
-                    <Label htmlFor="slug">Slug</Label>
-                    <Input
-                        type="text"
-                        id="slug"
-                        placeholder="category-slug"
-                        value={formData.slug}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
 
                 <div className="mb-4">
                     <Label htmlFor="description">Description</Label>

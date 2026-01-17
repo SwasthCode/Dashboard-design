@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers, User } from "../../store/slices/userSlice";
+import { fetchUsers } from "../../store/slices/userSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -60,7 +60,7 @@ export default function Customers() {
                         <thead>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                                {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th> */}
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
@@ -69,34 +69,49 @@ export default function Customers() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading && userList.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="py-10 text-center">
+                                    <td colSpan={4} className="py-10 text-center">
                                         <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand-500 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
                                     </td>
                                 </tr>
                             )}
-                            {currentUsers.map((user: User, i: number) => (
-                                <tr key={user.id || i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                            {currentUsers.map((user, i) => (
+                                <tr
+                                    key={user._id || i}
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                                >
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm font-medium text-gray-800 dark:text-white">
-                                            {user.first_name} {user.last_name}
+                                        <div className="flex items-center">
+                                            <div className="h-10 w-10 rounded-full bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-500 font-semibold">
+                                                {user.first_name?.[0]}
+                                                {user.last_name?.[0]}
+                                            </div>
+                                            <div className="ml-4">
+                                                <div className="text-sm font-medium text-gray-800 dark:text-white">
+                                                    {user.first_name} {user.last_name}
+                                                </div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {user.email}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {user.phone_number}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">{user.email}</span>
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {user.role?.[0]?.name || "N/A"}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">{user.phone_number}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">{user.role}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${(user.status || "").toLowerCase() === "active"
-                                            ? "bg-green-100 text-green-600"
-                                            : (user.status || "").toLowerCase() === "pending"
-                                                ? "bg-orange-100 text-orange-600"
+                                        <span
+                                            className={`px-2 py-1 text-xs font-semibold rounded-full ${user.status === "active" || user.status === "Active"
+                                                ? "bg-green-100 text-green-600"
                                                 : "bg-red-100 text-red-600"
-                                            }`}>
+                                                }`}
+                                        >
                                             {user.status}
                                         </span>
                                     </td>

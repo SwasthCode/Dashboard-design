@@ -21,9 +21,8 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         last_name: "",
         email: "",
         phone_number: "",
-        password: "",
-        role: "User",
-        status: "Active"
+        role: "customer",
+        status: "active"
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -37,7 +36,12 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         setError(null);
 
         try {
-            await dispatch(createUser(formData as User)).unwrap();
+            const userData: User = {
+                ...formData,
+                status: formData.status.toLowerCase(),
+                role: [{ name: formData.role.charAt(0).toUpperCase() + formData.role.slice(1) }] as any
+            };
+            await dispatch(createUser(userData)).unwrap();
             onClose();
             // Reset form
             setFormData({
@@ -45,9 +49,8 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                 last_name: "",
                 email: "",
                 phone_number: "",
-                password: "",
-                role: "User",
-                status: "Active"
+                role: "customer",
+                status: "active"
             });
         } catch (err: any) {
             setError(err || "Failed to create customer");
@@ -108,14 +111,14 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                     <Label htmlFor="phone_number">Phone Number</Label>
                     <Input
                         id="phone_number"
-                        placeholder="+1 234 567 890"
+                        placeholder="6392457271"
                         value={formData.phone_number}
                         onChange={handleInputChange}
                         required
                     />
                 </div>
 
-                <div>
+                {/* <div>
                     <Label htmlFor="password">Password</Label>
                     <Input
                         id="password"
@@ -125,7 +128,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                         onChange={handleInputChange}
                         required
                     />
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -136,9 +139,9 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                             onChange={handleInputChange}
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         >
-                            <option value="User">User</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Manager">Manager</option>
+                            <option value="customer">Customer</option>
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
                         </select>
                     </div>
                     <div>
@@ -149,9 +152,9 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                             onChange={handleInputChange}
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         >
-                            <option value="Active">Active</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Inactive">Inactive</option>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
                         </select>
                     </div>
                 </div>

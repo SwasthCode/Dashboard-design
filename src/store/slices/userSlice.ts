@@ -1,15 +1,29 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
 
+export interface Role {
+    _id?: string;
+    name: string;
+    key?: string;
+    role_type?: number;
+    role_id?: number;
+    is_active?: boolean;
+    is_deleted?: boolean;
+}
+
 export interface User {
+    _id?: string;
     id?: string;
     first_name: string;
     last_name: string;
     phone_number: string;
     email: string;
-    password?: string;
-    role: string;
+    role?: Role[];
     status: string;
+    is_active?: boolean;
+    is_deleted?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 interface UserState {
