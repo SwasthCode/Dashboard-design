@@ -3,57 +3,62 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 
-interface Invoice {
-    id: string;
-    client: string;
-    email: string;
-    amount: string;
-    date: string;
-    dueDate: string;
-    status: "Paid" | "Unpaid" | "Overdue";
+interface Coupon {
+    id: number;
+    code: string;
+    description: string;
+    discount: string;
+    expiryDiff: string;
+    status: "Active" | "Expired";
+    usage: number;
 }
 
-export default function Invoices() {
+export default function Coupons() {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 7;
+    const itemsPerPage = 8;
 
-    const [invoices] = useState<Invoice[]>([
-        { id: "INV-001", client: "Acme Corp", email: "contact@acme.com", amount: "$3,400.00", date: "Jan 10, 2024", dueDate: "Feb 10, 2024", status: "Paid" },
-        { id: "INV-002", client: "Global Tech", email: "info@globaltech.com", amount: "$1,200.00", date: "Jan 12, 2024", dueDate: "Feb 12, 2024", status: "Unpaid" },
-        { id: "INV-003", client: "Soft Solutions", email: "support@softsol.com", amount: "$500.00", date: "Jan 15, 2024", dueDate: "Jan 25, 2024", status: "Overdue" },
-        { id: "INV-004", client: "Alpha Inc", email: "billing@alpha.com", amount: "$2,100.00", date: "Jan 18, 2024", dueDate: "Feb 18, 2024", status: "Paid" },
-        { id: "INV-005", client: "Beta Ltd", email: "fin@beta.com", amount: "$900.00", date: "Jan 20, 2024", dueDate: "Feb 20, 2024", status: "Unpaid" },
-        { id: "INV-006", client: "Gamma Co", email: "acc@gamma.com", amount: "$4,500.00", date: "Jan 22, 2024", dueDate: "Feb 22, 2024", status: "Paid" },
-        { id: "INV-007", client: "Delta LLC", email: "pay@delta.com", amount: "$1,200.00", date: "Jan 25, 2024", dueDate: "Feb 25, 2024", status: "Paid" },
-        { id: "INV-008", client: "Epsilon Group", email: "info@epsilon.com", amount: "$3,000.00", date: "Jan 28, 2024", dueDate: "Feb 28, 2024", status: "Unpaid" },
-        { id: "INV-009", client: "Zeta Ind", email: "bill@zeta.com", amount: "$750.00", date: "Jan 30, 2024", dueDate: "Mar 01, 2024", status: "Overdue" },
+    const [coupons, setCoupons] = useState<Coupon[]>([
+        { id: 1, code: "WELCOME20", description: "Welcome Discount", discount: "20%", expiryDiff: "25 days", status: "Active", usage: 154 },
+        { id: 2, code: "SUMMERSALE", description: "Summer Sale 2024", discount: "$50", expiryDiff: "5 days", status: "Active", usage: 890 },
+        { id: 3, code: "BLACKFRIDAY", description: "Black Friday Deal", discount: "50%", expiryDiff: "Expired", status: "Expired", usage: 2405 },
+        { id: 4, code: "LOYALTY10", description: "Loyalty Program", discount: "10%", expiryDiff: "Unlimited", status: "Active", usage: 45 },
+        { id: 5, code: "FREESHIP", description: "Free Shipping", discount: "Shipping", expiryDiff: "10 days", status: "Active", usage: 320 },
+        { id: 6, code: "FLASH50", description: "Flash Sale", discount: "50%", expiryDiff: "Expired", status: "Expired", usage: 112 },
+        { id: 7, code: "NEWYEAR30", description: "New Year Special", discount: "30%", expiryDiff: "360 days", status: "Active", usage: 12 },
+        { id: 8, code: "STUDENT15", description: "Student Discount", discount: "15%", expiryDiff: "Unlimited", status: "Active", usage: 560 },
+        { id: 9, code: "VIP25", description: "VIP Members", discount: "25%", expiryDiff: "Unlimited", status: "Active", usage: 78 },
+        { id: 10, code: "SPRING10", description: "Spring Season", discount: "10%", expiryDiff: "60 days", status: "Active", usage: 0 },
     ]);
 
     // Calculate pagination
-    const totalPages = Math.ceil(invoices.length / itemsPerPage);
+    const totalPages = Math.ceil(coupons.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentInvoices = invoices.slice(indexOfFirstItem, indexOfLastItem);
+    const currentCoupons = coupons.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
+    const handleDelete = (id: number) => {
+        setCoupons(coupons.filter(c => c.id !== id));
+    };
+
     return (
         <div>
             <PageMeta
-                title="Invoices | TailAdmin - React.js Admin Dashboard"
-                description="This is the Invoices page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Coupons | TailAdmin - React.js Admin Dashboard"
+                description="This is the Coupons page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
             />
-            <PageBreadcrumb pageTitle="Invoices" />
+            <PageBreadcrumb pageTitle="Coupons & Discounts" />
 
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                        Invoice List
+                        Active Coupons
                     </h3>
                     <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
-                        Create Invoice
+                        Create Coupon
                     </button>
                 </div>
                 <div className="overflow-x-auto">
@@ -61,22 +66,22 @@ export default function Invoices() {
                         <thead>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Invoice ID
+                                    Code
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Client
+                                    Description
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Total Amount
+                                    Discount
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Issued Date
-                                </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Due Date
+                                    Expiry
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Status
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Usage
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Actions
@@ -84,58 +89,57 @@ export default function Invoices() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {currentInvoices.map((invoice, i) => (
+                            {currentCoupons.map((coupon) => (
                                 <tr
-                                    key={i}
+                                    key={coupon.id}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm font-medium text-brand-500 underline cursor-pointer">
-                                            {invoice.id}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-gray-800 dark:text-white">
-                                                {invoice.client}
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-8 h-8 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-brand-500">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                </svg>
                                             </span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                {invoice.email}
+                                            <span className="text-sm font-bold text-gray-800 dark:text-white font-mono">
+                                                {coupon.code}
                                             </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm font-medium text-gray-800 dark:text-white">
-                                            {invoice.amount}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {coupon.description}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                                            {coupon.discount}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {invoice.date}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {invoice.dueDate}
+                                            {coupon.expiryDiff}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            className={`px-2 py-1 text-[10px] font-semibold rounded-full ${invoice.status === "Paid"
+                                            className={`px-2 py-1 text-[10px] font-semibold rounded-full ${coupon.status === "Active"
                                                     ? "bg-green-100 text-green-600"
-                                                    : invoice.status === "Unpaid"
-                                                        ? "bg-orange-100 text-orange-600"
-                                                        : "bg-red-100 text-red-600"
+                                                    : "bg-red-100 text-red-600"
                                                 }`}
                                         >
-                                            {invoice.status}
+                                            {coupon.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <button className="text-gray-500 hover:text-brand-500 transition-colors">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {coupon.usage} used
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <button onClick={() => handleDelete(coupon.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
                                         </button>
                                     </td>
@@ -151,7 +155,7 @@ export default function Invoices() {
                     onPageChange={handlePageChange}
                     startIndex={indexOfFirstItem}
                     endIndex={indexOfLastItem}
-                    totalResults={invoices.length}
+                    totalResults={coupons.length}
                 />
             </div>
         </div>

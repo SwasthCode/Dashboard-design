@@ -29,6 +29,8 @@ import AddSubCategory from "./pages/Ecommerce/AddSubCategory";
 import Addresses from "./pages/Ecommerce/Addresses";
 import Invoices from "./pages/Ecommerce/Invoices";
 import Pay from "./pages/Ecommerce/Pay";
+import Reviews from "./pages/Ecommerce/Reviews";
+import Coupons from "./pages/Ecommerce/Coupons";
 import Analytics from "./pages/Dashboard/Analytics";
 import Fintech from "./pages/Dashboard/Fintech";
 import Community from "./pages/Community";
@@ -78,6 +80,8 @@ export default function App() {
             <Route path="/sub-categories/add" element={<AddSubCategory />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/pay" element={<Pay />} />
+            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/coupons" element={<Coupons />} />
 
             {/* Remaining Pages */}
             <Route path="/analytics" element={<Analytics />} />
