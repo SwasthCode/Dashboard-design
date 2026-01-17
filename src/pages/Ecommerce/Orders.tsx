@@ -3,8 +3,18 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Input from "../../components/form/input/InputField";
 import DatePicker from "../../components/form/date-picker";
-import { FilterIcon } from "../../icons";
+import { FilterIcon, CloseIcon } from "../../icons";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
+
+type OrderStatus = "Pending" | "Hold" | "Ready" | "Shipped" | "Delivered" | "Cancelled" | "Returned";
+
+interface Order {
+    id: string;
+    customer: string;
+    date: string;
+    price: string;
+    status: OrderStatus;
+}
 
 export default function Orders() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -12,16 +22,17 @@ export default function Orders() {
     const [selectedDate, setSelectedDate] = useState("");
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-    const orders = [
+    const [orders, setOrders] = useState<Order[]>([
         { id: "#12345", customer: "John Doe", date: "Jan 12, 2024", price: "$120.00", status: "Delivered" },
         { id: "#12346", customer: "Jane Smith", date: "Jan 13, 2024", price: "$240.00", status: "Pending" },
         { id: "#12347", customer: "Robert Fox", date: "Jan 14, 2024", price: "$89.50", status: "Shipped" },
         { id: "#12348", customer: "Alice Johnson", date: "Jan 15, 2024", price: "$150.00", status: "Cancelled" },
         { id: "#12349", customer: "Mike Brown", date: "Jan 16, 2024", price: "$200.00", status: "Returned" },
         { id: "#12350", customer: "Sarah Wilson", date: "Jan 17, 2024", price: "$300.00", status: "Ready" },
-    ];
+        { id: "#12351", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+    ]);
 
-    const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
+    const statusOptions: OrderStatus[] = ["Pending", "Hold", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
     const handleDateChange = (_dates: Date[], dateStr: string) => {
         setSelectedDate(dateStr);
@@ -32,6 +43,14 @@ export default function Orders() {
             prev.includes(status)
                 ? prev.filter(s => s !== status)
                 : [...prev, status]
+        );
+    };
+
+    const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
+        setOrders(prevOrders =>
+            prevOrders.map(order =>
+                order.id === orderId ? { ...order, status: newStatus } : order
+            )
         );
     };
 
@@ -51,6 +70,97 @@ export default function Orders() {
 
         return matchesSearch && matchesStatus && matchesDate;
     });
+
+    const getStatusColor = (status: OrderStatus) => {
+        switch (status) {
+            case "Delivered": return "bg-green-100 text-green-600";
+            case "Pending": return "bg-orange-100 text-orange-600";
+            case "Shipped": return "bg-blue-100 text-blue-600";
+            case "Cancelled": return "bg-red-100 text-red-600";
+            case "Returned": return "bg-purple-100 text-purple-600";
+            case "Hold": return "bg-yellow-100 text-yellow-600";
+            case "Ready": return "bg-teal-100 text-teal-600";
+            default: return "bg-gray-100 text-gray-600";
+        }
+    };
+
+    const renderActions = (order: Order) => {
+        switch (order.status) {
+            case "Pending":
+                return (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => handleStatusChange(order.id, "Ready")}
+                            className="px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600"
+                        >
+                            Accept
+                        </button>
+                        <button
+                            onClick={() => handleStatusChange(order.id, "Hold")}
+                            className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200"
+                        >
+                            Hold
+                        </button>
+                        <button
+                            onClick={() => handleStatusChange(order.id, "Cancelled")}
+                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                );
+            case "Hold":
+                return (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => handleStatusChange(order.id, "Ready")}
+                            className="px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600"
+                        >
+                            Accept
+                        </button>
+                        <button
+                            onClick={() => handleStatusChange(order.id, "Cancelled")}
+                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                );
+            case "Ready":
+                return (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => handleStatusChange(order.id, "Shipped")}
+                            className="px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600"
+                        >
+                            Ship
+                        </button>
+                    </div>
+                );
+            case "Shipped":
+                return (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => handleStatusChange(order.id, "Delivered")}
+                            className="px-3 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600"
+                        >
+                            Mark Delivered
+                        </button>
+                    </div>
+                );
+            case "Delivered":
+                return (
+                    <button
+                        onClick={() => handleStatusChange(order.id, "Returned")}
+                        className="px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded hover:bg-purple-200"
+                    >
+                        Mark Returned
+                    </button>
+                );
+            default:
+                return <span className="text-xs text-gray-400">No actions</span>;
+        }
+    };
 
     return (
         <div>
@@ -86,11 +196,23 @@ export default function Orders() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <DatePicker
-                            id="order-date-picker"
-                            placeholder="Filter by Date"
-                            onChange={handleDateChange}
-                        />
+                        <div className="relative">
+                            <DatePicker
+                                key={selectedDate || "reset"}
+                                id="order-date-picker"
+                                placeholder="Filter by Date"
+                                onChange={handleDateChange}
+                            />
+                            {selectedDate && (
+                                <button
+                                    className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 z-10"
+                                    onClick={() => setSelectedDate("")}
+                                    title="Clear Date"
+                                >
+                                    <CloseIcon className="size-4" />
+                                </button>
+                            )}
+                        </div>
 
                         <div className="relative dropdown-toggle">
                             <button
@@ -136,6 +258,7 @@ export default function Orders() {
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -147,21 +270,18 @@ export default function Orders() {
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{order.date}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{order.price}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${order.status === "Delivered" ? "bg-green-100 text-green-600" :
-                                                    order.status === "Pending" ? "bg-orange-100 text-orange-600" :
-                                                        order.status === "Shipped" ? "bg-blue-100 text-blue-600" :
-                                                            order.status === "Cancelled" ? "bg-red-100 text-red-600" :
-                                                                order.status === "Returned" ? "bg-purple-100 text-purple-600" :
-                                                                    "bg-gray-100 text-gray-600"
-                                                    }`}>
+                                                <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${getStatusColor(order.status)}`}>
                                                     {order.status}
                                                 </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                {renderActions(order)}
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                                             No orders found matching your filters.
                                         </td>
                                     </tr>
