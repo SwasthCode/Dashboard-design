@@ -17,6 +17,7 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
     const { user } = useSelector((state: RootState) => state.auth);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [image, setImage] = useState<File | null>(null);
 
     const [formData, setFormData] = useState({
         product_id: "",
@@ -34,6 +35,12 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
         setFormData((prev) => ({ ...prev, [id]: id === 'rating' ? Number(value) : value }));
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setImage(e.target.files[0]);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

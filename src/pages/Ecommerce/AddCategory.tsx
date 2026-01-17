@@ -6,9 +6,10 @@ import Input from "../../components/form/input/InputField";
 import { useDispatch } from "react-redux";
 import { addCategory, Category } from "../../store/slices/categorySlice";
 import { useNavigate } from "react-router";
+import { AppDispatch } from "../../store";
 
 export default function AddCategory() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const [images, setImages] = useState<File[]>([]);
     const [formData, setFormData] = useState({
