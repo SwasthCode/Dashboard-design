@@ -12,8 +12,7 @@ const getHeaders = (options: RequestOptions = {}, isFormData: boolean = false) =
     // Add Authorization header if token is present
     const token = options.token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
     if (token) {
-        // headers['Authorization'] = `Bearer ${token}`;
-        headers['Authorization'] = `${token}`;
+        headers['Authorization'] = `Bearer ${token}`;
     }
 
     // Set Content-Type to application/json if it's not FormData

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { createUser, User } from "../../store/slices/userSlice";
-import { AppDispatch } from "../../store";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { createUser, User, fetchRoles } from "../../store/slices/userSlice";
+import { AppDispatch, RootState } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
@@ -13,6 +13,7 @@ interface AddCustomerModalProps {
 
 export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
     const dispatch = useDispatch<AppDispatch>();
+    const { roles } = useSelector((state: RootState) => state.user);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -21,9 +22,15 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         last_name: "",
         email: "",
         phone_number: "",
-        role: "customer",
+        role: "",
         status: "active"
     });
+
+    useEffect(() => {
+        if (isOpen && roles.length === 0) {
+            dispatch(fetchRoles());
+        }
+    }, [dispatch, isOpen, roles.length]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
@@ -36,10 +43,11 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         setError(null);
 
         try {
+            const selectedRole = roles.find(r => r._id === formData.role);
             const userData: User = {
                 ...formData,
                 status: formData.status.toLowerCase(),
-                role: [{ name: formData.role.charAt(0).toUpperCase() + formData.role.slice(1) }] as any
+                role: selectedRole ? [selectedRole] : []
             };
             await dispatch(createUser(userData)).unwrap();
             // Reset and close
@@ -48,7 +56,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                 last_name: "",
                 email: "",
                 phone_number: "",
-                role: "customer",
+                role: "",
                 status: "active"
             });
             onClose();
@@ -60,7 +68,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6 text-inter">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Customer</h3>
             </div>
@@ -125,11 +133,13 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                             id="role"
                             value={formData.role}
                             onChange={handleInputChange}
+                            required
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         >
-                            <option value="customer">Customer</option>
-                            <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
+                            <option value="">Select Role</option>
+                            {roles.map((r) => (
+                                <option key={r._id} value={r._id}>{r.name}</option>
+                            ))}
                         </select>
                     </div>
                     <div>

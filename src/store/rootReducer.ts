@@ -4,6 +4,8 @@ import productReducer from './slices/productSlice';
 import categoryReducer from './slices/categorySlice';
 import subCategoryReducer from './slices/subCategorySlice';
 import userReducer from './slices/userSlice';
+import reviewReducer from './slices/reviewSlice';
+import addressReducer from './slices/addressSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -11,6 +13,8 @@ const rootReducer = combineReducers({
     category: categoryReducer,
     subCategory: subCategoryReducer,
     user: userReducer,
+    review: reviewReducer,
+    address: addressReducer,
 });
 
 export default rootReducer;

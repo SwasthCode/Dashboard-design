@@ -22,12 +22,14 @@ export interface User {
     status: string;
     is_active?: boolean;
     is_deleted?: boolean;
+    image?: string | { url: string; _id: string };
     createdAt?: string;
     updatedAt?: string;
 }
 
 interface UserState {
     users: User[];
+    roles: Role[];
     selectedUser: User | null;
     loading: boolean;
     error: string | null;
@@ -35,25 +37,35 @@ interface UserState {
 
 const initialState: UserState = {
     users: [],
+    roles: [],
     selectedUser: null,
     loading: false,
     error: null,
 };
 
-// Async Thunks using https utility and new schema
+// Async Thunks
 export const fetchUsers = createAsyncThunk('user/fetchUsers', async (_, { rejectWithValue }) => {
     try {
         const response = await https.get('users');
-        return response.data || []; // Extract data array
+        return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch users');
+    }
+});
+
+export const fetchRoles = createAsyncThunk('user/fetchRoles', async (_, { rejectWithValue }) => {
+    try {
+        const response = await https.get('roles');
+        return response.data || [];
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch roles');
     }
 });
 
 export const fetchUserById = createAsyncThunk('user/fetchUserById', async (id: string, { rejectWithValue }) => {
     try {
         const response = await https.get(`users/${id}`);
-        return response.data; // Extract user data
+        return response.data;
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch user');
     }
@@ -62,18 +74,17 @@ export const fetchUserById = createAsyncThunk('user/fetchUserById', async (id: s
 export const createUser = createAsyncThunk('user/createUser', async (user: User, { rejectWithValue }) => {
     try {
         const response = await https.post('users', user);
-        return response.data; // Extract created user
+        return response.data;
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to create user');
     }
 });
 
-export const updateUser = createAsyncThunk('user/updateUser', async (user: User, { rejectWithValue }) => {
-    const id = user.id || user._id;
-    if (!id) return rejectWithValue('User ID is required for updates');
+export const updateUser = createAsyncThunk('user/updateUser', async (user: User | FormData, { rejectWithValue }) => {
     try {
-        const response = await https.put(`users/profile`, user);
-        return response.data; // Extract updated user
+        const isFormData = user instanceof FormData;
+        const response = await https.put(`users/profile`, user, { isFormData });
+        return response.data;
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to update user');
     }
@@ -97,7 +108,6 @@ const userSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        // Handle common states (loading, error) across thunks
         const handlePending = (state: UserState) => {
             state.loading = true;
             state.error = null;
@@ -108,7 +118,6 @@ const userSlice = createSlice({
         };
 
         builder
-            // Fetch Users
             .addCase(fetchUsers.pending, handlePending)
             .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<User[]>) => {
                 state.loading = false;
@@ -116,7 +125,13 @@ const userSlice = createSlice({
             })
             .addCase(fetchUsers.rejected, handleRejected)
 
-            // Fetch User By ID
+            .addCase(fetchRoles.pending, handlePending)
+            .addCase(fetchRoles.fulfilled, (state, action: PayloadAction<Role[]>) => {
+                state.loading = false;
+                state.roles = action.payload;
+            })
+            .addCase(fetchRoles.rejected, handleRejected)
+
             .addCase(fetchUserById.pending, handlePending)
             .addCase(fetchUserById.fulfilled, (state, action: PayloadAction<User>) => {
                 state.loading = false;
@@ -124,7 +139,6 @@ const userSlice = createSlice({
             })
             .addCase(fetchUserById.rejected, handleRejected)
 
-            // Create User
             .addCase(createUser.pending, handlePending)
             .addCase(createUser.fulfilled, (state, action: PayloadAction<User>) => {
                 state.loading = false;
@@ -132,18 +146,20 @@ const userSlice = createSlice({
             })
             .addCase(createUser.rejected, handleRejected)
 
-            // Update User
             .addCase(updateUser.pending, handlePending)
             .addCase(updateUser.fulfilled, (state, action: PayloadAction<User>) => {
                 state.loading = false;
-                const index = state.users.findIndex(u => (u.id || u._id) === (action.payload.id || action.payload._id));
+                const updatedUser = action.payload;
+                const index = state.users.findIndex(u => (u.id || u._id) === (updatedUser.id || updatedUser._id));
                 if (index !== -1) {
-                    state.users[index] = action.payload;
+                    state.users[index] = updatedUser;
+                }
+                if (state.selectedUser && (state.selectedUser.id || state.selectedUser._id) === (updatedUser.id || updatedUser._id)) {
+                    state.selectedUser = updatedUser;
                 }
             })
             .addCase(updateUser.rejected, handleRejected)
 
-            // Delete User
             .addCase(deleteUser.pending, handlePending)
             .addCase(deleteUser.fulfilled, (state, action: PayloadAction<string>) => {
                 state.loading = false;

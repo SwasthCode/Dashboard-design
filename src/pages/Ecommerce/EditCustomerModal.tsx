@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { updateUser, User } from "../../store/slices/userSlice";
-import { AppDispatch } from "../../store";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUser, User, fetchRoles } from "../../store/slices/userSlice";
+import { AppDispatch, RootState } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
@@ -14,17 +14,25 @@ interface EditCustomerModalProps {
 
 export default function EditCustomerModal({ isOpen, onClose, user }: EditCustomerModalProps) {
     const dispatch = useDispatch<AppDispatch>();
+    const { roles } = useSelector((state: RootState) => state.user);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [image, setImage] = useState<File | null>(null);
 
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
         email: "",
         phone_number: "",
-        role: "customer",
+        role: "",
         status: "active"
     });
+
+    useEffect(() => {
+        if (isOpen && roles.length === 0) {
+            dispatch(fetchRoles());
+        }
+    }, [dispatch, isOpen, roles.length]);
 
     useEffect(() => {
         if (user) {
@@ -33,15 +41,22 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                 last_name: user.last_name || "",
                 email: user.email || "",
                 phone_number: user.phone_number || "",
-                role: user.role?.[0]?.name?.toLowerCase() || "customer",
+                role: user.role?.[0]?._id || "",
                 status: user.status || "active"
             });
+            setImage(null);
         }
     }, [user]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
         setFormData((prev) => ({ ...prev, [id]: value }));
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setImage(e.target.files[0]);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -52,14 +67,24 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
         setError(null);
 
         try {
-            const userData: User = {
-                ...user,
-                ...formData,
-                status: formData.status.toLowerCase(),
-                role: [{ name: formData.role.charAt(0).toUpperCase() + formData.role.slice(1) }] as any,
-                id: (user.id || user._id) as string
-            };
-            await dispatch(updateUser(userData)).unwrap();
+            const data = new FormData();
+            data.append("first_name", formData.first_name);
+            data.append("last_name", formData.last_name);
+            data.append("email", formData.email);
+            data.append("phone_number", formData.phone_number);
+            data.append("status", formData.status.toLowerCase());
+
+            // Send role object as string or as separate fields depending on API
+            const selectedRole = roles.find(r => r._id === formData.role);
+            if (selectedRole) {
+                data.append("role", JSON.stringify([selectedRole]));
+            }
+
+            if (image) {
+                data.append("image", image);
+            }
+
+            await dispatch(updateUser(data)).unwrap();
             onClose();
         } catch (err: any) {
             setError(err || "Failed to update customer");
@@ -69,7 +94,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6 text-inter">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Edit Customer</h3>
             </div>
@@ -134,11 +159,13 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                             id="role"
                             value={formData.role}
                             onChange={handleInputChange}
+                            required
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         >
-                            <option value="customer">Customer</option>
-                            <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
+                            <option value="">Select Role</option>
+                            {roles.map((r) => (
+                                <option key={r._id} value={r._id}>{r.name}</option>
+                            ))}
                         </select>
                     </div>
                     <div>
@@ -153,6 +180,28 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                             <option value="pending">Pending</option>
                             <option value="inactive">Inactive</option>
                         </select>
+                    </div>
+                </div>
+
+                <div>
+                    <Label htmlFor="image">Profile Image</Label>
+                    <div className="flex items-center gap-4">
+                        {(image || (user?.image as any)?.url) && (
+                            <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200">
+                                <img
+                                    src={image ? URL.createObjectURL(image) : (user?.image as any)?.url}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        )}
+                        <input
+                            type="file"
+                            id="image"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                        />
                     </div>
                 </div>
 
