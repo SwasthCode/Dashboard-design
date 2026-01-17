@@ -22,61 +22,52 @@ interface AuthState {
 // Login Thunk
 export const loginUser = createAsyncThunk(
     'auth/loginUser',
-    async (credentials: any, { rejectWithValue: _rejectWithValue }) => {
+    async (credentials: { mobile: string; otp: string }, { rejectWithValue: _rejectWithValue }) => {
         // MOCK DATA FOR UI VALIDATION
-        return new Promise<any>((resolve) => {
+        return new Promise<any>((resolve, reject) => {
             setTimeout(() => {
-                resolve({
-                    access_token: 'dummy_access_token_ui_validation',
-                    user: {
-                        id: 'mock_id_1',
-                        name: 'Mock User',
-                        email: credentials.email || 'mock@example.com',
-                        role: 'admin',
-                    },
-                });
+                if (credentials.otp === '1234') {
+                    resolve({
+                        access_token: 'dummy_access_token_ui_validation',
+                        user: {
+                            id: 'mock_id_1',
+                            name: 'Mock User',
+                            email: `user_${credentials.mobile}@example.com`,
+                            mobile: credentials.mobile,
+                            role: 'admin',
+                        },
+                    });
+                } else {
+                    reject(_rejectWithValue('Invalid OTP'));
+                }
             }, 1000);
         });
-
-        /* -- Real API Call (Uncomment when backend is ready) --
-        try {
-            const response = await https.post('/auth/login', credentials);
-            return response;
-        } catch (error: any) {
-            // Return a custom error message from backend or a default message
-            return _rejectWithValue(error.data?.message || error.message || 'Login failed');
-        }
-        */
     }
 );
 
 // Register Thunk
 export const registerUser = createAsyncThunk(
     'auth/registerUser',
-    async (userData: any, { rejectWithValue: _rejectWithValue }) => {
+    async (userData: { mobile: string; otp: string }, { rejectWithValue: _rejectWithValue }) => {
         // MOCK DATA FOR UI VALIDATION
-        return new Promise<any>((resolve) => {
+        return new Promise<any>((resolve, reject) => {
             setTimeout(() => {
-                resolve({
-                    access_token: 'dummy_access_token_ui_validation',
-                    user: {
-                        id: 'mock_id_2',
-                        name: userData.name || 'Mock User',
-                        email: userData.email || 'mock@example.com',
-                        role: 'user',
-                    },
-                });
+                if (userData.otp === '1234') {
+                    resolve({
+                        access_token: 'dummy_access_token_ui_validation',
+                        user: {
+                            id: 'mock_id_2',
+                            name: 'New User',
+                            email: `user_${userData.mobile}@example.com`,
+                            mobile: userData.mobile,
+                            role: 'user',
+                        },
+                    });
+                } else {
+                    reject(_rejectWithValue('Invalid OTP'));
+                }
             }, 1000);
         });
-
-        /* -- Real API Call (Uncomment when backend is ready) --
-        try {
-            const response = await https.post('/auth/register', userData);
-            return response;
-        } catch (error: any) {
-            return _rejectWithValue(error.data?.message || error.message || 'Registration failed');
-        }
-        */
     }
 );
 

@@ -23,7 +23,7 @@ export default function Orders() {
 
     const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
-    const handleDateChange = (dates: Date[], dateStr: string) => {
+    const handleDateChange = (_dates: Date[], dateStr: string) => {
         setSelectedDate(dateStr);
     };
 
@@ -148,11 +148,11 @@ export default function Orders() {
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{order.price}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${order.status === "Delivered" ? "bg-green-100 text-green-600" :
-                                                        order.status === "Pending" ? "bg-orange-100 text-orange-600" :
-                                                            order.status === "Shipped" ? "bg-blue-100 text-blue-600" :
-                                                                order.status === "Cancelled" ? "bg-red-100 text-red-600" :
-                                                                    order.status === "Returned" ? "bg-purple-100 text-purple-600" :
-                                                                        "bg-gray-100 text-gray-600"
+                                                    order.status === "Pending" ? "bg-orange-100 text-orange-600" :
+                                                        order.status === "Shipped" ? "bg-blue-100 text-blue-600" :
+                                                            order.status === "Cancelled" ? "bg-red-100 text-red-600" :
+                                                                order.status === "Returned" ? "bg-purple-100 text-purple-600" :
+                                                                    "bg-gray-100 text-gray-600"
                                                     }`}>
                                                     {order.status}
                                                 </span>
