@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { createUser, User } from "../../store/slices/userSlice";
+import { updateUser, User } from "../../store/slices/userSlice";
 import { AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 
-interface AddCustomerModalProps {
+interface EditCustomerModalProps {
     isOpen: boolean;
     onClose: () => void;
+    user: User | null;
 }
 
-export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
+export default function EditCustomerModal({ isOpen, onClose, user }: EditCustomerModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,6 +26,19 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         status: "active"
     });
 
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                first_name: user.first_name || "",
+                last_name: user.last_name || "",
+                email: user.email || "",
+                phone_number: user.phone_number || "",
+                role: user.role?.[0]?.name?.toLowerCase() || "customer",
+                status: user.status || "active"
+            });
+        }
+    }, [user]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
         setFormData((prev) => ({ ...prev, [id]: value }));
@@ -32,28 +46,23 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user?.id && !user?._id) return;
+
         setLoading(true);
         setError(null);
 
         try {
             const userData: User = {
+                ...user,
                 ...formData,
                 status: formData.status.toLowerCase(),
-                role: [{ name: formData.role.charAt(0).toUpperCase() + formData.role.slice(1) }] as any
+                role: [{ name: formData.role.charAt(0).toUpperCase() + formData.role.slice(1) }] as any,
+                id: (user.id || user._id) as string
             };
-            await dispatch(createUser(userData)).unwrap();
-            // Reset and close
-            setFormData({
-                first_name: "",
-                last_name: "",
-                email: "",
-                phone_number: "",
-                role: "customer",
-                status: "active"
-            });
+            await dispatch(updateUser(userData)).unwrap();
             onClose();
         } catch (err: any) {
-            setError(err || "Failed to add customer");
+            setError(err || "Failed to update customer");
         } finally {
             setLoading(false);
         }
@@ -62,7 +71,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Customer</h3>
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Edit Customer</h3>
             </div>
 
             {error && (
@@ -160,7 +169,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                         disabled={loading}
                         className="flex-1 px-4 py-2.5 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? "Adding..." : "Add Customer"}
+                        {loading ? "Saving..." : "Save Changes"}
                     </button>
                 </div>
             </form>

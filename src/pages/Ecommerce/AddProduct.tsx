@@ -1,24 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
-import { useDispatch } from "react-redux";
-import { addProduct, Product } from "../../store/slices/productSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addProduct } from "../../store/slices/productSlice";
+import { fetchCategories } from "../../store/slices/categorySlice";
+import { fetchSubCategories } from "../../store/slices/subCategorySlice";
 import { useNavigate } from "react-router";
+import { RootState, AppDispatch } from "../../store";
 
 export default function AddProduct() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const { categories } = useSelector((state: RootState) => state.category);
+    const { subCategories } = useSelector((state: RootState) => state.subCategory);
+
     const [images, setImages] = useState<File[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
     const [formData, setFormData] = useState({
         name: "",
-        category: "",
+        category_id: "",
+        subcategory_id: "",
         price: "",
+        mrp: "",
+        unit: "",
         quantity: "",
         description: "",
-        status: "In Stock"
+        isAvailable: true
     });
+
+    useEffect(() => {
+        if (categories.length === 0) dispatch(fetchCategories());
+        if (subCategories.length === 0) dispatch(fetchSubCategories());
+    }, [dispatch, categories.length, subCategories.length]);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -27,32 +44,48 @@ export default function AddProduct() {
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { id, value } = e.target;
-        if (id === "productName") setFormData({ ...formData, name: value });
-        else setFormData({ ...formData, [id]: value });
+        const { id, value, type } = e.target;
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setFormData((prev) => ({ ...prev, [id]: checked }));
+        } else {
+            setFormData((prev) => ({ ...prev, [id]: value }));
+        }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
+        setError(null);
 
-        // Create a mock image URL or use a placeholder
-        const imageUrl = images.length > 0
-            ? URL.createObjectURL(images[0])
-            : "https://images.unsplash.com/photo-1560343090-f0409e92791a?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&q=80";
+        try {
+            const data = new FormData();
+            data.append("name", formData.name);
+            data.append("category_id", formData.category_id);
+            data.append("subcategory_id", formData.subcategory_id);
+            data.append("price", formData.price);
+            data.append("mrp", formData.mrp);
+            data.append("unit", formData.unit);
+            data.append("stock", formData.quantity);
+            data.append("isAvailable", String(formData.isAvailable));
+            data.append("description", formData.description);
 
-        const newProduct: Product = {
-            name: formData.name,
-            category: formData.category,
-            price: `$${formData.price}`,
-            stock: formData.quantity,
-            status: formData.status === "in_stock" ? "In Stock" : formData.status === "low_stock" ? "Low Stock" : "Out of Stock",
-            image: imageUrl,
-            description: formData.description
-        };
+            if (images.length > 0) {
+                images.forEach((image) => {
+                    data.append("image", image);
+                });
+            }
 
-        dispatch(addProduct(newProduct));
-        navigate("/products");
+            await dispatch(addProduct(data)).unwrap();
+            navigate("/products");
+        } catch (err: any) {
+            setError(err || "Failed to add product");
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const filteredSubCategories = subCategories.filter(s => s.category_id === formData.category_id);
 
     return (
         <div>
@@ -64,20 +97,26 @@ export default function AddProduct() {
 
             <div className="grid grid-cols-1 gap-9 sm:grid-cols-2">
                 <div className="flex flex-col gap-9">
-                    {/* Contact Form */}
                     <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
                         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
                             <h3 className="font-medium text-black dark:text-white">
                                 Product Details
                             </h3>
                         </div>
+
+                        {error && (
+                            <div className="m-6.5 p-3 bg-red-50 text-red-500 text-sm rounded-lg border border-red-100">
+                                {error}
+                            </div>
+                        )}
+
                         <form onSubmit={handleSubmit}>
                             <div className="p-6.5">
                                 <div className="mb-4.5">
-                                    <Label htmlFor="productName">Product Name</Label>
+                                    <Label htmlFor="name">Product Name</Label>
                                     <Input
                                         type="text"
-                                        id="productName"
+                                        id="name"
                                         placeholder="Enter product name"
                                         value={formData.name}
                                         onChange={handleInputChange}
@@ -85,68 +124,99 @@ export default function AddProduct() {
                                     />
                                 </div>
 
-                                <div className="mb-4.5">
-                                    <Label htmlFor="category">Category</Label>
-                                    <div className="relative z-20 bg-transparent dark:bg-form-input">
-                                        <select
-                                            id="category"
-                                            value={formData.category}
-                                            onChange={handleInputChange}
-                                            className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-black dark:text-white"
-                                        >
-                                            <option value="">Select Category</option>
-                                            <option value="Electronics">Electronics</option>
-                                            <option value="Fashion">Fashion</option>
-                                            <option value="Home & Garden">Home & Garden</option>
-                                        </select>
-                                        <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                                            <svg
-                                                className="fill-current"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
+                                <div className="grid grid-cols-2 gap-4 mb-4.5">
+                                    <div>
+                                        <Label htmlFor="category_id">Category</Label>
+                                        <div className="relative z-20 bg-transparent dark:bg-form-input">
+                                            <select
+                                                id="category_id"
+                                                value={formData.category_id}
+                                                onChange={handleInputChange}
+                                                className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-black dark:text-white"
+                                                required
                                             >
-                                                <path
-                                                    d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
-                                                    fill=""
-                                                />
-                                            </svg>
-                                        </span>
+                                                <option value="">Select Category</option>
+                                                {categories.map((cat) => (
+                                                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="subcategory_id">Sub-Category</Label>
+                                        <div className="relative z-20 bg-transparent dark:bg-form-input">
+                                            <select
+                                                id="subcategory_id"
+                                                value={formData.subcategory_id}
+                                                onChange={handleInputChange}
+                                                className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-black dark:text-white"
+                                                required
+                                            >
+                                                <option value="">Select Sub-Category</option>
+                                                {filteredSubCategories.map((sub) => (
+                                                    <option key={sub._id} value={sub._id}>{sub.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="mb-4.5">
-                                    <Label htmlFor="price">Price</Label>
-                                    <Input
-                                        type="number"
-                                        id="price"
-                                        placeholder="Enter price"
-                                        value={formData.price}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
+                                <div className="grid grid-cols-2 gap-4 mb-4.5">
+                                    <div>
+                                        <Label htmlFor="price">Price</Label>
+                                        <Input
+                                            type="number"
+                                            id="price"
+                                            placeholder="Enter price"
+                                            value={formData.price}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="mrp">MRP</Label>
+                                        <Input
+                                            type="number"
+                                            id="mrp"
+                                            placeholder="Enter MRP"
+                                            value={formData.mrp}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="mb-4.5">
-                                    <Label htmlFor="quantity">Quantity</Label>
-                                    <Input
-                                        type="number"
-                                        id="quantity"
-                                        placeholder="Enter quantity"
-                                        value={formData.quantity}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
+                                <div className="grid grid-cols-2 gap-4 mb-4.5">
+                                    <div>
+                                        <Label htmlFor="quantity">Quantity (Stock)</Label>
+                                        <Input
+                                            type="number"
+                                            id="quantity"
+                                            placeholder="Enter quantity"
+                                            value={formData.quantity}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="unit">Unit</Label>
+                                        <Input
+                                            type="text"
+                                            id="unit"
+                                            placeholder="Enter unit (e.g. Kg)"
+                                            value={formData.unit}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="mb-6">
                                     <Label htmlFor="description">Description</Label>
                                     <textarea
-                                        rows={6}
+                                        rows={4}
                                         id="description"
-                                        placeholder="Type your message"
+                                        placeholder="Type brand description"
                                         className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-black dark:text-white"
                                         value={formData.description}
                                         onChange={handleInputChange}
@@ -200,45 +270,24 @@ export default function AddProduct() {
                                                 drag and drop
                                             </p>
                                             <p className="mt-1.5">SVG, PNG, JPG or GIF</p>
-                                            <p>(max, 800 X 800px)</p>
                                         </div>
                                     </div>
-                                    {images.length > 0 && <div className="mt-2 text-sm text-green-600">{images.length} images selected</div>}
+                                    {images.length > 0 && <div className="mt-2 text-sm text-green-600 font-medium">{images.length} image(s) selected</div>}
                                 </div>
 
-                                <div className="mb-4.5">
-                                    <Label htmlFor="status">Status</Label>
-                                    <div className="relative z-20 bg-transparent dark:bg-form-input">
-                                        <select
-                                            id="status"
-                                            value={formData.status}
-                                            onChange={handleInputChange}
-                                            className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-black dark:text-white"
-                                        >
-                                            <option value="in_stock">In Stock</option>
-                                            <option value="low_stock">Low Stock</option>
-                                            <option value="out_of_stock">Out of Stock</option>
-                                        </select>
-                                        <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                                            <svg
-                                                className="fill-current"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                                <path
-                                                    d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
-                                                    fill=""
-                                                />
-                                            </svg>
-                                        </span>
-                                    </div>
+                                <div className="mb-6 flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="isAvailable"
+                                        checked={formData.isAvailable}
+                                        onChange={handleInputChange}
+                                        className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                    />
+                                    <Label htmlFor="isAvailable" className="mb-0">Product is available for sale</Label>
                                 </div>
 
-                                <button type="submit" className="flex w-full justify-center rounded bg-brand-500 p-3 font-medium text-gray hover:bg-opacity-90 text-white">
-                                    Add Product
+                                <button type="submit" disabled={loading} className="flex w-full justify-center rounded bg-brand-500 p-3 font-medium text-gray hover:bg-opacity-90 text-white disabled:opacity-50">
+                                    {loading ? "Adding..." : "Add Product"}
                                 </button>
                             </div>
                         </form>

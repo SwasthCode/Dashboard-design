@@ -5,17 +5,17 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import { useDispatch, useSelector } from "react-redux";
 import { addSubCategory, SubCategory } from "../../store/slices/subCategorySlice";
-import { RootState } from "../../store";
+import { RootState, AppDispatch } from "../../store";
 import { useNavigate } from "react-router";
 
 export default function AddSubCategory() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const { categories } = useSelector((state: RootState) => state.category);
 
     const [formData, setFormData] = useState({
         name: "",
-        parent: "",
+        category_id: "",
         description: "",
     });
 
@@ -29,9 +29,8 @@ export default function AddSubCategory() {
 
         const newSubCategory: SubCategory = {
             name: formData.name,
-            parent: formData.parent,
+            category_id: formData.category_id,
             description: formData.description,
-            products: 0, // Initial count
         };
 
         dispatch(addSubCategory(newSubCategory));
@@ -73,15 +72,15 @@ export default function AddSubCategory() {
                                     <Label htmlFor="parent">Parent Category</Label>
                                     <div className="relative z-20 bg-transparent dark:bg-form-input">
                                         <select
-                                            id="parent"
-                                            value={formData.parent}
+                                            id="category_id"
+                                            value={formData.category_id}
                                             onChange={handleInputChange}
                                             required
                                             className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-black dark:text-white"
                                         >
                                             <option value="">Select Parent Category</option>
                                             {categories.map((category, index) => (
-                                                <option key={index} value={category.name}>{category.name}</option>
+                                                <option key={index} value={category._id}>{category.name}</option>
                                             ))}
                                         </select>
                                         <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">

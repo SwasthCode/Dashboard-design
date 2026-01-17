@@ -69,9 +69,10 @@ export const createUser = createAsyncThunk('user/createUser', async (user: User,
 });
 
 export const updateUser = createAsyncThunk('user/updateUser', async (user: User, { rejectWithValue }) => {
-    if (!user.id) return rejectWithValue('User ID is required for updates');
+    const id = user.id || user._id;
+    if (!id) return rejectWithValue('User ID is required for updates');
     try {
-        const response = await https.put(`users/${user.id}`, user);
+        const response = await https.put(`users/profile`, user);
         return response.data; // Extract updated user
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to update user');
@@ -135,7 +136,7 @@ const userSlice = createSlice({
             .addCase(updateUser.pending, handlePending)
             .addCase(updateUser.fulfilled, (state, action: PayloadAction<User>) => {
                 state.loading = false;
-                const index = state.users.findIndex(u => u.id === action.payload.id);
+                const index = state.users.findIndex(u => (u.id || u._id) === (action.payload.id || action.payload._id));
                 if (index !== -1) {
                     state.users[index] = action.payload;
                 }
@@ -146,7 +147,7 @@ const userSlice = createSlice({
             .addCase(deleteUser.pending, handlePending)
             .addCase(deleteUser.fulfilled, (state, action: PayloadAction<string>) => {
                 state.loading = false;
-                state.users = state.users.filter(u => u.id !== action.payload);
+                state.users = state.users.filter(u => (u.id || u._id) !== action.payload);
             })
             .addCase(deleteUser.rejected, handleRejected);
     },

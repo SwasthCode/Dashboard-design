@@ -14,9 +14,11 @@ interface AddCategoryModalProps {
 export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [images, setImages] = useState<File[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
     const [formData, setFormData] = useState({
         name: "",
-        slug: "",
         description: "",
         status: "Active"
     });
@@ -40,8 +42,10 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
+        setError(null);
 
         // Create a mock image URL or use a placeholder
         const imageUrl = images.length > 0
@@ -50,23 +54,26 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
 
         const newCategory: Category = {
             name: formData.name,
-            slug: formData.slug,
             description: formData.description,
             status: formData.status,
             image: imageUrl,
         };
 
-        dispatch(addCategory(newCategory));
-
-        // Reset and close
-        setFormData({
-            name: "",
-            slug: "",
-            description: "",
-            status: "Active"
-        });
-        setImages([]);
-        onClose();
+        try {
+            await dispatch(addCategory(newCategory)).unwrap();
+            // Reset and close
+            setFormData({
+                name: "",
+                description: "",
+                status: "Active"
+            });
+            setImages([]);
+            onClose();
+        } catch (err: any) {
+            setError(err || "Failed to add category");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -74,6 +81,12 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Category</h3>
             </div>
+
+            {error && (
+                <div className="mb-4 p-3 bg-red-50 text-red-500 text-sm rounded-lg border border-red-100">
+                    {error}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="mb-4">
@@ -87,7 +100,6 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
                         required
                     />
                 </div>
-
 
                 <div className="mb-4">
                     <Label htmlFor="description">Description</Label>
@@ -154,7 +166,7 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
                         id="status"
                         value={formData.status}
                         onChange={handleInputChange}
-                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800"
                     >
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
@@ -171,9 +183,10 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
                     </button>
                     <button
                         type="submit"
-                        className="flex-1 px-4 py-2.5 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors"
+                        disabled={loading}
+                        className="flex-1 px-4 py-2.5 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Add Category
+                        {loading ? "Adding..." : "Add Category"}
                     </button>
                 </div>
             </form>
