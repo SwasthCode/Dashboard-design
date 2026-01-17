@@ -1,69 +1,148 @@
+import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import Pagination from "../../components/common/Pagination";
+
+interface Transaction {
+    id: string;
+    customer: string;
+    date: string;
+    amount: string;
+    method: string;
+    status: "Paid" | "Pending" | "Failed";
+}
 
 export default function Pay() {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
+    const [transactions] = useState<Transaction[]>([
+        { id: "#TRX-8547", customer: "John Doe", date: "Jan 12, 2024", amount: "$120.00", method: "Credit Card", status: "Paid" },
+        { id: "#TRX-8548", customer: "Jane Smith", date: "Jan 13, 2024", amount: "$240.00", method: "PayPal", status: "Paid" },
+        { id: "#TRX-8549", customer: "Robert Fox", date: "Jan 14, 2024", amount: "$89.50", method: "Credit Card", status: "Pending" },
+        { id: "#TRX-8550", customer: "Alice Johnson", date: "Jan 15, 2024", amount: "$150.00", method: "Apple Pay", status: "Failed" },
+        { id: "#TRX-8551", customer: "Mike Brown", date: "Jan 16, 2024", amount: "$200.00", method: "Google Pay", status: "Paid" },
+        { id: "#TRX-8552", customer: "Sarah Wilson", date: "Jan 17, 2024", amount: "$300.00", method: "Credit Card", status: "Paid" },
+        { id: "#TRX-8553", customer: "David Lee", date: "Jan 18, 2024", amount: "$450.00", method: "PayPal", status: "Paid" },
+        { id: "#TRX-8554", customer: "Emily Davis", date: "Jan 19, 2024", amount: "$50.00", method: "Credit Card", status: "Paid" },
+        { id: "#TRX-8555", customer: "Michael Clark", date: "Jan 20, 2024", amount: "$120.00", method: "Credit Card", status: "Pending" },
+        { id: "#TRX-8556", customer: "Jessica White", date: "Jan 21, 2024", amount: "$330.00", method: "Apple Pay", status: "Paid" },
+        { id: "#TRX-8557", customer: "Daniel Martinez", date: "Jan 22, 2024", amount: "$90.00", method: "PayPal", status: "Paid" },
+        { id: "#TRX-8558", customer: "Laura Lewis", date: "Jan 23, 2024", amount: "$110.00", method: "Credit Card", status: "Paid" },
+        { id: "#TRX-8559", customer: "James Wilson", date: "Jan 24, 2024", amount: "$210.00", method: "Google Pay", status: "Failed" },
+        { id: "#TRX-8560", customer: "Linda Brown", date: "Jan 25, 2024", amount: "$180.00", method: "Credit Card", status: "Paid" },
+    ]);
+
+    // Calculate pagination
+    const totalPages = Math.ceil(transactions.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
     return (
         <div>
             <PageMeta
-                title="Pay | TailAdmin - React.js Admin Dashboard"
-                description="This is the Pay page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Payments | TailAdmin - React.js Admin Dashboard"
+                description="This is the Payments page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
             />
-            <PageBreadcrumb pageTitle="Checkout" />
-            <div className="max-w-4xl mx-auto flex flex-col lg:flex-row gap-10">
-                <div className="flex-1 space-y-8">
-                    {/* Shipping Info */}
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
-                        <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">Shipping Information</h3>
-                        <form className="grid grid-cols-2 gap-4">
-                            <div className="col-span-1">
-                                <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase">First Name</label>
-                                <input type="text" className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-brand-500/20" placeholder="John" />
-                            </div>
-                            <div className="col-span-1">
-                                <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase">Last Name</label>
-                                <input type="text" className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-brand-500/20" placeholder="Doe" />
-                            </div>
-                            <div className="col-span-2">
-                                <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase">Street Address</label>
-                                <input type="text" className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-brand-500/20" placeholder="123 Luxury St, Beverly Hills" />
-                            </div>
-                        </form>
-                    </div>
+            <PageBreadcrumb pageTitle="Payments / Transactions" />
 
-                    {/* Payment Method */}
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
-                        <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">Payment Method</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            {["Credit Card", "PayPal", "Apple Pay", "Google Pay"].map((method, i) => (
-                                <div key={i} className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${i === 0 ? "border-brand-500 bg-brand-50/50 dark:bg-brand-500/5" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"
-                                    }`}>
-                                    <span className="font-semibold text-gray-700 dark:text-gray-200">{method}</span>
-                                    <div className={`w-4 h-4 rounded-full border-2 ${i === 0 ? "border-brand-500 bg-brand-500 shadow-[0_0_0_2px_white_inset]" : "border-gray-300"}`}></div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Aside */}
-                <div className="w-full lg:w-80 shrink-0">
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 sticky top-24">
-                        <h3 className="text-lg font-bold mb-6 text-gray-800 dark:text-white">Your Order</h3>
-                        <div className="space-y-4 mb-8">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-500 font-medium">3 Items</span>
-                                <span className="font-bold">$582.12</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-500 font-medium">Promo Code</span>
-                                <span className="text-gray-400">None</span>
-                            </div>
-                        </div>
-                        <button className="w-full bg-brand-500 text-white py-4 rounded-2xl font-bold shadow-xl shadow-brand-500/30 hover:scale-[1.02] active:scale-100 transition-all">
-                            Pay Now
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                        Transaction History
+                    </h3>
+                    <div className="flex gap-2">
+                        <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                            Export
                         </button>
                     </div>
                 </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-gray-50 dark:bg-gray-800/50">
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Invoice ID
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Customer
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Date
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Amount
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Method
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                            {currentTransactions.map((trx, i) => (
+                                <tr
+                                    key={i}
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm font-medium text-brand-500 underline cursor-pointer">
+                                            {trx.id}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm font-medium text-gray-800 dark:text-white">
+                                            {trx.customer}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {trx.date}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm font-medium text-gray-800 dark:text-white">
+                                            {trx.amount}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">{trx.method}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span
+                                            className={`px-2 py-1 text-[10px] font-semibold rounded-full ${trx.status === "Paid"
+                                                    ? "bg-green-100 text-green-600"
+                                                    : trx.status === "Pending"
+                                                        ? "bg-orange-100 text-orange-600"
+                                                        : "bg-red-100 text-red-600"
+                                                }`}
+                                        >
+                                            {trx.status}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    startIndex={indexOfFirstItem}
+                    endIndex={indexOfLastItem}
+                    totalResults={transactions.length}
+                />
             </div>
         </div>
     );
