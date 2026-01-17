@@ -20,13 +20,11 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import Customers from "./pages/Ecommerce/Customers";
 import Orders from "./pages/Ecommerce/Orders";
+import Products from "./pages/Ecommerce/Products";
+import Categories from "./pages/Ecommerce/Categories";
+import SubCategories from "./pages/Ecommerce/SubCategories";
+import Addresses from "./pages/Ecommerce/Addresses";
 import Invoices from "./pages/Ecommerce/Invoices";
-import Shop from "./pages/Ecommerce/Shop";
-import Shop2 from "./pages/Ecommerce/Shop2";
-import SingleProduct from "./pages/Ecommerce/SingleProduct";
-import Cart from "./pages/Ecommerce/Cart";
-import Cart2 from "./pages/Ecommerce/Cart2";
-import Cart3 from "./pages/Ecommerce/Cart3";
 import Pay from "./pages/Ecommerce/Pay";
 import Analytics from "./pages/Dashboard/Analytics";
 import Fintech from "./pages/Dashboard/Fintech";
@@ -66,15 +64,13 @@ export default function App() {
             <Route index path="/" element={<Home />} />
 
             {/* E-Commerce */}
+            <Route path="/addresses" element={<Addresses />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/sub-categories" element={<SubCategories />} />
             <Route path="/invoices" element={<Invoices />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/shop-2" element={<Shop2 />} />
-            <Route path="/single-product" element={<SingleProduct />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/cart-2" element={<Cart2 />} />
-            <Route path="/cart-3" element={<Cart3 />} />
             <Route path="/pay" element={<Pay />} />
 
             {/* Remaining Pages */}
