@@ -5,6 +5,7 @@ import Input from "../../components/form/input/InputField";
 import DatePicker from "../../components/form/date-picker";
 import { FilterIcon, CloseIcon } from "../../icons";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
+import Pagination from "../../components/common/Pagination"; // Import Pagination
 
 type OrderStatus = "Pending" | "Hold" | "Ready" | "Shipped" | "Delivered" | "Cancelled" | "Returned";
 
@@ -22,6 +23,10 @@ export default function Orders() {
     const [selectedDate, setSelectedDate] = useState("");
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
     const [orders, setOrders] = useState<Order[]>([
         { id: "#12345", customer: "John Doe", date: "Jan 12, 2024", price: "$120.00", status: "Delivered" },
         { id: "#12346", customer: "Jane Smith", date: "Jan 13, 2024", price: "$240.00", status: "Pending" },
@@ -30,12 +35,24 @@ export default function Orders() {
         { id: "#12349", customer: "Mike Brown", date: "Jan 16, 2024", price: "$200.00", status: "Returned" },
         { id: "#12350", customer: "Sarah Wilson", date: "Jan 17, 2024", price: "$300.00", status: "Ready" },
         { id: "#12351", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12352", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12353", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12354", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12355", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12356", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12357", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12358", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12359", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12360", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12361", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
+        { id: "#12362", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
     ]);
 
     const statusOptions: OrderStatus[] = ["Pending", "Hold", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
     const handleDateChange = (_dates: Date[], dateStr: string) => {
         setSelectedDate(dateStr);
+        setCurrentPage(1); // Reset page on filter change
     };
 
     const toggleStatus = (status: string) => {
@@ -44,6 +61,7 @@ export default function Orders() {
                 ? prev.filter(s => s !== status)
                 : [...prev, status]
         );
+        setCurrentPage(1); // Reset page on filter change
     };
 
     const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
@@ -70,6 +88,16 @@ export default function Orders() {
 
         return matchesSearch && matchesStatus && matchesDate;
     });
+
+    // Pagination Logic on Filtered Orders
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
 
     const getStatusColor = (status: OrderStatus) => {
         switch (status) {
@@ -175,7 +203,10 @@ export default function Orders() {
                         <Input
                             placeholder="Search by ID or Customer..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1); // Reset page on search
+                            }}
                             className="pl-11"
                         />
                         <svg
@@ -262,8 +293,8 @@ export default function Orders() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {filteredOrders.length > 0 ? (
-                                    filteredOrders.map((order, i) => (
+                                {currentOrders.length > 0 ? (
+                                    currentOrders.map((order, i) => (
                                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">{order.id}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer}</span></td>
@@ -289,6 +320,14 @@ export default function Orders() {
                             </tbody>
                         </table>
                     </div>
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        startIndex={indexOfFirstItem}
+                        endIndex={indexOfLastItem}
+                        totalResults={filteredOrders.length}
+                    />
                 </div>
             </div>
         </div>

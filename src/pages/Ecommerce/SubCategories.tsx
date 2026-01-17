@@ -1,11 +1,25 @@
+import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import Pagination from "../../components/common/Pagination";
 
 export default function SubCategories() {
     const { subCategories } = useSelector((state: RootState) => state.subCategory);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    // Calculate pagination
+    const totalPages = Math.ceil(subCategories.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentSubCategories = subCategories.slice(indexOfFirstItem, indexOfLastItem);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
 
     return (
         <div>
@@ -42,7 +56,7 @@ export default function SubCategories() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {subCategories.map((subCategory, i) => (
+                            {currentSubCategories.map((subCategory, i) => (
                                 <tr
                                     key={i}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
@@ -72,6 +86,15 @@ export default function SubCategories() {
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    startIndex={indexOfFirstItem}
+                    endIndex={indexOfLastItem}
+                    totalResults={subCategories.length}
+                />
             </div>
         </div>
     );

@@ -1,7 +1,88 @@
+import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import Pagination from "../../components/common/Pagination";
 
 export default function Addresses() {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    const [addresses] = useState([
+        {
+            user: "John Doe",
+            address: "123 Main St, Apt 4B",
+            cityState: "New York, NY",
+            type: "Home",
+            isDefault: true,
+        },
+        {
+            user: "Jane Smith",
+            address: "456 Corporate Blvd",
+            cityState: "San Francisco, CA",
+            type: "Work",
+            isDefault: true,
+        },
+        {
+            user: "Robert Fox",
+            address: "789 Pine Ave",
+            cityState: "Austin, TX",
+            type: "Home",
+            isDefault: false,
+        },
+        {
+            user: "Alice Johnson",
+            address: "321 Oak Ln",
+            cityState: "Chicago, IL",
+            type: "Home",
+            isDefault: false,
+        },
+        {
+            user: "Mike Brown",
+            address: "654 Elm St",
+            cityState: "Seattle, WA",
+            type: "Work",
+            isDefault: true,
+        },
+        {
+            user: "Sarah Wilson",
+            address: "987 Cedar Dr",
+            cityState: "Miami, FL",
+            type: "Home",
+            isDefault: true,
+        },
+        {
+            user: "David Lee",
+            address: "147 Maple Ave",
+            cityState: "Boston, MA",
+            type: "Work",
+            isDefault: false,
+        },
+        {
+            user: "Emily Davis",
+            address: "258 Birch Rd",
+            cityState: "Denver, CO",
+            type: "Home",
+            isDefault: false,
+        },
+        {
+            user: "Michael Clark",
+            address: "369 Spruce Ct",
+            cityState: "Atlanta, GA",
+            type: "Work",
+            isDefault: true,
+        },
+    ]);
+
+    // Calculate pagination
+    const totalPages = Math.ceil(addresses.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentAddresses = addresses.slice(indexOfFirstItem, indexOfLastItem);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
     return (
         <div>
             <PageMeta
@@ -37,29 +118,7 @@ export default function Addresses() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {[
-                                {
-                                    user: "John Doe",
-                                    address: "123 Main St, Apt 4B",
-                                    cityState: "New York, NY",
-                                    type: "Home",
-                                    isDefault: true,
-                                },
-                                {
-                                    user: "Jane Smith",
-                                    address: "456 Corporate Blvd",
-                                    cityState: "San Francisco, CA",
-                                    type: "Work",
-                                    isDefault: true,
-                                },
-                                {
-                                    user: "Robert Fox",
-                                    address: "789 Pine Ave",
-                                    cityState: "Austin, TX",
-                                    type: "Home",
-                                    isDefault: false,
-                                },
-                            ].map((addr, i) => (
+                            {currentAddresses.map((addr, i) => (
                                 <tr
                                     key={i}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
@@ -98,6 +157,14 @@ export default function Addresses() {
                         </tbody>
                     </table>
                 </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    startIndex={indexOfFirstItem}
+                    endIndex={indexOfLastItem}
+                    totalResults={addresses.length}
+                />
             </div>
         </div>
     );

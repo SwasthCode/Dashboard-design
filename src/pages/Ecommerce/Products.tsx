@@ -1,11 +1,26 @@
+import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import Pagination from "../../components/common/Pagination";
 
 export default function Products() {
     const { products } = useSelector((state: RootState) => state.product);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    // Calculate pagination
+    const totalPages = Math.ceil(products.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
     return (
         <div>
             <PageMeta
@@ -47,7 +62,7 @@ export default function Products() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {products.map((product, i) => (
+                            {currentProducts.map((product, i) => (
                                 <tr
                                     key={i}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
@@ -98,6 +113,15 @@ export default function Products() {
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    startIndex={indexOfFirstItem}
+                    endIndex={indexOfLastItem}
+                    totalResults={products.length}
+                />
             </div>
         </div>
     );
