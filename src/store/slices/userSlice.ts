@@ -18,7 +18,7 @@ export interface User {
     last_name: string;
     phone_number: string;
     email: string;
-    role?: Role[];
+    role?: any[];
     status: string;
     is_active?: boolean;
     is_deleted?: boolean;
