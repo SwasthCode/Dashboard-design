@@ -21,8 +21,11 @@ import Home from "./pages/Dashboard/Home";
 import Customers from "./pages/Ecommerce/Customers";
 import Orders from "./pages/Ecommerce/Orders";
 import Products from "./pages/Ecommerce/Products";
+import AddProduct from "./pages/Ecommerce/AddProduct";
 import Categories from "./pages/Ecommerce/Categories";
+import AddCategory from "./pages/Ecommerce/AddCategory";
 import SubCategories from "./pages/Ecommerce/SubCategories";
+import AddSubCategory from "./pages/Ecommerce/AddSubCategory";
 import Addresses from "./pages/Ecommerce/Addresses";
 import Invoices from "./pages/Ecommerce/Invoices";
 import Pay from "./pages/Ecommerce/Pay";
@@ -68,8 +71,11 @@ export default function App() {
             <Route path="/customers" element={<Customers />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/products/add" element={<AddProduct />} />
             <Route path="/categories" element={<Categories />} />
+            <Route path="/categories/add" element={<AddCategory />} />
             <Route path="/sub-categories" element={<SubCategories />} />
+            <Route path="/sub-categories/add" element={<AddSubCategory />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/pay" element={<Pay />} />
 

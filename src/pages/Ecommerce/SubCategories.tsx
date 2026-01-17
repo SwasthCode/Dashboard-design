@@ -1,7 +1,12 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import { Link } from "react-router";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 export default function SubCategories() {
+    const { subCategories } = useSelector((state: RootState) => state.subCategory);
+
     return (
         <div>
             <PageMeta
@@ -14,9 +19,9 @@ export default function SubCategories() {
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Sub-Category List
                     </h3>
-                    <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
+                    <Link to="/sub-categories/add" className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
                         Add Sub-Category
-                    </button>
+                    </Link>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -37,32 +42,7 @@ export default function SubCategories() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {[
-                                {
-                                    name: "Smartphones",
-                                    parent: "Electronics",
-                                    description: "Mobile phones",
-                                    products: 24,
-                                },
-                                {
-                                    name: "Laptops",
-                                    parent: "Electronics",
-                                    description: "Personal computers",
-                                    products: 15,
-                                },
-                                {
-                                    name: "Men's Wear",
-                                    parent: "Fashion",
-                                    description: "Clothing for men",
-                                    products: 45,
-                                },
-                                {
-                                    name: "Women's Wear",
-                                    parent: "Fashion",
-                                    description: "Clothing for women",
-                                    products: 50,
-                                },
-                            ].map((subCategory, i) => (
+                            {subCategories.map((subCategory, i) => (
                                 <tr
                                     key={i}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"

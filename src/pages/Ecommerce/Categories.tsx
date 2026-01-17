@@ -1,7 +1,12 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import { Link } from "react-router";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 export default function Categories() {
+    const { categories } = useSelector((state: RootState) => state.category);
+
     return (
         <div>
             <PageMeta
@@ -14,14 +19,17 @@ export default function Categories() {
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Category List
                     </h3>
-                    <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
+                    <Link to="/categories/add" className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
                         Add Category
-                    </button>
+                    </Link>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Image
+                                </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Name
                                 </th>
@@ -37,30 +45,20 @@ export default function Categories() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {[
-                                {
-                                    name: "Electronics",
-                                    slug: "electronics",
-                                    description: "Gadgets and devices",
-                                    status: "Active",
-                                },
-                                {
-                                    name: "Fashion",
-                                    slug: "fashion",
-                                    description: "Clothing and accessories",
-                                    status: "Active",
-                                },
-                                {
-                                    name: "Home & Garden",
-                                    slug: "home-garden",
-                                    description: "Furniture and decor",
-                                    status: "Inactive",
-                                },
-                            ].map((category, i) => (
+                            {categories.map((category, i) => (
                                 <tr
                                     key={i}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                                 >
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                            <img
+                                                src={category.image}
+                                                alt={category.name}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm font-medium text-gray-800 dark:text-white">
                                             {category.name}
@@ -79,8 +77,8 @@ export default function Categories() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
                                             className={`px-2 py-1 text-[10px] font-semibold rounded-full ${category.status === "Active"
-                                                    ? "bg-green-100 text-green-600"
-                                                    : "bg-gray-100 text-gray-600"
+                                                ? "bg-green-100 text-green-600"
+                                                : "bg-gray-100 text-gray-600"
                                                 }`}
                                         >
                                             {category.status}
