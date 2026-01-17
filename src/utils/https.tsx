@@ -1,4 +1,4 @@
-const baseUrl = process.env.BASE_URL || 'http://localhost:3000/';
+const baseUrl = import.meta.env.BASE_URL || 'http://localhost:3000/';
 
 interface RequestOptions {
     headers?: Record<string, string>;

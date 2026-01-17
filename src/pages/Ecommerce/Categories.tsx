@@ -1,13 +1,14 @@
 import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import Pagination from "../../components/common/Pagination";
+import AddCategoryModal from "./AddCategoryModal";
 
 export default function Categories() {
     const { categories } = useSelector((state: RootState) => state.category);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
@@ -33,9 +34,12 @@ export default function Categories() {
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Category List
                     </h3>
-                    <Link to="/categories/add" className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+                    >
                         Add Category
-                    </Link>
+                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -113,6 +117,7 @@ export default function Categories() {
                     totalResults={categories.length}
                 />
             </div>
+            <AddCategoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 }

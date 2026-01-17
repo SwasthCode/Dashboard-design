@@ -3,12 +3,14 @@ import authReducer from './slices/authSlice';
 import productReducer from './slices/productSlice';
 import categoryReducer from './slices/categorySlice';
 import subCategoryReducer from './slices/subCategorySlice';
+import userReducer from './slices/userSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
     product: productReducer,
     category: categoryReducer,
     subCategory: subCategoryReducer,
+    user: userReducer,
 });
 
 export default rootReducer;

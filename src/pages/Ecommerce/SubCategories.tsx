@@ -1,13 +1,14 @@
 import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import Pagination from "../../components/common/Pagination";
+import AddSubCategoryModal from "./AddSubCategoryModal";
 
 export default function SubCategories() {
     const { subCategories } = useSelector((state: RootState) => state.subCategory);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
@@ -33,9 +34,12 @@ export default function SubCategories() {
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Sub-Category List
                     </h3>
-                    <Link to="/sub-categories/add" className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+                    >
                         Add Sub-Category
-                    </Link>
+                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -96,6 +100,7 @@ export default function SubCategories() {
                     totalResults={subCategories.length}
                 />
             </div>
+            <AddSubCategoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 }
