@@ -1,10 +1,10 @@
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
+  // ArrowDownIcon,
+  // ArrowUpIcon,
   BoxIconLine,
   GroupIcon,
 } from "../../icons";
-import Badge from "../ui/badge/Badge";
+// import Badge from "../ui/badge/Badge";
 
 interface EcommerceMetricsProps {
   totalUsers: number;

@@ -2,7 +2,7 @@
 
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../store/slices/authSlice';
 import Label from "../form/Label";
