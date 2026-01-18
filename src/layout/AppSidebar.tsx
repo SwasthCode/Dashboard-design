@@ -16,6 +16,9 @@ import {
   ShootingStarIcon,
   TaskIcon,
   ChatIcon,
+  FolderIcon,
+  ListIcon,
+  TableIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
@@ -32,82 +35,118 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [
-      { name: "Main", path: "/", pro: false },
-      { name: "Analytics", path: "/analytics", pro: false },
-      { name: "Fintech", path: "/fintech", pro: false },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "E-Commerce",
-    subItems: [
-      { name: "Customers", path: "/customers", pro: false },
-      { name: "Categories", path: "/categories", pro: false },
-      { name: "Sub-Categories", path: "/sub-categories", pro: false },
-      { name: "Products", path: "/products", pro: false },
-      { name: "Orders", path: "/orders", pro: false },
-      // { name: "Invoices", path: "/invoices", pro: false },
-      // { name: "Coupons", path: "/coupons", pro: false },
-      { name: "Addresses", path: "/addresses", pro: false },
-      { name: "Reviews", path: "/reviews", pro: false },
-      // { name: "Pay", path: "/pay", pro: false },
-    ],
+    path: "/"
+    // subItems: [
+    //   { name: "Main", path: "/dashboard", pro: false },
+    //   { name: "Analytics", path: "/analytics", pro: false },
+    //   { name: "Fintech", path: "/fintech", pro: false },
+    // ],
   },
   {
     icon: <GroupIcon />,
-    name: "Community",
-    subItems: [
-      { name: "Feed", path: "/community/feed", pro: false },
-      { name: "Profile", path: "/community/profile", pro: false },
-      { name: "Members", path: "/community/members", pro: false },
-    ],
+    name: "Customers",
+    path: "/customers",
   },
   {
-    icon: <DollarLineIcon />,
-    name: "Finance",
-    subItems: [
-      { name: "Transactions", path: "/finance/transactions", pro: false },
-      { name: "Cards", path: "/finance/cards", pro: false },
-    ],
+    icon: <FolderIcon />,
+    name: "Categories",
+    path: "/categories",
   },
   {
-    icon: <DocsIcon />,
-    name: "Job Board",
-    subItems: [
-      { name: "Listing", path: "/job-board/listing", pro: false },
-      { name: "Post Job", path: "/job-board/post", pro: false },
-    ],
+    icon: <ListIcon />,
+    name: "Sub-Categories",
+    path: "/sub-categories",
   },
   {
-    icon: <TaskIcon />,
-    name: "Tasks",
-    subItems: [
-      { name: "List", path: "/tasks/list", pro: false },
-      { name: "Board", path: "/tasks/board", pro: false },
-    ],
+    icon: <BoxCubeIcon />,
+    name: "Products",
+    path: "/products",
   },
   {
-    icon: <ChatIcon />,
-    name: "Messages",
-    path: "/messages",
-    badge: "4",
+    icon: <TableIcon />,
+    name: "Orders",
+    path: "/orders",
   },
   {
     icon: <EnvelopeIcon />,
-    name: "Inbox",
-    path: "/inbox",
+    name: "Addresses",
+    path: "/addresses",
   },
   {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
+    icon: <ChatIcon />,
+    name: "Reviews",
+    path: "/reviews",
   },
-  {
-    icon: <ShootingStarIcon />,
-    name: "Campaigns",
-    path: "/campaigns",
-  },
+  // {
+  //   icon: <BoxCubeIcon />,
+  //   name: "E-Commerce",
+  //   subItems: [
+  //     { name: "Customers", path: "/customers", pro: false },
+  //     { name: "Categories", path: "/categories", pro: false },
+  //     { name: "Sub-Categories", path: "/sub-categories", pro: false },
+  //     { name: "Products", path: "/products", pro: false },
+  //     { name: "Orders", path: "/orders", pro: false },
+  //     // { name: "Invoices", path: "/invoices", pro: false },
+  //     // { name: "Coupons", path: "/coupons", pro: false },
+  //     { name: "Addresses", path: "/addresses", pro: false },
+  //     { name: "Reviews", path: "/reviews", pro: false },
+  //     // { name: "Pay", path: "/pay", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <GroupIcon />,
+  //   name: "Community",
+  //   subItems: [
+  //     { name: "Feed", path: "/community/feed", pro: false },
+  //     { name: "Profile", path: "/community/profile", pro: false },
+  //     { name: "Members", path: "/community/members", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <DollarLineIcon />,
+  //   name: "Finance",
+  //   subItems: [
+  //     { name: "Transactions", path: "/finance/transactions", pro: false },
+  //     { name: "Cards", path: "/finance/cards", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <DocsIcon />,
+  //   name: "Job Board",
+  //   subItems: [
+  //     { name: "Listing", path: "/job-board/listing", pro: false },
+  //     { name: "Post Job", path: "/job-board/post", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <TaskIcon />,
+  //   name: "Tasks",
+  //   subItems: [
+  //     { name: "List", path: "/tasks/list", pro: false },
+  //     { name: "Board", path: "/tasks/board", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <ChatIcon />,
+  //   name: "Messages",
+  //   path: "/messages",
+  //   badge: "4",
+  // },
+  // {
+  //   icon: <EnvelopeIcon />,
+  //   name: "Inbox",
+  //   path: "/inbox",
+  // },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Calendar",
+  //   path: "/calendar",
+  // },
+  // {
+  //   icon: <ShootingStarIcon />,
+  //   name: "Campaigns",
+  //   path: "/campaigns",
+  // },
   {
     icon: <PlugInIcon />,
     name: "Settings",
@@ -117,15 +156,15 @@ const navItems: NavItem[] = [
       { name: "Notifications", path: "/settings/notifications", pro: false },
     ],
   },
-  {
-    icon: <GridIcon />,
-    name: "Utility",
-    subItems: [
-      { name: "Changelog", path: "/utility/changelog", pro: false },
-      { name: "Support", path: "/utility/support", pro: false },
-      { name: "FAQ", path: "/utility/faq", pro: false },
-    ],
-  },
+  // {
+  //   icon: <GridIcon />,
+  //   name: "Utility",
+  //   subItems: [
+  //     { name: "Changelog", path: "/utility/changelog", pro: false },
+  //     { name: "Support", path: "/utility/support", pro: false },
+  //     { name: "FAQ", path: "/utility/faq", pro: false },
+  //   ],
+  // },
 ];
 
 const othersItems: NavItem[] = [
@@ -398,7 +437,7 @@ const AppSidebar: React.FC = () => {
           </div>
           {(isExpanded || isHovered || isMobileOpen) && (
             <span className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white uppercase">
-              DASH<span className="text-[#F8CB46]">BOARD</span>
+              DASH<span className="text-[#F8CB46] ml-[1.5px]">BOARD</span>
             </span>
           )}
         </Link>
@@ -421,7 +460,7 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-            <div className="">
+            {/* <div className="">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                   ? "lg:justify-center"
@@ -435,7 +474,7 @@ const AppSidebar: React.FC = () => {
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
-            </div>
+            </div> */}
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}

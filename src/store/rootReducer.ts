@@ -6,6 +6,7 @@ import subCategoryReducer from './slices/subCategorySlice';
 import userReducer from './slices/userSlice';
 import reviewReducer from './slices/reviewSlice';
 import addressReducer from './slices/addressSlice';
+import dashboardReducer from './slices/dashboardSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
     user: userReducer,
     review: reviewReducer,
     address: addressReducer,
+    dashboard: dashboardReducer,
 });
 
 export default rootReducer;

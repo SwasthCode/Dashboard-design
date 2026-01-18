@@ -1,12 +1,25 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-// import https from '../../utils/https'; // Commented out for mock mode to avoid unused variable warning
+import https from '../../utils/https';
 
 // --- Types ---
-interface User {
-    id: string;
+interface Role {
+    key: string;
     name: string;
+    [key: string]: any;
+}
+
+interface User {
+    _id: string;
+    first_name: string;
+    last_name: string;
+    username: string;
     email: string;
-    role: string | number[];
+    phone_number: string;
+    role: Role[];
+    createdAt: string;
+    updatedAt: string;
+    status: string;
+    is_active: boolean;
     [key: string]: any;
 }
 
@@ -20,28 +33,51 @@ interface AuthState {
 // --- Async Thunks ---
 
 // Login Thunk
+// Login Thunk
 export const loginUser = createAsyncThunk(
     'auth/loginUser',
-    async (credentials: { mobile: string; otp: string }, { rejectWithValue: _rejectWithValue }) => {
-        // MOCK DATA FOR UI VALIDATION
-        return new Promise<any>((resolve, reject) => {
-            setTimeout(() => {
-                if (credentials.otp === '1234') {
-                    resolve({
-                        access_token: 'dummy_access_token_ui_validation',
-                        user: {
-                            id: 'mock_id_1',
-                            name: 'Mock User',
-                            email: `user_${credentials.mobile}@example.com`,
-                            mobile: credentials.mobile,
-                            role: 'admin',
-                        },
-                    });
-                } else {
-                    reject(_rejectWithValue('Invalid OTP'));
-                }
-            }, 1000);
-        });
+    async (credentials: { mobile?: string; otp?: string; username?: string; password?: string }, { rejectWithValue }) => {
+        try {
+            let response;
+            if (credentials.username && credentials.password) {
+                // Username/Password Login
+                // The user specified /auth/login and payload { username, password }
+                response = await https.post('/auth/login', {
+                    username: credentials.username,
+                    password: credentials.password
+                });
+            } else if (credentials.mobile && credentials.otp) {
+                // Mobile/OTP Login (Keeping mock or implementing if API exists, currently user focused on username/pass)
+                // MOCK DATA FOR UI VALIDATION (Legacy/Alternative flow)
+                return new Promise<any>((resolve, reject) => {
+                    setTimeout(() => {
+                        if (credentials.otp === '1234') {
+                            resolve({
+                                data: { // Structure to match API response format roughly
+                                    access_token: 'dummy_access_token_mobile_otp',
+                                    username: credentials.mobile, // Mock user
+                                    role: [{ key: 'user' }]
+                                }
+                            });
+                        } else {
+                            reject(rejectWithValue('Invalid OTP'));
+                        }
+                    }, 1000);
+                });
+            } else {
+                return rejectWithValue('Invalid credentials provided');
+            }
+
+            // Handle API Response
+            if (response && response.success) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.message || 'Login failed');
+            }
+
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Login failed');
+        }
     }
 );
 
@@ -109,21 +145,17 @@ const authSlice = createSlice({
             })
             .addCase(loginUser.fulfilled, (state, action: PayloadAction<any>) => {
                 state.status = 'succeeded';
-                // Check if the response structure matches expectations. 
-                // Assuming response has { access_token, user } or similar.
-                // Adjust based on actual backend response.
-                const { access_token, ...rest } = action.payload; // Example destructuring
+                // Response structure from user: { data: { access_token: "...", ...rest } }
+                // The thunk validates and returns `response.data` which contains `access_token` and user fields.
 
-                // If the backend returns the token directly or nested
-                const token = access_token || action.payload.token;
-                const user = rest.user || rest; // Fallback if user object is mixed or nested
+                const { access_token, ...rest } = action.payload;
 
-                state.token = token;
-                state.user = user;
+                state.token = access_token;
+                state.user = rest as User; // Cast to User type
 
                 if (typeof window !== 'undefined') {
-                    if (token) localStorage.setItem('token', token);
-                    if (user) localStorage.setItem('user', JSON.stringify(user));
+                    if (access_token) localStorage.setItem('token', access_token);
+                    if (rest) localStorage.setItem('user', JSON.stringify(rest));
                 }
             })
             .addCase(loginUser.rejected, (state, action) => {

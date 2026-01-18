@@ -67,7 +67,7 @@ export default function SignUpForm() {
       const resultAction = await dispatch(registerUser({ mobile, otp }));
       if (registerUser.fulfilled.match(resultAction)) {
         console.log("✅ Registration Successful!", resultAction.payload);
-        navigate("/"); // Or redirect to specific post-signup page
+        navigate("/dashboard"); // Or redirect to specific post-signup page
       } else {
         const errorMsg = (resultAction.error as any)?.message || 'Registration failed';
         alert(`❌ Registration Failed: ${errorMsg}`);

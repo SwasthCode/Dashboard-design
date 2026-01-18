@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createUser, User, fetchRoles } from "../../store/slices/userSlice";
+import { createUser, User, fetchRoles, fetchUsers } from "../../store/slices/userSlice";
 import { AppDispatch, RootState } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -62,6 +62,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                 role: selectedRole ? [selectedRole?.role_type] : []
             };
             await dispatch(createUser(userData)).unwrap();
+            dispatch(fetchUsers());
             // Reset and close
             setFormData({
                 first_name: "",

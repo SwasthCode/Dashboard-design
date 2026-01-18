@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
             </svg>
           </button>
 
-          <Link to="/" className="lg:hidden">
+          <Link to="/dashboard" className="lg:hidden">
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center w-8 h-8 font-black text-white bg-[#3B82F6] rounded-lg text-lg shadow-sm">
                 D

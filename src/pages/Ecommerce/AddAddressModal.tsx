@@ -18,14 +18,16 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
 
     const [formData, setFormData] = useState({
         name: "",
-        phone: "",
-        address_line1: "",
-        address_line2: "",
+        shipping_phone: "",
+        pincode: "",
+        locality: "",
+        address: "",
         city: "",
         state: "",
-        pincode: "",
-        country: "India",
-        is_default: false
+        landmark: "",
+        alternate_phone: "",
+        type: "Home",
+        isDefault: false
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -55,14 +57,16 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
 
             setFormData({
                 name: "",
-                phone: "",
-                address_line1: "",
-                address_line2: "",
+                shipping_phone: "",
+                pincode: "",
+                locality: "",
+                address: "",
                 city: "",
                 state: "",
-                pincode: "",
-                country: "India",
-                is_default: false
+                landmark: "",
+                alternate_phone: "",
+                type: "Home",
+                isDefault: false
             });
             onClose();
         } catch (err: any) {
@@ -73,7 +77,7 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[600px] p-6 text-inter">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] p-6 text-inter">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Address</h3>
             </div>
@@ -99,11 +103,36 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
                     </div>
 
                     <div>
-                        <Label htmlFor="phone">Phone Number</Label>
+                        <Label htmlFor="shipping_phone">Shipping Phone</Label>
                         <input
                             type="tel"
-                            id="phone"
-                            value={formData.phone}
+                            id="shipping_phone"
+                            value={formData.shipping_phone}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="pincode">Pincode</Label>
+                        <input
+                            type="text"
+                            id="pincode"
+                            value={formData.pincode}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="locality">Locality</Label>
+                        <input
+                            type="text"
+                            id="locality"
+                            value={formData.locality}
                             onChange={handleInputChange}
                             required
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
@@ -112,31 +141,19 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
                 </div>
 
                 <div>
-                    <Label htmlFor="address_line1">Address Line 1</Label>
-                    <input
-                        type="text"
-                        id="address_line1"
-                        value={formData.address_line1}
+                    <Label htmlFor="address">Address (Flat, House no., Building, Company, Apartment)</Label>
+                    <textarea
+                        id="address"
+                        value={formData.address}
                         onChange={handleInputChange}
                         required
-                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
-                    />
-                </div>
-
-                <div>
-                    <Label htmlFor="address_line2">Address Line 2 (Optional)</Label>
-                    <input
-                        type="text"
-                        id="address_line2"
-                        value={formData.address_line2}
-                        onChange={handleInputChange}
-                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                        className="w-full h-20 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white resize-none"
                     />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <Label htmlFor="city">City</Label>
+                        <Label htmlFor="city">City/District/Town</Label>
                         <input
                             type="text"
                             id="city"
@@ -162,39 +179,52 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <Label htmlFor="pincode">Pincode</Label>
+                        <Label htmlFor="landmark">Landmark (Optional)</Label>
                         <input
                             type="text"
-                            id="pincode"
-                            value={formData.pincode}
+                            id="landmark"
+                            value={formData.landmark}
                             onChange={handleInputChange}
-                            required
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         />
                     </div>
-
                     <div>
-                        <Label htmlFor="country">Country</Label>
+                        <Label htmlFor="alternate_phone">Alternate Phone (Optional)</Label>
                         <input
-                            type="text"
-                            id="country"
-                            value={formData.country}
+                            type="tel"
+                            id="alternate_phone"
+                            value={formData.alternate_phone}
                             onChange={handleInputChange}
-                            required
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="type">Address Type</Label>
+                        <select
+                            id="type"
+                            value={formData.type}
+                            onChange={handleInputChange}
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white dark:bg-gray-900"
+                        >
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <input
                         type="checkbox"
-                        id="is_default"
-                        checked={formData.is_default}
+                        id="isDefault"
+                        checked={formData.isDefault}
                         onChange={handleInputChange}
                         className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 rounded focus:ring-brand-500"
                     />
-                    <Label htmlFor="is_default" className="mb-0">Set as default address</Label>
+                    <Label htmlFor="isDefault" className="mb-0">Set as default address</Label>
                 </div>
 
                 <div className="pt-4 flex gap-3">

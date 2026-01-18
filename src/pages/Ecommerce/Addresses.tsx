@@ -109,10 +109,10 @@ export default function Addresses() {
                                     Address
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    City/State
+                                    Type
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Default
+                                    Status
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
                                     Actions
@@ -140,22 +140,24 @@ export default function Addresses() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm">
                                             <div className="font-medium text-gray-800 dark:text-white">{addr.name}</div>
-                                            <div className="text-gray-500 dark:text-gray-400">{addr.phone}</div>
+                                            <div className="text-gray-500 dark:text-gray-400">{addr.shipping_phone}</div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {addr.address_line1}
-                                            {addr.address_line2 && `, ${addr.address_line2}`}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 block max-w-xs">
+                                            {addr.address}, {addr.locality}
+                                            <br />
+                                            {addr.city}, {addr.state} - {addr.pincode}
+                                            {addr.landmark && <span className="block text-xs text-gray-400 mt-0.5">Landmark: {addr.landmark}</span>}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {addr.city}, {addr.state}
+                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                                            {addr.type || 'Home'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        {addr.is_default ? (
+                                        {addr.isDefault ? (
                                             <span className="px-2 py-1 text-[10px] font-semibold rounded-full bg-brand-100 text-brand-600">
                                                 Default
                                             </span>

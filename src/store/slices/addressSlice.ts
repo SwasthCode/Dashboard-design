@@ -5,14 +5,16 @@ export interface Address {
     _id?: string;
     user_id: string;
     name: string;
-    phone: string;
-    address_line1: string;
-    address_line2?: string;
+    shipping_phone: string;
+    pincode: string;
+    locality: string;
+    address: string;
     city: string;
     state: string;
-    pincode: string;
-    country: string;
-    is_default: boolean;
+    landmark?: string;
+    alternate_phone?: string;
+    type: 'Home' | 'Work' | 'Other' | string;
+    isDefault: boolean;
     createdAt?: string;
     updatedAt?: string;
 }

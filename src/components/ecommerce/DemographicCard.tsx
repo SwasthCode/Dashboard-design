@@ -25,7 +25,7 @@ export default function DemographicCard() {
             Number of customer based on country
           </p>
         </div>
-        <div className="relative inline-block">
+        {/* <div className="relative inline-block">
           <button className="dropdown-toggle" onClick={toggleDropdown}>
             <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
           </button>
@@ -47,7 +47,7 @@ export default function DemographicCard() {
               Delete
             </DropdownItem>
           </Dropdown>
-        </div>
+        </div> */}
       </div>
       <div className="px-4 py-6 my-6 overflow-hidden border border-gary-200 rounded-2xl dark:border-gray-800 sm:px-6">
         <div

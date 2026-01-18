@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -58,15 +58,37 @@ import StepOne from "./pages/Onboarding/StepOne";
 import StepTwo from "./pages/Onboarding/StepTwo";
 import ResetPassword from "./pages/Authpages/ResetPassword";
 
+import { useSelector } from 'react-redux';
+
+const RootAuthGuard = () => {
+  const token = useSelector((state: any) => state.auth.token) || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+
+  if (token) {
+    return (
+      <AppLayout>
+        <Home />
+      </AppLayout>
+    );
+  }
+  return <SignIn />;
+};
+
 export default function App() {
   return (
     <>
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Dashboard Layout */}
+          {/* Root Route Polymorphism */}
+          <Route path="/" element={<RootAuthGuard />} />
+
+          {/* Redirect old dashboard route to root to allow single entry point */}
+          <Route path="/dashboard" element={<Navigate to="/" replace />} />
+
+
+          {/* Dashboard Layout - For other protected routes */}
           <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+            {/* <Route path="/dashboard" element={<Home />} />  <-- Removed in favor of RootAuthGuard */}
 
             {/* E-Commerce */}
             <Route path="/addresses" element={<Addresses />} />
@@ -153,6 +175,7 @@ export default function App() {
           </Route>
 
           {/* Auth Layout */}
+          {/* <Route path="/" element={<SignIn />} />  <-- Replaced by RootAuthGuard */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
