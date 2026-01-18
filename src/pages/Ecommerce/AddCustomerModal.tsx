@@ -47,7 +47,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
             const userData: User = {
                 ...formData,
                 status: formData.status.toLowerCase(),
-                role: selectedRole ? [selectedRole] : []
+                role: selectedRole ? [selectedRole?.role_type] : []
             };
             await dispatch(createUser(userData)).unwrap();
             // Reset and close
