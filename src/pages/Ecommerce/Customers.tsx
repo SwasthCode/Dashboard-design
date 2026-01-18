@@ -19,7 +19,7 @@ export default function Customers() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
 
     useEffect(() => {
         dispatch(fetchUsers());
@@ -60,7 +60,7 @@ export default function Customers() {
         }
     };
 
-    if (error) {
+    if (error && userList.length === 0 && !isAddModalOpen) {
         return (
             <div className="p-6 text-center text-red-500 font-medium">
                 Error loading customers: {error}

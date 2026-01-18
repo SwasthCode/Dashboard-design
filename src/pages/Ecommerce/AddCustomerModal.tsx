@@ -30,6 +30,18 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         if (isOpen && roles.length === 0) {
             dispatch(fetchRoles());
         }
+        if (!isOpen) {
+            setFormData({
+                first_name: "",
+                last_name: "",
+                email: "",
+                phone_number: "",
+                role: "",
+                status: "active"
+            });
+            setError(null);
+            setLoading(false);
+        }
     }, [dispatch, isOpen, roles.length]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -43,11 +55,11 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         setError(null);
 
         try {
-            const selectedRole = roles.find(r => r._id === formData.role);
+            const selectedRole = roles.find((r: any) => r._id === formData.role);
             const userData: User = {
                 ...formData,
                 status: formData.status.toLowerCase(),
-                role: selectedRole ? [selectedRole] : []
+                role: selectedRole ? [selectedRole?.role_type] : []
             };
             await dispatch(createUser(userData)).unwrap();
             // Reset and close
