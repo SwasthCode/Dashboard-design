@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createAddress } from "../../store/slices/addressSlice";
+import { fetchUsers } from "../../store/slices/userSlice";
 import { AppDispatch, RootState } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -13,8 +14,15 @@ interface AddAddressModalProps {
 export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((state: RootState) => state.auth);
+    const { users } = useSelector((state: RootState) => state.user);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        if (isOpen && users.length === 0) {
+            dispatch(fetchUsers());
+        }
+    }, [dispatch, isOpen, users.length]);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -27,16 +35,27 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
         landmark: "",
         alternate_phone: "",
         type: "Home",
-        isDefault: false
+        isDefault: false,
+        selectedUserId: ""
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
-        setFormData((prev) => ({
-            ...prev,
-            [id]: type === 'checkbox' ? checked : value
-        }));
+
+        if (id === 'selectedUserId') {
+            const selectedCustomer = users.find(u => (u.id || u._id) === value);
+            setFormData((prev) => ({
+                ...prev,
+                selectedUserId: value,
+                name: selectedCustomer ? `${selectedCustomer.first_name} ${selectedCustomer.last_name}` : ""
+            }));
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                [id]: type === 'checkbox' ? checked : value
+            }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -50,9 +69,15 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
         setError(null);
 
         try {
+            const { selectedUserId, ...restData } = formData;
+            const targetUserId = selectedUserId || (user.id || user._id || "") as string;
             await dispatch(createAddress({
-                ...formData,
-                user_id: (user.id || user._id) as string
+                ...restData,
+                user_id: targetUserId,
+                userInfo: {
+                    fullname: formData.name,
+                    _id: targetUserId
+                }
             })).unwrap();
 
             setFormData({
@@ -66,7 +91,8 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
                 landmark: "",
                 alternate_phone: "",
                 type: "Home",
-                isDefault: false
+                isDefault: false,
+                selectedUserId: ""
             });
             onClose();
         } catch (err: any) {
@@ -91,15 +117,21 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <Label htmlFor="name">Full Name</Label>
-                        <input
-                            type="text"
-                            id="name"
-                            value={formData.name}
+                        <Label htmlFor="selectedUserId">Customer (Full Name)</Label>
+                        <select
+                            id="selectedUserId"
+                            value={formData.selectedUserId}
                             onChange={handleInputChange}
                             required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
-                        />
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white dark:bg-gray-900"
+                        >
+                            <option value="">Select Customer</option>
+                            {users.map((customer) => (
+                                <option key={customer.id || customer._id} value={customer.id || customer._id}>
+                                    {customer.first_name} {customer.last_name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div>

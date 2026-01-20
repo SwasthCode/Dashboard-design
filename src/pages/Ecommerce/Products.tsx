@@ -164,11 +164,11 @@ export default function Products() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-gray-800 dark:text-white">
-                                                ${product.price}
+                                                &#8377;{product.price}
                                             </span>
                                             {product.mrp > product.price && (
                                                 <span className="text-xs text-gray-400 line-through">
-                                                    ${product.mrp}
+                                                    &#8377;{product.mrp}
                                                 </span>
                                             )}
                                         </div>

@@ -15,6 +15,10 @@ export interface Address {
     alternate_phone?: string;
     type: 'Home' | 'Work' | 'Other' | string;
     isDefault: boolean;
+    userInfo?: {
+        fullname: string;
+        _id: string;
+    };
     createdAt?: string;
     updatedAt?: string;
 }

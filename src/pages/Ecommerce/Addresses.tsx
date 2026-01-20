@@ -63,10 +63,10 @@ export default function Addresses() {
         }
     };
 
-    const getUserName = (id: string) => {
-        const user = users.find(u => (u.id || u._id) === id);
-        return user ? `${user.first_name} ${user.last_name}` : "Unknown User";
-    };
+    // const getUserName = (id: string) => {
+    //     const user = users.find(u => (u.id || u._id) === id);
+    //     return user ? `${user.first_name} ${user.last_name}` : "Unknown User";
+    // };
 
     if (error) {
         return (
@@ -100,10 +100,10 @@ export default function Addresses() {
                         <thead>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    User
+                                    Customer
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Name & Phone
+                                    Phone
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Address
@@ -134,13 +134,14 @@ export default function Addresses() {
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm font-medium text-gray-800 dark:text-white">
-                                            {getUserName(addr.user_id)}
+                                            {/* {getUserName(addr.user_id)} */}
+                                            {addr.name}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm">
-                                            <div className="font-medium text-gray-800 dark:text-white">{addr.name}</div>
-                                            <div className="text-gray-500 dark:text-gray-400">{addr.shipping_phone}</div>
+                                            <div className="font-medium text-gray-800 dark:text-white">{addr.shipping_phone}</div>
+                                            {/* <div className="text-gray-500 dark:text-gray-400">{addr.shipping_phone}</div> */}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

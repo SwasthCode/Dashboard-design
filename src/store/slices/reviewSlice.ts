@@ -8,6 +8,10 @@ export interface Review {
     rating: number;
     comment: string;
     status: 'Published' | 'Pending';
+    userInfo?: {
+        fullname: string;
+        _id: string;
+    };
     image?: string | { url: string; _id: string };
     createdAt?: string;
     updatedAt?: string;
