@@ -49,6 +49,11 @@ const navItems: NavItem[] = [
   },
   {
     icon: <FolderIcon />,
+    name: "Main Categories",
+    path: "/main-categories",
+  },
+  {
+    icon: <FolderIcon />,
     name: "Categories",
     path: "/categories",
   },

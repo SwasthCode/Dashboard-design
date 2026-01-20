@@ -3,35 +3,29 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
-import { fetchCategories, deleteCategory, Category } from "../../store/slices/categorySlice";
-import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
+import { fetchMainCategories, deleteMainCategory, MainCategory } from "../../store/slices/mainCategorySlice";
 import Pagination from "../../components/common/Pagination";
-import AddCategoryModal from "./AddCategoryModal";
-import EditCategoryModal from "./EditCategoryModal";
+import AddMainCategoryModal from "./AddMainCategoryModal";
+import EditMainCategoryModal from "./EditMainCategoryModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
-export default function Categories() {
+export default function MainCategories() {
     const dispatch = useDispatch<AppDispatch>();
-    const { categories, loading, error } = useSelector((state: RootState) => state.category);
-    const { mainCategories } = useSelector((state: RootState) => state.mainCategory);
-
+    const { mainCategories, loading, error } = useSelector((state: RootState) => state.mainCategory);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
     useEffect(() => {
-        dispatch(fetchCategories());
-        if (mainCategories.length === 0) {
-            dispatch(fetchMainCategories());
-        }
-    }, [dispatch, mainCategories.length]);
+        dispatch(fetchMainCategories());
+    }, [dispatch]);
 
     // Calculate pagination
-    const categoryList = Array.isArray(categories) ? categories : [];
+    const categoryList = Array.isArray(mainCategories) ? mainCategories : [];
     const totalPages = Math.ceil(categoryList.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -41,12 +35,12 @@ export default function Categories() {
         setCurrentPage(page);
     };
 
-    const handleEdit = (category: Category) => {
+    const handleEdit = (category: MainCategory) => {
         setSelectedCategory(category);
         setIsEditModalOpen(true);
     };
 
-    const handleDeleteClick = (category: Category) => {
+    const handleDeleteClick = (category: MainCategory) => {
         setSelectedCategory(category);
         setIsDeleteModalOpen(true);
     };
@@ -55,10 +49,10 @@ export default function Categories() {
         if (selectedCategory?._id) {
             setIsDeleting(true);
             try {
-                await dispatch(deleteCategory(selectedCategory._id)).unwrap();
+                await dispatch(deleteMainCategory(selectedCategory._id)).unwrap();
                 setIsDeleteModalOpen(false);
             } catch (err) {
-                console.error("Failed to delete category:", err);
+                console.error("Failed to delete main category:", err);
             } finally {
                 setIsDeleting(false);
             }
@@ -68,7 +62,7 @@ export default function Categories() {
     if (error) {
         return (
             <div className="p-6 text-center text-red-500 font-medium font-outfit">
-                Error loading categories: {error}
+                Error loading main categories: {error}
             </div>
         );
     }
@@ -76,20 +70,20 @@ export default function Categories() {
     return (
         <div>
             <PageMeta
-                title="Categories | Admin Dashboard"
-                description="Manage your product categories in the Admin Dashboard"
+                title="Main Categories | Admin Dashboard"
+                description="Manage your main product categories in the Admin Dashboard"
             />
-            <PageBreadcrumb pageTitle="Categories" />
+            <PageBreadcrumb pageTitle="Main Categories" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                        Category List
+                        Main Category List
                     </h3>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
                         className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
                     >
-                        Add Category
+                        Add Main Category
                     </button>
                 </div>
                 <div className="overflow-x-auto">
@@ -101,9 +95,6 @@ export default function Categories() {
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Name
-                                </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Main Category
                                 </th>
 
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -142,11 +133,6 @@ export default function Categories() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm font-medium text-gray-800 dark:text-white">
                                             {category.name}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {mainCategories.find(mc => mc._id === category.main_category_id)?.name || "N/A"}
                                         </span>
                                     </td>
 
@@ -192,7 +178,7 @@ export default function Categories() {
                             {!loading && categoryList.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
-                                        No categories found.
+                                        No main categories found.
                                     </td>
                                 </tr>
                             )}
@@ -209,8 +195,8 @@ export default function Categories() {
                     totalResults={categoryList.length}
                 />
             </div>
-            <AddCategoryModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-            <EditCategoryModal
+            <AddMainCategoryModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+            <EditMainCategoryModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 category={selectedCategory}
@@ -219,11 +205,10 @@ export default function Categories() {
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Delete Category"
+                title="Delete Main Category"
                 message={`Are you sure you want to delete "${selectedCategory?.name}"? This action cannot be undone.`}
                 loading={isDeleting}
             />
         </div>
     );
 }
-

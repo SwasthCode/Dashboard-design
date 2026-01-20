@@ -22,6 +22,7 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
         name: "",
         category_id: "",
         description: "",
+        image: "",
     });
 
     useEffect(() => {
@@ -30,6 +31,7 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
                 name: subCategory.name || "",
                 category_id: subCategory.category_id || "",
                 description: subCategory.description || "",
+                image: subCategory.image || "",
             });
         }
     }, [subCategory]);
@@ -104,6 +106,30 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
                                 <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="currentColor" />
                             </svg>
                         </span>
+                    </div>
+                </div>
+
+                <div className="mb-4">
+                    <Label htmlFor="image">Sub-Category Image</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                        <div className="h-16 w-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                            {formData.image ? (
+                                <img src={formData.image} alt="Preview" className="h-full w-full object-cover" />
+                            ) : (
+                                <div className="flex items-center justify-center h-full w-full text-gray-400">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            )}
+                        </div>
+                        <Input
+                            type="text"
+                            id="image"
+                            placeholder="Image URL"
+                            value={formData.image}
+                            onChange={handleInputChange}
+                        />
                     </div>
                 </div>
 

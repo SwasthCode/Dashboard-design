@@ -1,43 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateCategory, Category } from "../../store/slices/categorySlice";
-import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
-import { RootState, AppDispatch } from "../../store";
+import { useDispatch } from "react-redux";
+import { updateMainCategory, MainCategory } from "../../store/slices/mainCategorySlice";
+import { AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 
-interface EditCategoryModalProps {
+interface EditMainCategoryModalProps {
     isOpen: boolean;
     onClose: () => void;
-    category: Category | null;
+    category: MainCategory | null;
 }
 
-export default function EditCategoryModal({ isOpen, onClose, category }: EditCategoryModalProps) {
+export default function EditMainCategoryModal({ isOpen, onClose, category }: EditMainCategoryModalProps) {
     const dispatch = useDispatch<AppDispatch>();
-    const { mainCategories } = useSelector((state: RootState) => state.mainCategory);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         name: "",
         description: "",
-        main_category_id: "",
         status: "Active"
     });
-
-    useEffect(() => {
-        if (isOpen && mainCategories.length === 0) {
-            dispatch(fetchMainCategories());
-        }
-    }, [isOpen, mainCategories.length, dispatch]);
 
     useEffect(() => {
         if (category) {
             setFormData({
                 name: category.name || "",
                 description: category.description || "",
-                main_category_id: category.main_category_id || "",
                 status: category.status || "Active"
             });
         }
@@ -45,14 +35,7 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
-        if (id === "name") {
-            setFormData((prev) => ({
-                ...prev,
-                name: value,
-            }));
-        } else {
-            setFormData((prev) => ({ ...prev, [id]: value }));
-        }
+        setFormData((prev) => ({ ...prev, [id]: value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -62,19 +45,17 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
         setLoading(true);
         setError(null);
 
-        // In a real app, handle image upload if changed
-        const updatedCategory: Partial<Category> = {
+        const updatedCategory: Partial<MainCategory> = {
             name: formData.name,
             description: formData.description,
-            main_category_id: formData.main_category_id,
             status: formData.status,
         };
 
         try {
-            await dispatch(updateCategory({ id: category._id, category: updatedCategory })).unwrap();
+            await dispatch(updateMainCategory({ id: category._id, mainCategory: updatedCategory })).unwrap();
             onClose();
         } catch (err: any) {
-            setError(err || "Failed to update category");
+            setError(err || "Failed to update main category");
         } finally {
             setLoading(false);
         }
@@ -83,7 +64,7 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[550px] p-6">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Edit Category</h3>
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Edit Main Category</h3>
             </div>
 
             {error && (
@@ -94,11 +75,11 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="mb-4">
-                    <Label htmlFor="name">Category Name</Label>
+                    <Label htmlFor="name">Main Category Name</Label>
                     <Input
                         type="text"
                         id="name"
-                        placeholder="Enter category name"
+                        placeholder="Enter main category name"
                         value={formData.name}
                         onChange={handleInputChange}
                         required
@@ -106,34 +87,11 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
                 </div>
 
                 <div className="mb-4">
-                    <Label htmlFor="main_category_id">Main Category</Label>
-                    <div className="relative">
-                        <select
-                            id="main_category_id"
-                            value={formData.main_category_id}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
-                        >
-                            <option value="">Select Main Category</option>
-                            {mainCategories.map((mainCat, index) => (
-                                <option key={index} value={mainCat._id}>{mainCat.name}</option>
-                            ))}
-                        </select>
-                        <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2 pointer-events-none">
-                            <svg className="fill-current text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="currentColor" />
-                            </svg>
-                        </span>
-                    </div>
-                </div>
-
-                <div className="mb-4">
                     <Label htmlFor="description">Description</Label>
                     <textarea
                         rows={4}
                         id="description"
-                        placeholder="Type category description"
+                        placeholder="Type main category description"
                         className="w-full rounded-lg border border-gray-300 bg-transparent py-3 px-5 text-sm outline-none transition focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800"
                         value={formData.description}
                         onChange={handleInputChange}

@@ -91,6 +91,9 @@ export default function SubCategories() {
                             <thead>
                                 <tr className="bg-gray-50 dark:bg-gray-800/50">
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Image
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                         Name
                                     </th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -110,6 +113,23 @@ export default function SubCategories() {
                                         key={subCategory._id || i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                                     >
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="h-10 w-10 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                                {subCategory.image ? (
+                                                    <img
+                                                        src={subCategory.image}
+                                                        alt={subCategory.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex items-center justify-center h-full w-full bg-gray-200 dark:bg-gray-700 text-gray-400">
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm font-medium text-gray-800 dark:text-white">
                                                 {subCategory.name}

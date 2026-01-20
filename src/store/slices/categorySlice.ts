@@ -6,6 +6,7 @@ export interface Category {
     name: string;
     slug?: string;
     description: string;
+    main_category_id?: string;
     status?: string;
     image: string;
     createdAt?: string;
