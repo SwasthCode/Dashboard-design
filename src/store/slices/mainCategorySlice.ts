@@ -32,7 +32,7 @@ export const fetchMainCategories = createAsyncThunk('mainCategory/fetchMainCateg
     }
 });
 
-export const addMainCategory = createAsyncThunk('mainCategory/addMainCategory', async (mainCategory: MainCategory, { rejectWithValue }) => {
+export const addMainCategory = createAsyncThunk('mainCategory/addMainCategory', async (mainCategory: FormData, { rejectWithValue }) => {
     try {
         const response = await https.post('main-categories', mainCategory);
         return response.data;

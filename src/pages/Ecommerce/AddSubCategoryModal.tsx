@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addSubCategory, SubCategory } from "../../store/slices/subCategorySlice";
+import { addSubCategory } from "../../store/slices/subCategorySlice";
 import { RootState, AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -41,20 +41,17 @@ export default function AddSubCategoryModal({ isOpen, onClose }: AddSubCategoryM
         setLoading(true);
         setError(null);
 
-        // Create a mock image URL or use a placeholder
-        const imageUrl = images.length > 0
-            ? URL.createObjectURL(images[0])
-            : "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&q=80";
+        const data = new FormData();
+        data.append("name", formData.name);
+        data.append("category_id", formData.category_id);
+        data.append("description", formData.description);
+
+        if (images.length > 0) {
+            data.append("image", images[0]);
+        }
 
         try {
-            const newSubCategory: SubCategory = {
-                name: formData.name,
-                category_id: formData.category_id,
-                description: formData.description,
-                image: imageUrl,
-            };
-
-            await dispatch(addSubCategory(newSubCategory)).unwrap();
+            await dispatch(addSubCategory(data)).unwrap();
 
             // Reset and close
             setFormData({
@@ -84,17 +81,7 @@ export default function AddSubCategoryModal({ isOpen, onClose }: AddSubCategoryM
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="mb-4">
-                    <Label htmlFor="name">Sub-Category Name</Label>
-                    <Input
-                        type="text"
-                        id="name"
-                        placeholder="Enter sub-category name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
+
 
                 <div className="mb-4">
                     <Label htmlFor="category_id">Parent Category</Label>
@@ -128,6 +115,19 @@ export default function AddSubCategoryModal({ isOpen, onClose }: AddSubCategoryM
                         </span>
                     </div>
                 </div>
+
+                <div className="mb-4">
+                    <Label htmlFor="name">Sub-Category Name</Label>
+                    <Input
+                        type="text"
+                        id="name"
+                        placeholder="Enter sub-category name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+
 
                 <div className="mb-4">
                     <Label htmlFor="images">Sub-Category Image</Label>

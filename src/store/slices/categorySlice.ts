@@ -43,7 +43,7 @@ export const fetchCategoryById = createAsyncThunk('category/fetchCategoryById', 
     }
 });
 
-export const addCategory = createAsyncThunk('category/addCategory', async (category: Category, { rejectWithValue }) => {
+export const addCategory = createAsyncThunk('category/addCategory', async (category: FormData, { rejectWithValue }) => {
     try {
         const response = await https.post('categories', category);
         return response.data;

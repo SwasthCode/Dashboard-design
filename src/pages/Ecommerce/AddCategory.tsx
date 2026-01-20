@@ -4,7 +4,7 @@ import PageMeta from "../../components/common/PageMeta";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import { useDispatch } from "react-redux";
-import { addCategory, Category } from "../../store/slices/categorySlice";
+import { addCategory } from "../../store/slices/categorySlice";
 import { useNavigate } from "react-router";
 import { AppDispatch } from "../../store";
 
@@ -38,24 +38,25 @@ export default function AddCategory() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Create a mock image URL or use a placeholder
-        const imageUrl = images.length > 0
-            ? URL.createObjectURL(images[0])
-            : "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&q=80";
+        const data = new FormData();
+        data.append("name", formData.name);
+        data.append("slug", formData.slug);
+        data.append("description", formData.description);
+        data.append("status", formData.status);
 
-        const newCategory: Category = {
-            name: formData.name,
-            slug: formData.slug,
-            description: formData.description,
-            status: formData.status,
-            image: imageUrl,
-        };
+        if (images.length > 0) {
+            data.append("image", images[0]);
+        }
 
-        dispatch(addCategory(newCategory));
-        navigate("/categories");
+        try {
+            await dispatch(addCategory(data)).unwrap();
+            navigate("/categories");
+        } catch (err) {
+            console.error("Failed to add category:", err);
+        }
     };
 
     return (

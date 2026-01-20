@@ -34,7 +34,7 @@ export const fetchSubCategories = createAsyncThunk('subCategory/fetchSubCategori
     }
 });
 
-export const addSubCategory = createAsyncThunk('subCategory/addSubCategory', async (subCategory: SubCategory, { rejectWithValue }) => {
+export const addSubCategory = createAsyncThunk('subCategory/addSubCategory', async (subCategory: FormData, { rejectWithValue }) => {
     try {
         const response = await https.post('subcategories', subCategory);
         return response.data;

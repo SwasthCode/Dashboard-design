@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { addMainCategory, MainCategory } from "../../store/slices/mainCategorySlice";
+import { addMainCategory } from "../../store/slices/mainCategorySlice";
 import { AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -39,20 +39,17 @@ export default function AddMainCategoryModal({ isOpen, onClose }: AddMainCategor
         setLoading(true);
         setError(null);
 
-        // Create a mock image URL or use a placeholder
-        const imageUrl = images.length > 0
-            ? URL.createObjectURL(images[0])
-            : "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&q=80";
+        const data = new FormData();
+        data.append("name", formData.name);
+        data.append("description", formData.description);
+        data.append("status", formData.status);
 
-        const newCategory: MainCategory = {
-            name: formData.name,
-            description: formData.description,
-            status: formData.status,
-            image: imageUrl,
-        };
+        if (images.length > 0) {
+            data.append("image", images[0]);
+        }
 
         try {
-            await dispatch(addMainCategory(newCategory)).unwrap();
+            await dispatch(addMainCategory(data)).unwrap();
             // Reset and close
             setFormData({
                 name: "",

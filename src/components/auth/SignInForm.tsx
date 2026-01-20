@@ -3,7 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
 import { loginUser } from '../../store/slices/authSlice';
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -54,6 +55,8 @@ interface FormErrors {
 export default function SignInForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { status } = useSelector((state: RootState) => state.auth);
+  const isLoading = status === "loading";
 
   const [mode, setMode] = useState<"signin" | "forgot">("signin");
   const [method, setMethod] = useState<"mobile" | "credentials">("mobile"); // Toggle login method
@@ -466,7 +469,7 @@ export default function SignInForm() {
 
             {/* Submit Button */}
             <div>
-              <Button className="w-full" size="sm" type="submit">
+              <Button className="w-full" size="sm" type="submit" loading={isLoading}>
                 {mode === "signin"
                   ? method === "credentials" ? "Sign In" : otpSent ? "Verify OTP & Sign In" : "Send OTP"
                   : otpSent ? "Reset Password" : "Send OTP"

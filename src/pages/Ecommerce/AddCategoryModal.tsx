@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addCategory, Category } from "../../store/slices/categorySlice";
+import { addCategory } from "../../store/slices/categorySlice";
 import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
 import { RootState, AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
@@ -56,21 +56,18 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
         setLoading(true);
         setError(null);
 
-        // Create a mock image URL or use a placeholder
-        const imageUrl = images.length > 0
-            ? URL.createObjectURL(images[0])
-            : "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&q=80";
+        const data = new FormData();
+        data.append("name", formData.name);
+        data.append("description", formData.description);
+        data.append("main_category_id", formData.main_category_id);
+        data.append("status", formData.status);
 
-        const newCategory: Category = {
-            name: formData.name,
-            description: formData.description,
-            main_category_id: formData.main_category_id,
-            status: formData.status,
-            image: imageUrl,
-        };
+        if (images.length > 0) {
+            data.append("image", images[0]);
+        }
 
         try {
-            await dispatch(addCategory(newCategory)).unwrap();
+            await dispatch(addCategory(data)).unwrap();
             // Reset and close
             setFormData({
                 name: "",
@@ -100,17 +97,7 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="mb-4">
-                    <Label htmlFor="name">Category Name</Label>
-                    <Input
-                        type="text"
-                        id="name"
-                        placeholder="Enter category name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
+
 
                 <div className="mb-4">
                     <Label htmlFor="main_category_id">Main Category</Label>
@@ -133,6 +120,18 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
                             </svg>
                         </span>
                     </div>
+                </div>
+
+                <div className="mb-4">
+                    <Label htmlFor="name">Category Name</Label>
+                    <Input
+                        type="text"
+                        id="name"
+                        placeholder="Enter category name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                    />
                 </div>
 
                 <div className="mb-4">
