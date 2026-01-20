@@ -281,7 +281,8 @@ export default function SignInForm() {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
+      <div className="flex flex-col justify-center mt-10 w-full max-w-md mx-auto">
+        <img src={"/logo.jpeg"} width={100} height={20} alt="Logo" className="w-[70%]  mx-auto" />
         <div className="mb-6">
           <h1 className="mb-2 font-semibold text-gray-800 text-title-sm">
             {mode === "signin" ? "Sign In" : "Reset Password"}
@@ -455,7 +456,7 @@ export default function SignInForm() {
 
 
             {/* Forgot Password Link - Only show in Sign In mode before OTP */}
-            {mode === "signin" && !otpSent && method === "mobile" && (
+            {/* {mode === "signin" && !otpSent && method === "mobile" && (
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -465,7 +466,7 @@ export default function SignInForm() {
                   Forgot Password?
                 </button>
               </div>
-            )}
+            )} */}
 
             {/* Submit Button */}
             <div>
