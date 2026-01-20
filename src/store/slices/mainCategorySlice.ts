@@ -47,7 +47,7 @@ const initialState: MainCategoryState = {
     error: null,
 };
 
-export const fetchMainCategories = createAsyncThunk('mainCategory/fetchMainCategories', async (_, { rejectWithValue }) => {
+export const fetchMainCategories = createAsyncThunk('mainCategory/fetchMainCategories', async () => {
     try {
         const response = await https.get('main-categories');
         return response.data && response.data.length > 0 ? response.data : dummyMainCategories;
