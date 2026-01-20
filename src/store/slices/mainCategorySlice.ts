@@ -17,43 +17,18 @@ interface MainCategoryState {
     error: string | null;
 }
 
-const dummyMainCategories: MainCategory[] = [
-    {
-        _id: "696e661bf833970b67017f6a",
-        name: "Electronics",
-        description: "Gadgets and devices",
-        image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
-        status: "active",
-    },
-    {
-        _id: "696e661bf833970b67017f6b",
-        name: "Fashion",
-        description: "Clothing and accessories",
-        image: "https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
-        status: "active",
-    },
-    {
-        _id: "696e661bf833970b67017f6c",
-        name: "Home & Garden",
-        description: "Decor and outdoor",
-        image: "https://images.unsplash.com/photo-1416339442236-8ceb164046f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
-        status: "active",
-    }
-];
-
 const initialState: MainCategoryState = {
-    mainCategories: dummyMainCategories,
+    mainCategories: [],
     loading: false,
     error: null,
 };
 
-export const fetchMainCategories = createAsyncThunk('mainCategory/fetchMainCategories', async () => {
+export const fetchMainCategories = createAsyncThunk('mainCategory/fetchMainCategories', async (_, { rejectWithValue }) => {
     try {
         const response = await https.get('main-categories');
-        return response.data && response.data.length > 0 ? response.data : dummyMainCategories;
+        return response.data || [];
     } catch (error: any) {
-        // Fallback to dummy data even on error for demonstration
-        return dummyMainCategories;
+        return rejectWithValue(error.message || 'Failed to fetch main categories');
     }
 });
 
