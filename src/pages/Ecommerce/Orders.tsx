@@ -27,7 +27,7 @@ export default function Orders() {
         dispatch(fetchOrders());
     }, [dispatch]);
 
-    const statusOptions: OrderStatus[] = ["Pending", "Hold", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
+    const statusOptions: OrderStatus[] = ["pending", "hold", "ready", "shipped", "delivered", "cancelled", "returned"];
 
     const handleDateChange = (_dates: Date[], dateStr: string) => {
         setSelectedDate(dateStr);
@@ -55,7 +55,8 @@ export default function Orders() {
         const matchesSearch =
             (order._id && order._id.toLowerCase().includes(searchQuery.toLowerCase())) ||
             (order.customer_name && order.customer_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (order.user_id && order.user_id.toLowerCase().includes(searchQuery.toLowerCase()));
+            (order.user?.first_name && order.user.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (order.user?.last_name && order.user.last_name.toLowerCase().includes(searchQuery.toLowerCase()));
 
         const matchesStatus = selectedStatuses.length > 0 ? selectedStatuses.includes(order.status) : true;
 
@@ -81,93 +82,100 @@ export default function Orders() {
 
     const getStatusColor = (status: OrderStatus) => {
         switch (status) {
-            case "Delivered": return "bg-green-100 text-green-600";
-            case "Pending": return "bg-orange-100 text-orange-600";
-            case "Shipped": return "bg-blue-100 text-blue-600";
-            case "Cancelled": return "bg-red-100 text-red-600";
-            case "Returned": return "bg-purple-100 text-purple-600";
-            case "Hold": return "bg-yellow-100 text-yellow-600";
-            case "Ready": return "bg-teal-100 text-teal-600";
+            case "delivered": return "bg-green-100 text-green-600";
+            case "pending": return "bg-orange-100 text-orange-600";
+            case "shipped": return "bg-blue-100 text-blue-600";
+            case "cancelled": return "bg-red-100 text-red-600";
+            case "returned": return "bg-purple-100 text-purple-600";
+            case "hold": return "bg-yellow-100 text-yellow-600";
+            case "ready": return "bg-teal-100 text-teal-600";
             default: return "bg-gray-100 text-gray-600";
         }
     };
 
     const renderActions = (order: Order) => {
         switch (order.status) {
-            case "Pending":
+            case "pending":
                 return (
                     <div className="flex gap-2">
                         <button
                             disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "Ready")}
+                            onClick={() => handleStatusChange(order._id, "ready")}
                             className={`px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Accept
                         </button>
                         <button
                             disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "Hold")}
+                            onClick={() => handleStatusChange(order._id, "hold")}
                             className={`px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Hold
                         </button>
                         <button
                             disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "Cancelled")}
+                            onClick={() => handleStatusChange(order._id, "cancelled")}
                             className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Cancel
                         </button>
                     </div>
                 );
-            case "Hold":
+            case "hold":
                 return (
                     <div className="flex gap-2">
                         <button
                             disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "Ready")}
+                            onClick={() => handleStatusChange(order._id, "ready")}
                             className={`px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Accept
                         </button>
                         <button
                             disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "Cancelled")}
+                            onClick={() => handleStatusChange(order._id, "cancelled")}
                             className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Cancel
                         </button>
                     </div>
                 );
-            case "Ready":
+            case "ready":
                 return (
                     <div className="flex gap-2">
                         <button
                             disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "Shipped")}
+                            onClick={() => handleStatusChange(order._id, "shipped")}
                             className={`px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            Slip
+                            Ship
+                        </button>
+                        <button
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "cancelled")}
+                            className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            Cancel
                         </button>
                     </div>
                 );
-            case "Shipped":
+            case "shipped":
                 return (
                     <div className="flex gap-2">
                         <button
                             disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "Delivered")}
+                            onClick={() => handleStatusChange(order._id, "delivered")}
                             className={`px-3 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Mark Delivered
                         </button>
                     </div>
                 );
-            case "Delivered":
+            case "delivered":
                 return (
                     <button
                         disabled={updating}
-                        onClick={() => handleStatusChange(order._id, "Returned")}
+                        onClick={() => handleStatusChange(order._id, "returned")}
                         className={`px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded hover:bg-purple-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         Mark Returned
@@ -298,13 +306,13 @@ export default function Orders() {
                                 ) : (
                                     currentOrders.map((order: Order, i: number) => (
                                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.substring(0, 8)}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer_name || 'Customer'}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.slice(- 8)}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{`${order.user?.first_name} ${order.user?.last_name}` || 'Customer'}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">&#8377;{order.total_price}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">&#8377;{order.total_amount}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
                                                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                                                    {order.status}
+                                                    {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

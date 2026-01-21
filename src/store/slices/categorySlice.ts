@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
+import { QueryParams, buildQueryString } from '../types';
 
 export interface Category {
     _id?: string;
@@ -25,9 +26,11 @@ const initialState: CategoryState = {
     error: null,
 };
 
-export const fetchCategories = createAsyncThunk('category/fetchCategories', async (_, { rejectWithValue }) => {
+export const fetchCategories = createAsyncThunk('category/fetchCategories', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const response = await https.get('categories');
+        const mergedParams = { sort: { createdAt: -1 }, ...params };
+        const queryString = buildQueryString(mergedParams);
+        const response = await https.get(`categories${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch categories');
@@ -52,7 +55,7 @@ export const addCategory = createAsyncThunk('category/addCategory', async (categ
     }
 });
 
-export const updateCategory = createAsyncThunk('category/updateCategory', async ({ id, category }: { id: string; category: Partial<Category> }, { rejectWithValue }) => {
+export const updateCategory = createAsyncThunk('category/updateCategory', async ({ id, category }: { id: string; category: FormData }, { rejectWithValue }) => {
     try {
         const response = await https.put(`categories/${id}`, category);
         return response.data;

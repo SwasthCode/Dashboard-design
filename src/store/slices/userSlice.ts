@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
+import { QueryParams, buildQueryString } from '../types';
 
 export interface Role {
     _id?: string;
@@ -44,18 +45,22 @@ const initialState: UserState = {
 };
 
 // Async Thunks
-export const fetchUsers = createAsyncThunk('user/fetchUsers', async (_, { rejectWithValue }) => {
+export const fetchUsers = createAsyncThunk('user/fetchUsers', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const response = await https.get('users');
+        const mergedParams = { sort: { createdAt: -1 }, ...params };
+        const queryString = buildQueryString(mergedParams);
+        const response = await https.get(`users${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch users');
     }
 });
 
-export const fetchRoles = createAsyncThunk('user/fetchRoles', async (_, { rejectWithValue }) => {
+export const fetchRoles = createAsyncThunk('user/fetchRoles', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const response = await https.get('roles');
+        const mergedParams = { sort: { createdAt: -1 }, ...params };
+        const queryString = buildQueryString(mergedParams);
+        const response = await https.get(`roles${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch roles');

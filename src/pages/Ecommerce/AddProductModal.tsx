@@ -16,6 +16,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     const { categories } = useSelector((state: RootState) => state.category);
     const { subCategories } = useSelector((state: RootState) => state.subCategory);
     const [images, setImages] = useState<File[]>([]);
+    const [previews, setPreviews] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -33,8 +34,22 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setImages(Array.from(e.target.files));
+            const selectedFiles = Array.from(e.target.files);
+            setImages((prev) => [...prev, ...selectedFiles]);
+
+            selectedFiles.forEach((file) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPreviews((prev) => [...prev, reader.result as string]);
+                };
+                reader.readAsDataURL(file);
+            });
         }
+    };
+
+    const removeImage = (index: number) => {
+        setImages((prev) => prev.filter((_, i) => i !== index));
+        setPreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -198,14 +213,22 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                     </div>
                     <div>
                         <Label htmlFor="unit">Unit (e.g. Kg, Pcs)</Label>
-                        <Input
-                            type="text"
+                        <select
                             id="unit"
-                            placeholder="Enter unit"
                             value={formData.unit}
                             onChange={handleInputChange}
                             required
-                        />
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                        >
+                            <option value="">Select Unit</option>
+                            <option value="Kg">Kg</option>
+                            <option value="Pcs">Pcs</option>
+                            <option value="Gm">Gm</option>
+                            <option value="Ltr">Ltr</option>
+                            <option value="Ml">Ml</option>
+                            <option value="Packet">Packet</option>
+                            <option value="Box">Box</option>
+                        </select>
                     </div>
                 </div>
 
@@ -245,7 +268,30 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                             <p className="text-xs text-gray-400">SVG, PNG, JPG or GIF</p>
                         </div>
                     </div>
-                    {images.length > 0 && <div className="mt-2 text-xs text-green-600 font-medium">{images.length} image(s) selected</div>}
+                    {previews.length > 0 && (
+                        <div className="mt-4 grid grid-cols-4 gap-4">
+                            {previews.map((src, index) => (
+                                <div key={index} className="relative group h-20 w-20 border rounded-xl overflow-hidden border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                                    <img src={src} alt="Preview" className="h-full w-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(index)}
+                                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600 focus:outline-none"
+                                        title="Remove Image"
+                                    >
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {images.length > 0 && <div className="mt-3 text-xs text-green-600 font-semibold flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                        {images.length} image(s) selected
+                    </div>}
                 </div>
 
                 <div className="flex items-center gap-2">

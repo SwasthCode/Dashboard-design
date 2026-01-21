@@ -22,8 +22,9 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
         name: "",
         category_id: "",
         description: "",
-        image: "",
     });
+    const [images, setImages] = useState<File[]>([]);
+    const [preview, setPreview] = useState<string | null>(null);
 
     useEffect(() => {
         if (subCategory) {
@@ -31,14 +32,26 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
                 name: subCategory.name || "",
                 category_id: subCategory.category_id || "",
                 description: subCategory.description || "",
-                image: subCategory.image || "",
             });
+            setPreview(subCategory.image || null);
         }
     }, [subCategory]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
         setFormData((prev) => ({ ...prev, [id]: value }));
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImages([file]);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -48,10 +61,19 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
         setLoading(true);
         setError(null);
 
+        const data = new FormData();
+        data.append("name", formData.name);
+        data.append("category_id", formData.category_id);
+        data.append("description", formData.description);
+
+        if (images.length > 0) {
+            data.append("image", images[0]);
+        }
+
         try {
             await dispatch(updateSubCategory({
                 id: subCategory._id,
-                subCategory: formData
+                subCategory: data
             })).unwrap();
             onClose();
         } catch (err: any) {
@@ -74,17 +96,7 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="mb-4">
-                    <Label htmlFor="name">Sub-Category Name</Label>
-                    <Input
-                        type="text"
-                        id="name"
-                        placeholder="Enter sub-category name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
+
 
                 <div className="mb-4">
                     <Label htmlFor="category_id">Parent Category</Label>
@@ -109,28 +121,78 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
                     </div>
                 </div>
 
+
+
                 <div className="mb-4">
-                    <Label htmlFor="image">Sub-Category Image</Label>
-                    <div className="mt-2 flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            {formData.image ? (
-                                <img src={formData.image} alt="Preview" className="h-full w-full object-cover" />
-                            ) : (
-                                <div className="flex items-center justify-center h-full w-full text-gray-400">
-                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                            )}
-                        </div>
-                        <Input
-                            type="text"
-                            id="image"
-                            placeholder="Image URL"
-                            value={formData.image}
-                            onChange={handleInputChange}
+                    <Label htmlFor="name">Sub-Category Name</Label>
+                    <Input
+                        type="text"
+                        id="name"
+                        placeholder="Enter sub-category name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+
+                <div className="mb-4">
+                    <Label htmlFor="images">Sub-Category Image</Label>
+                    <div className="relative block w-full cursor-pointer appearance-none rounded-lg border-2 border-dashed border-brand-500 bg-gray-50 py-4 px-4 dark:bg-gray-800/50 sm:py-6">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
+                            onChange={handleImageUpload}
                         />
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                            {preview ? (
+                                <div className="relative w-24 h-24 mb-2">
+                                    <img
+                                        src={preview}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover rounded-lg"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg">
+                                        <p className="text-[10px] text-white font-medium">Change Image</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 16 16"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            clipRule="evenodd"
+                                            d="M1.99967 9.33337C2.36786 9.33337 2.66634 9.63185 2.66634 10V12.6667C2.66634 12.8435 2.73658 13.0131 2.8616 13.1381C2.98663 13.2631 3.1562 13.3334 3.33301 13.3334H12.6663C12.8431 13.3334 13.0127 13.2631 13.1377 13.1381C13.2628 13.0131 13.333 12.8435 13.333 12.6667V10C13.333 9.63185 13.6315 9.33337 13.9997 9.33337C14.3679 9.33337 14.6663 9.63185 14.6663 10V12.6667C14.6663 13.1971 14.4556 13.7058 14.0806 14.0809C13.7055 14.456 13.1968 14.6667 12.6663 14.6667H3.33301C2.80257 14.6667 2.29387 14.456 1.91879 14.0809C1.54372 13.7058 1.33301 13.1971 1.33301 12.6667V10C1.33301 9.63185 1.63148 9.33337 1.99967 9.33337Z"
+                                            fill="#3C50E0"
+                                        />
+                                        <path
+                                            fillRule="evenodd"
+                                            clipRule="evenodd"
+                                            d="M7.5286 1.52864C7.78894 1.26829 8.21106 1.26829 8.4714 1.52864L11.8047 4.86197C12.0651 5.12232 12.0651 5.54443 11.8047 5.80478C11.5444 6.06513 11.1223 6.06513 10.8619 5.80478L8 2.94285L5.13807 5.80478C4.87772 6.06513 4.45561 6.06513 4.19526 5.80478C3.93491 5.54443 3.93491 5.12232 4.19526 4.86197L7.5286 1.52864Z"
+                                            fill="#3C50E0"
+                                        />
+                                        <path
+                                            fillRule="evenodd"
+                                            clipRule="evenodd"
+                                            d="M7.99967 1.33337C8.36786 1.33337 8.66634 1.63185 8.66634 2.00004V10C8.66634 10.3682 8.36786 10.6667 7.99967 10.6667C7.63148 10.6667 7.33301 10.3682 7.33301 10V2.00004C7.33301 1.63185 7.63148 1.33337 7.99967 1.33337Z"
+                                            fill="#3C50E0"
+                                        />
+                                    </svg>
+                                </span>
+                            )}
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <span className="text-brand-500 font-medium">{preview ? "Change image" : "Click to upload"}</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-400">SVG, PNG, JPG or GIF</p>
+                        </div>
                     </div>
+                    {images.length > 0 && <div className="mt-2 text-xs text-green-600 font-medium">New image selected</div>}
                 </div>
 
                 <div className="mb-4">

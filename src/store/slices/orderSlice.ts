@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
+import { QueryParams, buildQueryString } from '../types';
 
-export type OrderStatus = "Pending" | "Hold" | "Ready" | "Shipped" | "Delivered" | "Cancelled" | "Returned";
+export type OrderStatus = "pending" | "hold" | "ready" | "shipped" | "delivered" | "cancelled" | "returned";
 
 export interface OrderItem {
     product_id: string;
@@ -13,9 +14,13 @@ export interface OrderItem {
 
 export interface Order {
     _id: string;
-    user_id: string;
+    user: {
+        _id: string;
+        first_name: string;
+        last_name: string;
+    };
     customer_name?: string;
-    total_price: number;
+    total_amount: number;
     status: OrderStatus;
     items?: OrderItem[];
     createdAt: string;
@@ -39,9 +44,11 @@ const initialState: OrderState = {
 };
 
 // Async Thunks
-export const fetchOrders = createAsyncThunk('order/fetchOrders', async (_, { rejectWithValue }) => {
+export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const response = await https.get('orders');
+        const mergedParams = { sort: { createdAt: -1 }, ...params };
+        const queryString = buildQueryString(mergedParams);
+        const response = await https.get(`orders${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch orders');

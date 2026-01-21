@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
+import { QueryParams, buildQueryString } from '../types';
 
 export interface ProductImage {
     url: string;
@@ -35,9 +36,11 @@ const initialState: ProductState = {
 };
 
 // Async Thunks
-export const fetchProducts = createAsyncThunk('product/fetchProducts', async (_, { rejectWithValue }) => {
+export const fetchProducts = createAsyncThunk('product/fetchProducts', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const response = await https.get('products');
+        const mergedParams = { sort: { createdAt: -1 }, ...params };
+        const queryString = buildQueryString(mergedParams);
+        const response = await https.get(`products${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch products');

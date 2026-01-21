@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
+import { QueryParams, buildQueryString } from '../types';
 
 export interface SubCategory {
     _id?: string;
@@ -25,9 +26,11 @@ const initialState: SubCategoryState = {
 };
 
 // Async Thunks
-export const fetchSubCategories = createAsyncThunk('subCategory/fetchSubCategories', async (_, { rejectWithValue }) => {
+export const fetchSubCategories = createAsyncThunk('subCategory/fetchSubCategories', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const response = await https.get('subcategories');
+        const mergedParams = { sort: { createdAt: -1 }, ...params };
+        const queryString = buildQueryString(mergedParams);
+        const response = await https.get(`subcategories${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch sub-categories');
@@ -43,7 +46,7 @@ export const addSubCategory = createAsyncThunk('subCategory/addSubCategory', asy
     }
 });
 
-export const updateSubCategory = createAsyncThunk('subCategory/updateSubCategory', async ({ id, subCategory }: { id: string; subCategory: Partial<SubCategory> }, { rejectWithValue }) => {
+export const updateSubCategory = createAsyncThunk('subCategory/updateSubCategory', async ({ id, subCategory }: { id: string; subCategory: FormData }, { rejectWithValue }) => {
     try {
         // Trying both plural and singular as fallback based on previous user experience with /users vs /user
         const response = await https.put(`subcategories/${id}`, subCategory);

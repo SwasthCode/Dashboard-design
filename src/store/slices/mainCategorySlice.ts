@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
+import { QueryParams, buildQueryString } from '../types';
 
 export interface MainCategory {
     _id?: string;
@@ -23,9 +24,11 @@ const initialState: MainCategoryState = {
     error: null,
 };
 
-export const fetchMainCategories = createAsyncThunk('mainCategory/fetchMainCategories', async (_, { rejectWithValue }) => {
+export const fetchMainCategories = createAsyncThunk('mainCategory/fetchMainCategories', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const response = await https.get('main-categories');
+        const mergedParams = { sort: { createdAt: -1 }, ...params };
+        const queryString = buildQueryString(mergedParams);
+        const response = await https.get(`main-categories${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch main categories');
@@ -41,7 +44,7 @@ export const addMainCategory = createAsyncThunk('mainCategory/addMainCategory', 
     }
 });
 
-export const updateMainCategory = createAsyncThunk('mainCategory/updateMainCategory', async ({ id, mainCategory }: { id: string; mainCategory: Partial<MainCategory> }, { rejectWithValue }) => {
+export const updateMainCategory = createAsyncThunk('mainCategory/updateMainCategory', async ({ id, mainCategory }: { id: string; mainCategory: FormData }, { rejectWithValue }) => {
     try {
         const response = await https.put(`main-categories/${id}`, mainCategory);
         return response.data;
