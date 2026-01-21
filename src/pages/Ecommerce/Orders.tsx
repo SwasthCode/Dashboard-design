@@ -1,23 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Input from "../../components/form/input/InputField";
 import DatePicker from "../../components/form/date-picker";
 import { FilterIcon, CloseIcon } from "../../icons";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
-import Pagination from "../../components/common/Pagination"; // Import Pagination
-
-type OrderStatus = "Pending" | "Hold" | "Ready" | "Shipped" | "Delivered" | "Cancelled" | "Returned";
-
-interface Order {
-    id: string;
-    customer: string;
-    date: string;
-    price: string;
-    status: OrderStatus;
-}
+import Pagination from "../../components/common/Pagination";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../../store";
+import { fetchOrders, updateOrderStatus, OrderStatus, Order } from "../../store/slices/orderSlice";
 
 export default function Orders() {
+    const dispatch = useDispatch<AppDispatch>();
+    const { orders, loading, updating } = useSelector((state: RootState) => state.order);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState("");
@@ -27,26 +23,9 @@ export default function Orders() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    const [orders, setOrders] = useState<Order[]>([
-        { id: "#12345", customer: "John Doe", date: "Jan 12, 2024", price: "$120.00", status: "Delivered" },
-        { id: "#12346", customer: "Jane Smith", date: "Jan 13, 2024", price: "$240.00", status: "Pending" },
-        { id: "#12347", customer: "Robert Fox", date: "Jan 14, 2024", price: "$89.50", status: "Shipped" },
-        { id: "#12348", customer: "Alice Johnson", date: "Jan 15, 2024", price: "$150.00", status: "Cancelled" },
-        { id: "#12349", customer: "Mike Brown", date: "Jan 16, 2024", price: "$200.00", status: "Returned" },
-        { id: "#12350", customer: "Sarah Wilson", date: "Jan 17, 2024", price: "$300.00", status: "Ready" },
-        { id: "#12351", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12352", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12353", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12354", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12355", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12356", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12357", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12358", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12359", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12360", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12361", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-        { id: "#12362", customer: "David Lee", date: "Jan 18, 2024", price: "$450.00", status: "Hold" },
-    ]);
+    useEffect(() => {
+        dispatch(fetchOrders());
+    }, [dispatch]);
 
     const statusOptions: OrderStatus[] = ["Pending", "Hold", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
@@ -64,24 +43,25 @@ export default function Orders() {
         setCurrentPage(1); // Reset page on filter change
     };
 
-    const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-        setOrders(prevOrders =>
-            prevOrders.map(order =>
-                order.id === orderId ? { ...order, status: newStatus } : order
-            )
-        );
+    const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+        try {
+            await dispatch(updateOrderStatus({ id: orderId, status: newStatus })).unwrap();
+        } catch (err) {
+            console.error("Failed to update status:", err);
+        }
     };
 
-    const filteredOrders = orders.filter((order) => {
+    const filteredOrders = orders.filter((order: Order) => {
         const matchesSearch =
-            order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.customer.toLowerCase().includes(searchQuery.toLowerCase());
+            (order._id && order._id.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (order.customer_name && order.customer_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (order.user_id && order.user_id.toLowerCase().includes(searchQuery.toLowerCase()));
 
         const matchesStatus = selectedStatuses.length > 0 ? selectedStatuses.includes(order.status) : true;
 
         let matchesDate = true;
         if (selectedDate) {
-            const orderDate = new Date(order.date).toDateString();
+            const orderDate = new Date(order.createdAt).toDateString();
             const filterDate = new Date(selectedDate).toDateString();
             matchesDate = orderDate === filterDate;
         }
@@ -118,20 +98,23 @@ export default function Orders() {
                 return (
                     <div className="flex gap-2">
                         <button
-                            onClick={() => handleStatusChange(order.id, "Ready")}
-                            className="px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600"
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "Ready")}
+                            className={`px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Accept
                         </button>
                         <button
-                            onClick={() => handleStatusChange(order.id, "Hold")}
-                            className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200"
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "Hold")}
+                            className={`px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Hold
                         </button>
                         <button
-                            onClick={() => handleStatusChange(order.id, "Cancelled")}
-                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200"
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "Cancelled")}
+                            className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Cancel
                         </button>
@@ -141,14 +124,16 @@ export default function Orders() {
                 return (
                     <div className="flex gap-2">
                         <button
-                            onClick={() => handleStatusChange(order.id, "Ready")}
-                            className="px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600"
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "Ready")}
+                            className={`px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Accept
                         </button>
                         <button
-                            onClick={() => handleStatusChange(order.id, "Cancelled")}
-                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200"
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "Cancelled")}
+                            className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Cancel
                         </button>
@@ -158,10 +143,11 @@ export default function Orders() {
                 return (
                     <div className="flex gap-2">
                         <button
-                            onClick={() => handleStatusChange(order.id, "Shipped")}
-                            className="px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600"
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "Shipped")}
+                            className={`px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            Ship
+                            Slip
                         </button>
                     </div>
                 );
@@ -169,8 +155,9 @@ export default function Orders() {
                 return (
                     <div className="flex gap-2">
                         <button
-                            onClick={() => handleStatusChange(order.id, "Delivered")}
-                            className="px-3 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600"
+                            disabled={updating}
+                            onClick={() => handleStatusChange(order._id, "Delivered")}
+                            className={`px-3 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Mark Delivered
                         </button>
@@ -179,8 +166,9 @@ export default function Orders() {
             case "Delivered":
                 return (
                     <button
-                        onClick={() => handleStatusChange(order.id, "Returned")}
-                        className="px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded hover:bg-purple-200"
+                        disabled={updating}
+                        onClick={() => handleStatusChange(order._id, "Returned")}
+                        className={`px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded hover:bg-purple-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         Mark Returned
                     </button>
@@ -193,8 +181,8 @@ export default function Orders() {
     return (
         <div>
             <PageMeta
-                title="Orders | TailAdmin - React.js Admin Dashboard"
-                description="This is the Orders page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Orders | Admin Dashboard"
+                description="Manage your orders in the Admin Dashboard"
             />
             <PageBreadcrumb pageTitle="Orders" />
             <div className="space-y-6">
@@ -288,19 +276,29 @@ export default function Orders() {
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">STATUS</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">ACTIONS</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {currentOrders.length > 0 ? (
-                                    currentOrders.map((order, i) => (
+                                {loading && (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Loading orders...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                                {!loading && currentOrders.length > 0 ? (
+                                    currentOrders.map((order: Order, i: number) => (
                                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">{order.id}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{order.date}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{order.price}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.substring(0, 8)}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer_name || 'Customer'}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">${order.total_price}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
                                                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${getStatusColor(order.status)}`}>
                                                     {order.status}
                                                 </span>

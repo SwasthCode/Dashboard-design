@@ -9,6 +9,8 @@ import reviewReducer from './slices/reviewSlice';
 import addressReducer from './slices/addressSlice';
 import dashboardReducer from './slices/dashboardSlice';
 
+import orderReducer from './slices/orderSlice';
+
 const rootReducer = combineReducers({
     auth: authReducer,
     product: productReducer,
@@ -19,6 +21,7 @@ const rootReducer = combineReducers({
     review: reviewReducer,
     address: addressReducer,
     dashboard: dashboardReducer,
+    order: orderReducer,
 });
 
 export default rootReducer;

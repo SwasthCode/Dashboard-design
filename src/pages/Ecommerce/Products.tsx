@@ -4,8 +4,8 @@ import PageMeta from "../../components/common/PageMeta";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchProducts, deleteProduct, Product } from "../../store/slices/productSlice";
-import { fetchCategories } from "../../store/slices/categorySlice";
-import { fetchSubCategories } from "../../store/slices/subCategorySlice";
+import { fetchCategories, Category } from "../../store/slices/categorySlice";
+import { fetchSubCategories, SubCategory } from "../../store/slices/subCategorySlice";
 import Pagination from "../../components/common/Pagination";
 import AddProductModal from "./AddProductModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -126,13 +126,13 @@ export default function Products() {
                                     </td>
                                 </tr>
                             )}
-                            {!loading && currentProducts.map((product, i) => (
+                            {!loading && currentProducts.map((product: Product, i: number) => (
                                 <tr
                                     key={i}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                        <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-100">
                                             {product.images && product.images.length > 0 ? (
                                                 <img
                                                     src={product.images[0].url}
@@ -155,10 +155,10 @@ export default function Products() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400 block">
-                                            {categories.find(c => c._id === product.category_id)?.name || 'N/A'}
+                                            {categories.find((c: Category) => c._id === product.category_id)?.name || ''}
                                         </span>
                                         <span className="text-xs text-gray-400">
-                                            {subCategories.find(s => s._id === product.subcategory_id)?.name || ''}
+                                            {subCategories.find((s: SubCategory) => s._id === product.subcategory_id)?.name || ''}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
