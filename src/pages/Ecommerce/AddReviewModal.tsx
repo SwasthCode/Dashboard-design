@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createReview } from "../../store/slices/reviewSlice";
 import { fetchProducts } from "../../store/slices/productSlice";
+import { fetchUsers } from "../../store/slices/userSlice";
 import { AppDispatch, RootState } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -14,16 +15,25 @@ interface AddReviewModalProps {
 export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { products } = useSelector((state: RootState) => state.product);
+    const { users } = useSelector((state: RootState) => state.user);
     const { user } = useSelector((state: RootState) => state.auth);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [image, setImage] = useState<File | null>(null);
+    // const [image, setImage] = useState<File | null>(null);
+
+    useEffect(() => {
+        if (isOpen && users.length === 0) {
+            dispatch(fetchUsers());
+        }
+    }, [dispatch, isOpen, users.length]);
 
     const [formData, setFormData] = useState({
         product_id: "",
         rating: 5,
         comment: "",
-        status: "Published" as const
+        status: "Published" as const,
+        selectedUserId: "",
+        customerName: ""
     });
 
     useEffect(() => {
@@ -34,14 +44,23 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
-        setFormData((prev) => ({ ...prev, [id]: id === 'rating' ? Number(value) : value }));
-    };
-
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setImage(e.target.files[0]);
+        if (id === 'selectedUserId') {
+            const selectedCustomer = users.find(u => (u.id || u._id) === value);
+            setFormData((prev) => ({
+                ...prev,
+                selectedUserId: value,
+                customerName: selectedCustomer ? `${selectedCustomer.first_name} ${selectedCustomer.last_name}` : ""
+            }));
+        } else {
+            setFormData((prev) => ({ ...prev, [id]: id === 'rating' ? Number(value) : value }));
         }
     };
+
+    // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     if (e.target.files && e.target.files[0]) {
+    //         setImage(e.target.files[0]);
+    //     }
+    // };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,16 +73,25 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
         setError(null);
 
         try {
+            const { selectedUserId, customerName, ...restData } = formData;
+            const targetUserId = selectedUserId || (user.id || user._id || "") as string;
+
             await dispatch(createReview({
-                ...formData,
-                user_id: (user.id || user._id) as string
+                ...restData,
+                user_id: targetUserId,
+                userInfo: {
+                    fullname: customerName || `${user.first_name} ${user.last_name}`,
+                    _id: targetUserId
+                }
             })).unwrap();
 
             setFormData({
                 product_id: "",
                 rating: 5,
                 comment: "",
-                status: "Published"
+                status: "Published",
+                selectedUserId: "",
+                customerName: ""
             });
             onClose();
         } catch (err: any) {
@@ -86,6 +114,24 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <Label htmlFor="selectedUserId">Customer Name</Label>
+                    <select
+                        id="selectedUserId"
+                        value={formData.selectedUserId}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white dark:bg-gray-900"
+                    >
+                        <option value="">Select Customer</option>
+                        {users.map((u) => (
+                            <option key={u.id || u._id} value={u.id || u._id}>
+                                {u.first_name} {u.last_name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <div>
                     <Label htmlFor="product_id">Product</Label>
                     <select
@@ -130,7 +176,7 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
                     ></textarea>
                 </div>
 
-                <div>
+                {/* <div>
                     <Label htmlFor="image">Review Image (Optional)</Label>
                     <div className="flex items-center gap-4">
                         {image && (
@@ -150,7 +196,7 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
                             className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
                         />
                     </div>
-                </div>
+                </div> */}
 
                 <div className="pt-4 flex gap-3">
                     <button
