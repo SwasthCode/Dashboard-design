@@ -281,7 +281,7 @@ export default function Orders() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {loading && (
+                                {loading ? (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                             <div className="flex flex-col items-center gap-2">
@@ -290,14 +290,13 @@ export default function Orders() {
                                             </div>
                                         </td>
                                     </tr>
-                                )}
-                                {!loading && currentOrders.length > 0 ? (
+                                ) : (
                                     currentOrders.map((order: Order, i: number) => (
                                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.substring(0, 8)}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer_name || 'Customer'}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">${order.total_price}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">&#8377;{order.total_price}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
                                                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${getStatusColor(order.status)}`}>
                                                     {order.status}
@@ -308,12 +307,6 @@ export default function Orders() {
                                             </td>
                                         </tr>
                                     ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                            No orders found matching your filters.
-                                        </td>
-                                    </tr>
                                 )}
                             </tbody>
                         </table>
