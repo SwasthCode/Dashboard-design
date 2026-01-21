@@ -285,7 +285,12 @@ export default function Orders() {
                                     <tr>
                                         <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                             <div className="flex flex-col items-center gap-2">
-                                                <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                                                {/* Dot Loading */}
+                                                <div className="flex space-x-1 text-brand-500 text-xl font-bold">
+                                                    <span className="animate-bounce [animation-delay:0ms]">.</span>
+                                                    <span className="animate-bounce [animation-delay:150ms]">.</span>
+                                                    <span className="animate-bounce [animation-delay:300ms]">.</span>
+                                                </div>
                                                 <span>Loading orders...</span>
                                             </div>
                                         </td>

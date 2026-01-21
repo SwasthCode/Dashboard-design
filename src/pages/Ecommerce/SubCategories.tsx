@@ -83,32 +83,47 @@ export default function SubCategories() {
                     </button>
                 </div>
 
-                {loading && subCategories.length === 0 ? (
-                    <div className="p-12 text-center text-gray-500">Loading sub-categories...</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-50 dark:bg-gray-800/50">
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Image
-                                    </th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Name
-                                    </th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Parent Category
-                                    </th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Description
-                                    </th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
-                                        Actions
-                                    </th>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-gray-50 dark:bg-gray-800/50">
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Image
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Name
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Parent Category
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Description
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                            {loading && subCategories.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                                        <div className="flex flex-col items-center gap-2">
+
+                                            {/* Dot Loading */}
+                                            <div className="flex space-x-1 text-brand-500 text-xl font-bold">
+                                                <span className="animate-bounce [animation-delay:0ms]">.</span>
+                                                <span className="animate-bounce [animation-delay:150ms]">.</span>
+                                                <span className="animate-bounce [animation-delay:300ms]">.</span>
+                                            </div>
+
+                                            <span>Loading sub-categories</span>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {currentSubCategories.map((subCategory, i) => (
+
+                            ) : (
+                                currentSubCategories.map((subCategory, i) => (
                                     <tr
                                         key={subCategory._id || i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
@@ -168,11 +183,11 @@ export default function SubCategories() {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
                 <Pagination
                     currentPage={currentPage}

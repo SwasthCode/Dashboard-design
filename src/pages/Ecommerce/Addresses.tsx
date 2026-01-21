@@ -122,8 +122,11 @@ export default function Addresses() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading && addresses.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="py-10 text-center">
-                                        <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand-500 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Loading addresses...</span>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
