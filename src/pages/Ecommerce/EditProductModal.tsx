@@ -203,7 +203,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     const filteredSubCategories = subCategories.filter(s => s.category_id === formData.category_id);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1100px] w-full p-8 text-outfit">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1400px] w-full p-6 text-outfit">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Edit Product</h3>
             </div>
@@ -214,13 +214,13 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
                     {/* Left Column: Primary Details */}
-                    <div className="space-y-6">
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-4">
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Basic Information</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-3">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Basic Information</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                     <Label htmlFor="name">Product Name</Label>
                                     <Input
@@ -230,6 +230,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         value={formData.name}
                                         onChange={handleInputChange}
                                         required
+                                        className="h-9"
                                     />
                                 </div>
                                 <div>
@@ -253,7 +254,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         id="subcategory_id"
                                         value={formData.subcategory_id}
                                         onChange={handleInputChange}
-                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
                                         disabled={!formData.category_id}
                                     >
                                         <option value="">Select Subcategory</option>
@@ -290,6 +291,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         value={formData.price}
                                         onChange={handleInputChange}
                                         required
+                                        className="h-9"
                                     />
                                 </div>
                                 <div>
@@ -301,6 +303,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         value={formData.mrp}
                                         onChange={handleInputChange}
                                         required
+                                        className="h-9"
                                     />
                                 </div>
                                 <div className="md:col-span-2">
@@ -312,15 +315,16 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         value={formData.stock}
                                         onChange={handleInputChange}
                                         required
+                                        className="h-9"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
-                            <Label htmlFor="description" className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Long Description</Label>
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+                            <Label htmlFor="description" className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Long Description</Label>
                             <textarea
-                                rows={4}
+                                rows={2}
                                 id="description"
                                 placeholder="Type product description..."
                                 className="w-full rounded-xl border border-gray-200 bg-white py-3 px-5 text-sm outline-none transition focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800"
@@ -342,8 +346,8 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                     </div>
 
                     {/* Right Column: Variants & Media */}
-                    <div className="space-y-6">
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <div className="space-y-4">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
                             <div className="flex justify-between items-center mb-4">
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400">Product Variants</h4>
                                 <button
@@ -355,7 +359,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                 </button>
                             </div>
 
-                            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                 {variants.map((variant, index) => (
                                     <div key={index} className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 animate-fadeIn relative">
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -445,7 +449,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                             </div>
                         </div>
 
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
                             <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Product Media</h4>
                             <div className="relative block w-full cursor-pointer appearance-none rounded-xl border-2 border-dashed border-brand-200 bg-white py-6 px-4 dark:bg-gray-900/50 hover:border-brand-50 transition-colors group">
                                 <input
@@ -465,11 +469,11 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                 </div>
                             </div>
 
-                            <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
-                                <div className="grid grid-cols-5 gap-3 mt-4">
+                            <div className="overflow-x-auto pb-1 custom-scrollbar">
+                                <div className="flex gap-3 mt-4">
                                     {/* Existing Images */}
                                     {existingImages.map((img) => (
-                                        <div key={img._id} className="relative group aspect-square border rounded-xl overflow-hidden border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                                        <div key={img._id} className="relative group min-w-[100px] w-[100px] flex-shrink-0 aspect-square border rounded-xl overflow-hidden border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                                             <img src={img.url} alt="Current" className="h-full w-full object-cover" />
                                             <button
                                                 type="button"
@@ -487,7 +491,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
 
                                     {/* New Previews */}
                                     {previews.map((src, index) => (
-                                        <div key={index} className="relative group aspect-square border rounded-xl overflow-hidden border-brand-200 dark:border-brand-900 shadow-sm transition-all hover:shadow-md ring-2 ring-brand-500/20">
+                                        <div key={index} className="relative group min-w-[100px] w-[100px] flex-shrink-0 aspect-square border rounded-xl overflow-hidden border-brand-200 dark:border-brand-900 shadow-sm transition-all hover:shadow-md ring-2 ring-brand-500/20">
                                             <img src={src} alt="Preview" className="h-full w-full object-cover" />
                                             <button
                                                 type="button"
@@ -525,7 +529,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                     </div>
                 </div>
 
-                <div className="flex gap-4 border-t border-gray-100 dark:border-gray-800 pt-6">
+                <div className="flex gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
                     <button
                         type="button"
                         onClick={onClose}
