@@ -105,7 +105,8 @@ const productSlice = createSlice({
             .addCase(updateProduct.fulfilled, (state, action: PayloadAction<Product>) => {
                 const index = state.products.findIndex(p => p._id === action.payload._id);
                 if (index !== -1) {
-                    state.products[index] = action.payload;
+                    // Merge data to preserve any already populated fields like category names
+                    state.products[index] = { ...state.products[index], ...action.payload };
                 }
             })
             // Delete Product
