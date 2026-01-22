@@ -283,42 +283,44 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-4 gap-3">
-                            {/* Existing Images */}
-                            {existingImages.map((img) => (
-                                <div key={img._id} className="relative group h-16 w-16 border rounded-xl overflow-hidden border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
-                                    <img src={img.url} alt="Current" className="h-full w-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeExistingImage(img._id)}
-                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600 focus:outline-none"
-                                        title="Remove Image"
-                                    >
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </div>
-                            ))}
+                        <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="grid grid-cols-4 gap-3">
+                                {/* Existing Images */}
+                                {existingImages.map((img) => (
+                                    <div key={img._id} className="relative group h-16 w-16 border rounded-xl overflow-hidden border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                                        <img src={img.url} alt="Current" className="h-full w-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeExistingImage(img._id)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600 focus:outline-none"
+                                            title="Remove Image"
+                                        >
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
 
-                            {/* New Previews */}
-                            {previews.map((src, index) => (
-                                <div key={index} className="relative group h-16 w-16 border rounded-xl overflow-hidden border-brand-200 dark:border-brand-900 shadow-sm transition-all hover:shadow-md ring-2 ring-brand-500/20">
-                                    <img src={src} alt="Preview" className="h-full w-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeNewImage(index)}
-                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600 focus:outline-none"
-                                        title="Remove Image"
-                                    >
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </div>
-                            ))}
+                                {/* New Previews */}
+                                {previews.map((src, index) => (
+                                    <div key={index} className="relative group h-16 w-16 border rounded-xl overflow-hidden border-brand-200 dark:border-brand-900 shadow-sm transition-all hover:shadow-md ring-2 ring-brand-500/20">
+                                        <img src={src} alt="Preview" className="h-full w-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeNewImage(index)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600 focus:outline-none"
+                                            title="Remove Image"
+                                        >
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
