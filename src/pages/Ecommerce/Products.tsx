@@ -162,10 +162,10 @@ export default function Products() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400 block">
-                                            {categories.find((c: Category) => c._id === product.category_id)?.name || ''}
+                                            {product.category?.name || categories.find((c: Category) => c._id === product.category_id)?.name || ''}
                                         </span>
                                         <span className="text-xs text-gray-400">
-                                            {subCategories.find((s: SubCategory) => s._id === product.subcategory_id)?.name || ''}
+                                            {product.subcategory?.name || subCategories.find((s: SubCategory) => s._id === product.subcategory_id)?.name || ''}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

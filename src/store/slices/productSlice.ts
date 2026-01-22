@@ -19,6 +19,8 @@ export interface Product {
     stock: number;
     isAvailable: boolean;
     images: ProductImage[];
+    category?: { _id: string; name: string };
+    subcategory?: { _id: string; name: string };
     createdAt?: string;
     updatedAt?: string;
 }

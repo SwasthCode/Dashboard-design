@@ -25,7 +25,7 @@ export interface Product {
     price: number;
     mrp: number;
     unit: string;
-    images: string[];
+    images: { url: string; _id: string }[];
     category_id: string;
     subcategory_id: string;
     stock: number;
