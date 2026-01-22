@@ -171,7 +171,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
 
             if (images.length > 0) {
                 images.forEach((image) => {
-                    data.append("image", image);
+                    data.append("images", image);
                 });
             }
 

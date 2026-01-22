@@ -123,7 +123,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
 
             if (images.length > 0) {
                 images.forEach((image) => {
-                    data.append("image", image);
+                    data.append("images", image);
                 });
             }
 
