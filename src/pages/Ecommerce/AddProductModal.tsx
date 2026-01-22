@@ -27,10 +27,52 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
         price: "",
         mrp: "",
         unit: "",
-        quantity: "",
+        stock: "",
         description: "",
         isAvailable: true
     });
+
+    const [variants, setVariants] = useState<{
+        label: string;
+        price: string;
+        originalPrice: string;
+        shelfLife: string;
+        manufacturerName: string;
+        manufacturerAddress: string;
+        expiryDate: string;
+    }[]>([]);
+
+    const calculateDiscount = (price: string, mrp: string) => {
+        const p = parseFloat(price);
+        const m = parseFloat(mrp);
+        if (p && m && m > p) {
+            const discount = ((m - p) / m) * 100;
+            return Math.round(discount) + "%";
+        }
+        return "0%";
+    };
+
+    const addVariant = () => {
+        setVariants([...variants, {
+            label: "",
+            price: "",
+            originalPrice: "",
+            shelfLife: "",
+            manufacturerName: "",
+            manufacturerAddress: "",
+            expiryDate: ""
+        }]);
+    };
+
+    const removeVariant = (index: number) => {
+        setVariants(variants.filter((_, i) => i !== index));
+    };
+
+    const updateVariant = (index: number, field: string, value: string) => {
+        const updatedVariants = [...variants];
+        updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+        setVariants(updatedVariants);
+    };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -75,7 +117,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
             data.append("price", formData.price);
             data.append("mrp", formData.mrp);
             data.append("unit", formData.unit);
-            data.append("stock", formData.quantity);
+            data.append("stock", formData.stock);
             data.append("isAvailable", String(formData.isAvailable));
             data.append("description", formData.description);
 
@@ -83,6 +125,21 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                 images.forEach((image) => {
                     data.append("image", image);
                 });
+            }
+
+            if (variants.length > 0) {
+                const formattedVariants = variants.map((v, index) => ({
+                    id: `v${index + 1}`,
+                    label: v.label,
+                    price: parseFloat(v.price),
+                    originalPrice: parseFloat(v.originalPrice),
+                    discount: calculateDiscount(v.price, v.originalPrice),
+                    shelfLife: v.shelfLife,
+                    manufacturerName: v.manufacturerName,
+                    manufacturerAddress: v.manufacturerAddress,
+                    expiryDate: v.expiryDate
+                }));
+                data.append("variants", JSON.stringify(formattedVariants));
             }
 
             await dispatch(addProduct(data)).unwrap();
@@ -95,10 +152,11 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                 price: "",
                 mrp: "",
                 unit: "",
-                quantity: "",
+                stock: "",
                 description: "",
                 isAvailable: true
             });
+            setVariants([]);
             setImages([]);
             onClose();
         } catch (err: any) {
@@ -111,7 +169,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     const filteredSubCategories = subCategories.filter(s => s.category_id === formData.category_id);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1000px] p-8 text-outfit">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1100px] w-full p-8 text-outfit">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Product</h3>
             </div>
@@ -123,195 +181,302 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2">
-                        <Label htmlFor="name">Product Name</Label>
-                        <Input
-                            type="text"
-                            id="name"
-                            placeholder="Enter product name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="quantity">Stock Quantity</Label>
-                        <Input
-                            type="number"
-                            id="quantity"
-                            placeholder="0"
-                            value={formData.quantity}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                    <div>
-                        <Label htmlFor="category_id">Category</Label>
-                        <select
-                            id="category_id"
-                            value={formData.category_id}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
-                        >
-                            <option value="">Select Category</option>
-                            {categories.map((cat) => (
-                                <option key={cat._id} value={cat._id}>{cat.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <Label htmlFor="subcategory_id">Sub-Category</Label>
-                        <select
-                            id="subcategory_id"
-                            value={formData.subcategory_id}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
-                        >
-                            <option value="">Select Sub-Category</option>
-                            {filteredSubCategories.map((sub) => (
-                                <option key={sub._id} value={sub._id}>{sub.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <Label htmlFor="price">Sale Price</Label>
-                        <Input
-                            type="number"
-                            id="price"
-                            placeholder="0.00"
-                            value={formData.price}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="mrp">MRP</Label>
-                        <Input
-                            type="number"
-                            id="mrp"
-                            placeholder="0.00"
-                            value={formData.mrp}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                        <div>
-                            <Label htmlFor="unit">Unit (e.g. Kg, Pcs)</Label>
-                            <select
-                                id="unit"
-                                value={formData.unit}
-                                onChange={handleInputChange}
-                                required
-                                className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
-                            >
-                                <option value="">Select Unit</option>
-                                <option value="Kg">Kg</option>
-                                <option value="Pcs">Pcs</option>
-                                <option value="Gm">Gm</option>
-                                <option value="Ltr">Ltr</option>
-                                <option value="Ml">Ml</option>
-                                <option value="Packet">Packet</option>
-                                <option value="Box">Box</option>
-                            </select>
-                        </div>
-                        <div>
-                            <Label htmlFor="description">Description</Label>
-                            <textarea
-                                rows={6}
-                                id="description"
-                                placeholder="Type product description"
-                                className="w-full rounded-lg border border-gray-300 bg-transparent py-3 px-5 text-sm outline-none transition focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                            ></textarea>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <Label htmlFor="images">Product Images</Label>
-                        <div className="relative block w-full cursor-pointer appearance-none rounded-2xl border-2 border-dashed border-brand-500 bg-gray-50/50 py-8 px-4 dark:bg-gray-800/30">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
-                                onChange={handleImageUpload}
-                            />
-                            <div className="flex flex-col items-center justify-center space-y-3">
-                                <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M1.99967 9.33337C2.36786 9.33337 2.66634 9.63185 2.66634 10V12.6667C2.66634 12.8435 2.73658 13.0131 2.8616 13.1381C2.98663 13.2631 3.1562 13.3334 3.33301 13.3334H12.6663C12.8431 13.3334 13.0127 13.2631 13.1377 13.1381C13.2628 13.0131 13.333 12.8435 13.333 12.6667V10C13.333 9.63185 13.6315 9.33337 13.9997 9.33337C14.3679 9.33337 14.6663 9.63185 14.6663 10V12.6667C14.6663 13.1971 14.4556 13.7058 14.0806 14.0809C13.7055 14.456 13.1968 14.6667 12.6663 14.6667H3.33301C2.80257 14.6667 2.29387 14.456 1.91879 14.0809C1.54372 13.7058 1.33301 12.6667V10C1.33301 9.63185 1.63148 9.33337 1.99967 9.33337Z" fill="#3C50E0" />
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M7.5286 1.52864C7.78894 1.26829 8.21106 1.26829 8.4714 1.52864L11.8047 4.86197C12.0651 5.12232 12.0651 5.54443 11.8047 5.80478C11.5444 6.06513 11.1223 6.06513 10.8619 5.80478L8 2.94285L5.13807 5.80478C4.87772 6.06513 4.45561 6.06513 4.19526 5.80478C3.93491 5.54443 3.93491 5.12232 4.19526 4.86197L7.5286 1.52864Z" fill="#3C50E0" />
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M7.99967 1.33337C8.36786 1.33337 8.66634 1.63185 8.66634 2.00004V10C8.66634 10.3682 8.36786 10.6667 7.99967 10.6667C7.63148 10.6667 7.33301 10.3682 7.33301 10V2.00004C7.33301 1.63185 7.63148 1.33337 7.99967 1.33337Z" fill="#3C50E0" />
-                                    </svg>
-                                </span>
-                                <div className="text-center">
-                                    <p className="text-sm text-gray-800 dark:text-white font-medium">Click to upload</p>
-                                    <p className="text-xs text-gray-400 mt-1">PNG, JPG or GIF</p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    {/* Left Column: Primary Details */}
+                    <div className="space-y-6">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-4">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Basic Information</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="name">Product Name</Label>
+                                    <Input
+                                        id="name"
+                                        type="text"
+                                        placeholder="Enter product name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="category_id">Category</Label>
+                                    <select
+                                        id="category_id"
+                                        value={formData.category_id}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="subcategory_id">Subcategory</Label>
+                                    <select
+                                        id="subcategory_id"
+                                        value={formData.subcategory_id}
+                                        onChange={handleInputChange}
+                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        disabled={!formData.category_id}
+                                    >
+                                        <option value="">Select Subcategory</option>
+                                        {filteredSubCategories.map((sub) => (
+                                            <option key={sub._id} value={sub._id}>{sub.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="unit">Unit (e.g. Kg, Pcs)</Label>
+                                    <select
+                                        id="unit"
+                                        value={formData.unit}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                    >
+                                        <option value="">Select Unit</option>
+                                        <option value="Kg">Kg</option>
+                                        <option value="Pcs">Pcs</option>
+                                        <option value="Gm">Gm</option>
+                                        <option value="Ltr">Ltr</option>
+                                        <option value="Ml">Ml</option>
+                                        <option value="Packet">Packet</option>
+                                        <option value="Box">Box</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="price">Base Price</Label>
+                                    <Input
+                                        id="price"
+                                        type="number"
+                                        placeholder="0"
+                                        value={formData.price}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="mrp">Base MRP</Label>
+                                    <Input
+                                        id="mrp"
+                                        type="number"
+                                        placeholder="0"
+                                        value={formData.mrp}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label htmlFor="stock">Base Stock Count</Label>
+                                    <Input
+                                        id="stock"
+                                        type="number"
+                                        placeholder="0"
+                                        value={formData.stock}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
-                            <div className="grid grid-cols-4 gap-3">
-                                {previews.map((src, index) => (
-                                    <div key={index} className="relative group h-16 w-16 border rounded-xl overflow-hidden border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
-                                        <img src={src} alt="Preview" className="h-full w-full object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImage(index)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600 focus:outline-none"
-                                            title="Remove Image"
-                                        >
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
-                                        </button>
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                            <Label htmlFor="description" className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Long Description</Label>
+                            <textarea
+                                rows={4}
+                                id="description"
+                                placeholder="Type product description..."
+                                className="w-full rounded-xl border border-gray-200 bg-white py-3 px-5 text-sm outline-none transition focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                            ></textarea>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-4 bg-brand-50/30 dark:bg-brand-500/5 rounded-xl border border-brand-100 dark:border-brand-900/30">
+                            <input
+                                type="checkbox"
+                                id="isAvailable"
+                                checked={formData.isAvailable}
+                                onChange={handleInputChange}
+                                className="h-5 w-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                            />
+                            <Label htmlFor="isAvailable" className="mb-0 text-sm font-semibold text-brand-700 dark:text-brand-400">Available for Sale</Label>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Variants & Media */}
+                    <div className="space-y-6">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400">Product Variants</h4>
+                                <button
+                                    type="button"
+                                    onClick={addVariant}
+                                    className="text-[10px] font-bold uppercase bg-white dark:bg-gray-900 text-brand-500 border border-brand-200 dark:border-brand-900 px-3 py-1.5 rounded-lg hover:bg-brand-50 transition-colors shadow-sm"
+                                >
+                                    + Add Variant
+                                </button>
+                            </div>
+
+                            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                {variants.map((variant, index) => (
+                                    <div key={index} className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 animate-fadeIn relative">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            <div>
+                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Label</Label>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="500g"
+                                                    value={variant.label}
+                                                    onChange={(e) => updateVariant(index, "label", e.target.value)}
+                                                    className="h-9 text-xs"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Price</Label>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={variant.price}
+                                                    onChange={(e) => updateVariant(index, "price", e.target.value)}
+                                                    className="h-9 text-xs"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">MRP</Label>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={variant.originalPrice}
+                                                    onChange={(e) => updateVariant(index, "originalPrice", e.target.value)}
+                                                    className="h-9 text-xs"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Shelf Life</Label>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="6m"
+                                                    value={variant.shelfLife}
+                                                    onChange={(e) => updateVariant(index, "shelfLife", e.target.value)}
+                                                    className="h-9 text-xs"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Expiry</Label>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="2025-01"
+                                                    value={variant.expiryDate}
+                                                    onChange={(e) => updateVariant(index, "expiryDate", e.target.value)}
+                                                    className="h-9 text-xs"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Manufacturer</Label>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Name"
+                                                    value={variant.manufacturerName}
+                                                    onChange={(e) => updateVariant(index, "manufacturerName", e.target.value)}
+                                                    className="h-9 text-xs"
+                                                />
+                                            </div>
+                                            <div className="flex-shrink-0 pt-6">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeVariant(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                        <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
+                                {variants.length === 0 && (
+                                    <p className="text-center text-[10px] text-gray-400 py-6 border border-dashed border-gray-200 dark:border-gray-800 rounded-xl">Click "+ Add Variant" to create product variations</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Product Media</h4>
+                            <div className="relative block w-full cursor-pointer appearance-none rounded-xl border-2 border-dashed border-brand-200 bg-white py-6 px-4 dark:bg-gray-900/50 hover:border-brand-500 transition-colors group">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
+                                    onChange={handleImageUpload}
+                                />
+                                <div className="flex flex-col items-center justify-center space-y-2">
+                                    <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-500 group-hover:scale-110 transition-transform">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                                        </svg>
+                                    </div>
+                                    <p className="text-xs text-gray-800 dark:text-white font-bold">Upload Photos</p>
+                                </div>
+                            </div>
+
+                            <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="grid grid-cols-5 gap-3 mt-4">
+                                    {previews.map((src, index) => (
+                                        <div key={index} className="relative group aspect-square border rounded-xl overflow-hidden border-gray-100 dark:border-gray-800 shadow-sm">
+                                            <img src={src} alt="Preview" className="h-full w-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeImage(index)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600 focus:outline-none"
+                                                title="Remove Image"
+                                            >
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {previews.length === 0 && (
+                                        <div className="col-span-5 text-center text-xs text-gray-400 py-8 border border-dashed border-gray-100 dark:border-gray-800 rounded-xl">
+                                            No images selected
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        id="isAvailable"
-                        checked={formData.isAvailable}
-                        onChange={handleInputChange}
-                        className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                    />
-                    <Label htmlFor="isAvailable" className="mb-0">Product is available for sale</Label>
-                </div>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-4 border-t border-gray-100 dark:border-gray-800 pt-6">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        className="flex-1 px-6 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
-                        Cancel
+                        Discard
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex-1 px-4 py-2.5 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50"
+                        className="flex-[2] px-6 py-3 bg-brand-500 text-white font-bold text-sm rounded-xl hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-[0.98] disabled:opacity-50"
                     >
-                        {loading ? "Adding..." : "Add Product"}
+                        {loading ? "Creating..." : "Create Product"}
                     </button>
                 </div>
             </form>
-        </Modal >
+        </Modal>
     );
 }

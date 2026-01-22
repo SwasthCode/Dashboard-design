@@ -7,6 +7,19 @@ export interface ProductImage {
     _id: string;
 }
 
+export interface Variant {
+    id?: string;
+    label: string;
+    price: number;
+    originalPrice: number;
+    discount?: string;
+    shelfLife?: string;
+    manufacturerName?: string;
+    manufacturerAddress?: string;
+    expiryDate?: string;
+    _id?: string;
+}
+
 export interface Product {
     _id?: string;
     name: string;
@@ -19,6 +32,7 @@ export interface Product {
     stock: number;
     isAvailable: boolean;
     images: ProductImage[];
+    variants?: Variant[];
     category?: { _id: string; name: string };
     subcategory?: { _id: string; name: string };
     createdAt?: string;
