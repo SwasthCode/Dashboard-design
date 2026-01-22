@@ -24,6 +24,7 @@ export interface User {
     is_active?: boolean;
     is_deleted?: boolean;
     image?: string | { url: string; _id: string };
+    profile_image?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -85,10 +86,10 @@ export const createUser = createAsyncThunk('user/createUser', async (user: User,
     }
 });
 
-export const updateUser = createAsyncThunk('user/updateUser', async (user: User | FormData, { rejectWithValue }) => {
+export const updateUser = createAsyncThunk('user/updateUser', async ({ id, data }: { id: string; data: User | FormData }, { rejectWithValue }) => {
     try {
-        const isFormData = user instanceof FormData;
-        const response = await https.put(`users/profile`, user, { isFormData });
+        const isFormData = data instanceof FormData;
+        const response = await https.put(`users/${id}`, data, { isFormData });
         return response.data;
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to update user');
@@ -157,7 +158,8 @@ const userSlice = createSlice({
                 const updatedUser = action.payload;
                 const index = state.users.findIndex(u => (u.id || u._id) === (updatedUser.id || updatedUser._id));
                 if (index !== -1) {
-                    state.users[index] = updatedUser;
+                    // Merge fields instead of replacing to preserve populated data (like roles)
+                    state.users[index] = { ...state.users[index], ...updatedUser };
                 }
                 if (state.selectedUser && (state.selectedUser.id || state.selectedUser._id) === (updatedUser.id || updatedUser._id)) {
                     state.selectedUser = updatedUser;

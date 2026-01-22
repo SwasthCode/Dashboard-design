@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers, deleteUser, User } from "../../store/slices/userSlice";
+import { fetchUsers, deleteUser, User, fetchRoles } from "../../store/slices/userSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -9,9 +9,14 @@ import AddCustomerModal from "./AddCustomerModal";
 import EditCustomerModal from "./EditCustomerModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
+const sanitizeUrl = (url: string | undefined): string => {
+    if (!url) return "";
+    return url.replace(/[\n\r]/g, '').trim();
+};
+
 export default function Customers() {
     const dispatch = useDispatch<AppDispatch>();
-    const { users, loading, error } = useSelector((state: RootState) => state.user);
+    const { users, roles, loading, error } = useSelector((state: RootState) => state.user);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -23,6 +28,7 @@ export default function Customers() {
 
     useEffect(() => {
         dispatch(fetchUsers());
+        dispatch(fetchRoles());
     }, [dispatch]);
 
     // Calculate pagination
@@ -115,9 +121,19 @@ export default function Customers() {
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <div className="h-10 w-10 rounded-full bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-500 font-semibold">
-                                                    {user.first_name?.[0]}
-                                                    {user.last_name?.[0]}
+                                                <div className="h-10 w-10 rounded-full bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-500 font-semibold overflow-hidden border border-gray-100 dark:border-gray-800">
+                                                    {(user.profile_image || user.image) ? (
+                                                        <img
+                                                            src={sanitizeUrl(typeof user.profile_image === 'string' ? user.profile_image : (typeof user.image === 'string' ? user.image : user.image?.url))}
+                                                            alt={`${user.first_name} ${user.last_name}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <>
+                                                            {user.first_name?.[0]}
+                                                            {user.last_name?.[0]}
+                                                        </>
+                                                    )}
                                                 </div>
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-gray-800 dark:text-white">
@@ -136,7 +152,16 @@ export default function Customers() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {user.role?.[0]?.name || "N/A"}
+                                                {(() => {
+                                                    const roleData = user.role?.[0];
+                                                    if (!roleData) return "N/A";
+
+                                                    // Handle ID numbers, ID strings, or populated objects
+                                                    const roleId = typeof roleData === 'object' ? roleData._id : String(roleData);
+                                                    const foundRole = roles.find(r => r._id === roleId || String(r.role_id) === roleId || String(r.role_type) === roleId);
+
+                                                    return foundRole?.name || (typeof roleData === 'object' ? roleData.name : "N/A");
+                                                })()}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -152,6 +177,7 @@ export default function Customers() {
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                             <div className="flex justify-end gap-2">
                                                 <button
+                                                    type="button"
                                                     onClick={() => handleEdit(user)}
                                                     className="p-1.5 text-gray-500 hover:text-brand-500 transition-colors"
                                                     title="Edit"
@@ -161,6 +187,7 @@ export default function Customers() {
                                                     </svg>
                                                 </button>
                                                 <button
+                                                    type="button"
                                                     onClick={() => handleDeleteClick(user)}
                                                     className="p-1.5 text-gray-500 hover:text-red-500 transition-colors"
                                                     title="Delete"

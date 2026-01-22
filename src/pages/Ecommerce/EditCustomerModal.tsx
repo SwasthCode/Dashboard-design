@@ -6,6 +6,11 @@ import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 
+const sanitizeUrl = (url: string | undefined): string => {
+    if (!url) return "";
+    return url.replace(/[\n\r]/g, '').trim();
+};
+
 interface EditCustomerModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -36,12 +41,20 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
 
     useEffect(() => {
         if (user) {
+            let formDataRole = "";
+            if (user.role && user.role.length > 0) {
+                const firstRole = user.role[0];
+                const roleId = typeof firstRole === 'object' ? (firstRole._id || "") : String(firstRole);
+                const roleEntry = roles.find(r => r._id === roleId || String(r.role_id) === roleId || String(r.role_type) === roleId);
+                formDataRole = roleEntry?._id || (typeof firstRole === 'object' ? firstRole._id : "");
+            }
+
             setFormData({
                 first_name: user.first_name || "",
                 last_name: user.last_name || "",
                 email: user.email || "",
                 phone_number: user.phone_number || "",
-                role: user.role?.[0]?._id || "",
+                role: formDataRole || "",
                 status: user.status || "active"
             });
             setImage(null);
@@ -67,24 +80,29 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
         setError(null);
 
         try {
-            const data = new FormData();
-            data.append("first_name", formData.first_name);
-            data.append("last_name", formData.last_name);
-            data.append("email", formData.email);
-            data.append("phone_number", formData.phone_number);
-            data.append("status", formData.status.toLowerCase());
-
-            // Send role object as string or as separate fields depending on API
-            const selectedRole = roles.find(r => r._id === formData.role);
-            if (selectedRole) {
-                data.append("role", JSON.stringify([selectedRole]));
+            const userId = (user.id || user._id) as string;
+            if (!userId) {
+                throw new Error("User ID is missing");
             }
+
+            let payload: any;
 
             if (image) {
-                data.append("image", image);
+                payload = new FormData();
+                payload.append("first_name", formData.first_name);
+                payload.append("last_name", formData.last_name);
+                payload.append("email", formData.email);
+                payload.append("image", image);
+            } else {
+                // Send as plain object if no image, simpler for most APIs
+                payload = {
+                    first_name: formData.first_name,
+                    last_name: formData.last_name,
+                    email: formData.email
+                };
             }
 
-            await dispatch(updateUser(data)).unwrap();
+            await dispatch(updateUser({ id: userId, data: payload })).unwrap();
             onClose();
         } catch (err: any) {
             setError(err || "Failed to update customer");
@@ -142,13 +160,14 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                 </div>
 
                 <div>
-                    <Label htmlFor="phone_number">Phone Number</Label>
+                    <Label htmlFor="phone_number">Phone Number </Label>
                     <Input
                         id="phone_number"
                         placeholder="6392457271"
                         value={formData.phone_number}
                         onChange={handleInputChange}
                         required
+                        disabled
                     />
                 </div>
 
@@ -160,7 +179,8 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                             value={formData.role}
                             onChange={handleInputChange}
                             required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                            disabled
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-gray-50 dark:bg-gray-800/50 px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-gray-400 opacity-70 cursor-not-allowed"
                         >
                             <option value="">Select Role</option>
                             {roles.map((r) => (
@@ -169,12 +189,13 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                         </select>
                     </div>
                     <div>
-                        <Label htmlFor="status">Status</Label>
+                        <Label htmlFor="status">Status </Label>
                         <select
                             id="status"
                             value={formData.status}
                             onChange={handleInputChange}
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                            disabled
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-gray-50 dark:bg-gray-800/50 px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-gray-400 opacity-70 cursor-not-allowed"
                         >
                             <option value="active">Active</option>
                             <option value="pending">Pending</option>
@@ -186,10 +207,10 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                 <div>
                     <Label htmlFor="image">Profile Image</Label>
                     <div className="flex items-center gap-4">
-                        {(image || (user?.image as any)?.url) && (
+                        {(image || user?.profile_image || (user?.image as any)?.url) && (
                             <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200">
                                 <img
-                                    src={image ? URL.createObjectURL(image) : (user?.image as any)?.url}
+                                    src={image ? URL.createObjectURL(image) : sanitizeUrl(user?.profile_image || (user?.image as any)?.url)}
                                     alt="Profile"
                                     className="w-full h-full object-cover"
                                 />
@@ -200,7 +221,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                             id="image"
                             accept="image/*"
                             onChange={handleImageChange}
-                            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
                         />
                     </div>
                 </div>
