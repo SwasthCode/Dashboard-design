@@ -83,8 +83,8 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
         if (product) {
             setFormData({
                 name: product.name || "",
-                category_id: product.category_id || "",
-                subcategory_id: product.subcategory_id || "",
+                category_id: product.category_id || product.category?._id || "",
+                subcategory_id: product.subcategory_id || product.subcategory?._id || "",
                 price: product.price || 0,
                 mrp: product.mrp || 0,
                 unit: product.unit || "",
@@ -102,7 +102,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                     price: v.price.toString(),
                     originalPrice: v.originalPrice.toString(),
                     shelfLife: v.shelfLife || "",
-                    manufacturerName: v.manufacturerName || "",
+                    manufacturerName: v.manufacturer || v.manufacturerName || "",
                     manufacturerAddress: v.manufacturerAddress || "",
                     expiryDate: v.expiryDate || "",
                     _id: v._id,
@@ -122,17 +122,27 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
+        if (e.target.files && e.target.files.length > 0) {
             const selectedFiles = Array.from(e.target.files);
+
+            // Update images state immediately
             setImages((prev) => [...prev, ...selectedFiles]);
 
-            selectedFiles.forEach((file) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setPreviews((prev) => [...prev, reader.result as string]);
-                };
-                reader.readAsDataURL(file);
+            // Process previews in order
+            Promise.all(selectedFiles.map(file => {
+                return new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        resolve(reader.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            })).then(newPreviews => {
+                setPreviews((prev) => [...prev, ...newPreviews]);
             });
+
+            // Reset input value to allow selecting the same file again
+            e.target.value = "";
         }
     };
 
@@ -166,7 +176,9 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
             data.append("description", formData.description);
 
             if (removedImageIds.length > 0) {
-                data.append("removedImageIds", JSON.stringify(removedImageIds));
+                // Remove duplicates if any
+                const uniqueIds = [...new Set(removedImageIds)];
+                data.append("removedImageIds", JSON.stringify(uniqueIds));
             }
 
             if (images.length > 0) {
@@ -183,7 +195,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                     originalPrice: parseFloat(v.originalPrice),
                     discount: calculateDiscount(v.price, v.originalPrice),
                     shelfLife: v.shelfLife,
-                    manufacturerName: v.manufacturerName,
+                    manufacturer: v.manufacturerName,
                     manufacturerAddress: v.manufacturerAddress,
                     expiryDate: v.expiryDate,
                     _id: v._id,
@@ -203,9 +215,9 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     const filteredSubCategories = subCategories.filter(s => s.category_id === formData.category_id);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1400px] w-full p-6 text-outfit">
-            <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Edit Product</h3>
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1400px] w-full p-4 md:p-6 text-outfit mx-4 md:mx-auto mt-4 md:mt-0 mb-4 md:mb-0">
+            <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-4 md:mb-6">
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Edit Product</h3>
             </div>
 
             {error && (
@@ -215,7 +227,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 items-start">
                     {/* Left Column: Primary Details */}
                     <div className="space-y-4">
                         <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-3">
@@ -240,7 +252,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         value={formData.category_id}
                                         onChange={handleInputChange}
                                         required
-                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
                                     >
                                         <option value="">Select Category</option>
                                         {categories.map((cat) => (
@@ -270,7 +282,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         value={formData.unit}
                                         onChange={handleInputChange}
                                         required
-                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
                                     >
                                         <option value="">Select Unit</option>
                                         <option value="Kg">Kg</option>
@@ -362,7 +374,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                             <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                 {variants.map((variant, index) => (
                                     <div key={index} className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 animate-fadeIn relative">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-3 gap-2 md:gap-3">
                                             <div>
                                                 <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Label</Label>
                                                 <Input
@@ -395,7 +407,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-2 gap-2 md:gap-3">
                                             <div>
                                                 <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Shelf Life</Label>
                                                 <Input
@@ -418,9 +430,9 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Manufacturer</Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                                            <div>
+                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Manufacturer Name</Label>
                                                 <Input
                                                     type="text"
                                                     placeholder="Name"
@@ -429,16 +441,28 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                                     className="h-9 text-xs"
                                                 />
                                             </div>
-                                            <div className="flex-shrink-0 pt-6">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeVariant(index)}
-                                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                                        <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                    </svg>
-                                                </button>
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Manufacturer Address</Label>
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="Address"
+                                                        value={variant.manufacturerAddress}
+                                                        onChange={(e) => updateVariant(index, "manufacturerAddress", e.target.value)}
+                                                        className="h-9 text-xs"
+                                                    />
+                                                </div>
+                                                <div className="flex-shrink-0 pt-6">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeVariant(index)}
+                                                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                            <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -509,22 +533,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                 </div>
                             </div>
 
-                            {(images.length > 0 || removedImageIds.length > 0) && (
-                                <div className="mt-3 text-xs font-semibold flex flex-col gap-1">
-                                    {images.length > 0 && (
-                                        <div className="text-green-600 flex items-center gap-1.5">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                                            {images.length} new image(s) to be added
-                                        </div>
-                                    )}
-                                    {removedImageIds.length > 0 && (
-                                        <div className="text-red-500 flex items-center gap-1.5">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                                            {removedImageIds.length} image(s) to be removed
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+
                         </div>
                     </div>
                 </div>

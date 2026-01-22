@@ -15,6 +15,7 @@ export interface Variant {
     discount?: string;
     shelfLife?: string;
     manufacturerName?: string;
+    manufacturer?: string; // Aligning with backend response
     manufacturerAddress?: string;
     expiryDate?: string;
     _id?: string;

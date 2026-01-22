@@ -282,11 +282,17 @@ export default function Products() {
                                                                                 <span className="ml-1 text-gray-700 dark:text-gray-200 font-medium">{variant.expiryDate || "N/A"}</span>
                                                                             </div>
                                                                         </div>
-                                                                        <div className="text-xs">
-                                                                            <span className="text-gray-500 dark:text-gray-400 block">Manufacturer:</span>
-                                                                            <span className="text-gray-700 dark:text-gray-200 font-medium truncate block" title={variant.manufacturerName}>
-                                                                                {variant.manufacturerName || "N/A"}
-                                                                            </span>
+                                                                        <div className="text-xs space-y-1">
+                                                                            <div>
+                                                                                <span className="text-gray-500 dark:text-gray-400">Manufacturer:</span>
+                                                                                <span className="ml-1 text-gray-700 dark:text-gray-200 font-medium">{variant.manufacturer || variant.manufacturerName || "N/A"}</span>
+                                                                            </div>
+                                                                            <div>
+                                                                                <span className="text-gray-500 dark:text-gray-400">Address:</span>
+                                                                                <span className="ml-1 text-gray-700 dark:text-gray-200 font-medium truncate inline-block max-w-full align-bottom" title={variant.manufacturerAddress}>
+                                                                                    {variant.manufacturerAddress || "N/A"}
+                                                                                </span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>

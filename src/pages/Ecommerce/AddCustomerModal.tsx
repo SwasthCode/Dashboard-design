@@ -81,7 +81,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6 text-inter">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] w-full p-4 md:p-6 text-inter mx-4 md:mx-auto mt-4 md:mt-0 mb-4 md:mb-0">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Customer</h3>
             </div>
