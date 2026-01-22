@@ -19,7 +19,7 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
     const { user } = useSelector((state: RootState) => state.auth);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    // const [image, setImage] = useState<File | null>(null);
+    const [images, setImages] = useState<File[]>([]);
 
     useEffect(() => {
         if (isOpen && users.length === 0) {
@@ -56,11 +56,11 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
         }
     };
 
-    // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     if (e.target.files && e.target.files[0]) {
-    //         setImage(e.target.files[0]);
-    //     }
-    // };
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setImages(Array.from(e.target.files));
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -76,14 +76,22 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
             const { selectedUserId, customerName, ...restData } = formData;
             const targetUserId = selectedUserId || (user.id || user._id || "") as string;
 
-            await dispatch(createReview({
-                ...restData,
-                user_id: targetUserId,
-                userInfo: {
-                    fullname: customerName || `${user.first_name} ${user.last_name}`,
-                    _id: targetUserId
-                }
-            })).unwrap();
+            const formDataPayload = new FormData();
+            formDataPayload.append("product_id", restData.product_id);
+            formDataPayload.append("rating", restData.rating.toString());
+            formDataPayload.append("comment", restData.comment);
+            formDataPayload.append("status", restData.status);
+            formDataPayload.append("user_id", targetUserId);
+            formDataPayload.append("userInfo", JSON.stringify({
+                fullname: customerName || `${user.first_name} ${user.last_name}`,
+                _id: targetUserId
+            }));
+
+            images.forEach((img) => {
+                formDataPayload.append("images", img);
+            });
+
+            await dispatch(createReview(formDataPayload)).unwrap();
 
             setFormData({
                 product_id: "",
@@ -93,6 +101,7 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
                 selectedUserId: "",
                 customerName: ""
             });
+            setImages([]);
             onClose();
         } catch (err: any) {
             setError(err || "Failed to add review");
@@ -176,27 +185,39 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
                     ></textarea>
                 </div>
 
-                {/* <div>
-                    <Label htmlFor="image">Review Image (Optional)</Label>
-                    <div className="flex items-center gap-4">
-                        {image && (
-                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
-                                <img
-                                    src={URL.createObjectURL(image)}
-                                    alt="Preview"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        )}
+                <div>
+                    <Label htmlFor="images">Review Images (Optional)</Label>
+                    <div className="space-y-4">
+                        <div className="flex flex-wrap gap-2">
+                            {images.map((img, index) => (
+                                <div key={index} className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 relative group">
+                                    <img
+                                        src={URL.createObjectURL(img)}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setImages(prev => prev.filter((_, i) => i !== index))}
+                                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                         <input
                             type="file"
-                            id="image"
+                            id="images"
                             accept="image/*"
+                            multiple
                             onChange={handleImageChange}
-                            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-gray-800 dark:file:text-brand-400"
                         />
                     </div>
-                </div> */}
+                </div>
 
                 <div className="pt-4 flex gap-3">
                     <button

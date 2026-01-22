@@ -15,7 +15,7 @@ export default function EditReviewModal({ isOpen, onClose, review }: EditReviewM
     const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [image, setImage] = useState<File | null>(null);
+    const [newImages, setNewImages] = useState<File[]>([]);
 
     const [formData, setFormData] = useState({
         rating: 5,
@@ -30,7 +30,7 @@ export default function EditReviewModal({ isOpen, onClose, review }: EditReviewM
                 comment: review.comment || "",
                 status: review.status || "Published"
             });
-            setImage(null);
+            setNewImages([]);
         }
     }, [review]);
 
@@ -40,8 +40,8 @@ export default function EditReviewModal({ isOpen, onClose, review }: EditReviewM
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setImage(e.target.files[0]);
+        if (e.target.files) {
+            setNewImages(Array.from(e.target.files));
         }
     };
 
@@ -57,10 +57,11 @@ export default function EditReviewModal({ isOpen, onClose, review }: EditReviewM
             data.append("rating", formData.rating.toString());
             data.append("comment", formData.comment);
             data.append("status", formData.status);
+            data.append("user_id", review.user_id);
 
-            if (image) {
-                data.append("image", image);
-            }
+            newImages.forEach((img) => {
+                data.append("images", img);
+            });
 
             await dispatch(updateReview({
                 id: review._id,
@@ -130,23 +131,60 @@ export default function EditReviewModal({ isOpen, onClose, review }: EditReviewM
                 </div>
 
                 <div>
-                    <Label htmlFor="image">Review Image (Optional)</Label>
-                    <div className="flex items-center gap-4">
-                        {(image || (review?.image as any)?.url) && (
-                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
-                                <img
-                                    src={image ? URL.createObjectURL(image) : (review?.image as any)?.url}
-                                    alt="Preview"
-                                    className="w-full h-full object-cover"
-                                />
+                    <Label htmlFor="image">Review Images (Optional)</Label>
+                    <div className="space-y-4">
+                        {/* Existing Images */}
+                        {review?.images && review.images.length > 0 && (
+                            <div>
+                                <p className="text-xs text-gray-500 mb-2">Existing Images:</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {review.images.map((img, idx) => (
+                                        <div key={img._id || idx} className="h-14 w-14 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800">
+                                            <img
+                                                src={img.url.replace(/[\n\r]+/g, '').trim()}
+                                                alt={`Review ${idx + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
+
+                        {/* New Previews */}
+                        {newImages.length > 0 && (
+                            <div>
+                                <p className="text-xs text-gray-500 mb-2">New Images:</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {newImages.map((img, index) => (
+                                        <div key={index} className="w-14 h-14 rounded-lg overflow-hidden border border-gray-200 relative group">
+                                            <img
+                                                src={URL.createObjectURL(img)}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewImages(prev => prev.filter((_, i) => i !== index))}
+                                                className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <input
                             type="file"
                             id="image"
                             accept="image/*"
+                            multiple
                             onChange={handleImageChange}
-                            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-gray-800 dark:file:text-brand-400"
                         />
                     </div>
                 </div>

@@ -14,6 +14,7 @@ export interface Review {
         _id: string;
     };
     image?: string | { url: string; _id: string };
+    images?: { url: string; _id: string }[];
     createdAt?: string;
     updatedAt?: string;
 }

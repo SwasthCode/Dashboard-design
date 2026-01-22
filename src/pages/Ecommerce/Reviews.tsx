@@ -13,9 +13,9 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 export default function Reviews() {
     const dispatch = useDispatch<AppDispatch>();
-    const { reviews, loading, error } = useSelector((state: RootState) => state.review);
-    const { products } = useSelector((state: RootState) => state.product);
-    const { users } = useSelector((state: RootState) => state.user);
+    const { reviews, loading: reviewsLoading, error } = useSelector((state: RootState) => state.review);
+    const { products, loading: productsLoading } = useSelector((state: RootState) => state.product);
+    const { users, loading: usersLoading } = useSelector((state: RootState) => state.user);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -74,8 +74,17 @@ export default function Reviews() {
         }
     };
 
+    const sanitizeUrl = (url: string) => {
+        if (!url) return '';
+        return url.replace(/[\n\r]+/g, '').trim();
+    };
+
+    const getProduct = (id: string) => {
+        return products.find(p => p._id === id);
+    };
+
     const getProductName = (id: string) => {
-        return products.find(p => p._id === id)?.name || "Unknown Product";
+        return getProduct(id)?.name || "Unknown Product";
     };
 
     const getUserName = (id: string) => {
@@ -139,7 +148,7 @@ export default function Reviews() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
-                            {loading && reviews.length === 0 && (
+                            {reviewsLoading && reviews.length === 0 && (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
@@ -156,26 +165,54 @@ export default function Reviews() {
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
+                                            <div className="h-10 w-10 rounded-md bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center text-gray-500">
+                                                {getProduct(review.product_id)?.images?.[0]?.url ? (
+                                                    <img
+                                                        src={sanitizeUrl(getProduct(review.product_id)!.images[0].url)}
+                                                        alt="Product"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                )}
                                             </div>
                                             <span className="text-sm font-medium text-gray-800 dark:text-white truncate max-w-[150px]">
-                                                {getProductName(review.product_id)}
+                                                {productsLoading && products.length === 0 ? (
+                                                    <span className="inline-block w-24 h-4 bg-gray-200 dark:bg-gray-800 animate-pulse rounded"></span>
+                                                ) : (
+                                                    getProductName(review.product_id)
+                                                )}
                                             </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {getUserName(review.user_id)}
+                                            {usersLoading && users.length === 0 ? (
+                                                <span className="inline-block w-20 h-4 bg-gray-200 dark:bg-gray-800 animate-pulse rounded"></span>
+                                            ) : (
+                                                getUserName(review.user_id)
+                                            )}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        {review.image ? (
+                                        {(review.images && review.images.length > 0) ? (
+                                            <div className="flex -space-x-2">
+                                                {review.images.map((img, idx) => (
+                                                    <div key={img._id || idx} className="h-10 w-10 rounded-lg overflow-hidden border border-white dark:border-gray-900 shadow-sm">
+                                                        <img
+                                                            src={sanitizeUrl(img.url)}
+                                                            alt={`Review ${idx + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : review.image ? (
                                             <div className="h-10 w-10 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800">
                                                 <img
-                                                    src={typeof review.image === 'string' ? review.image : review.image.url}
+                                                    src={sanitizeUrl(typeof review.image === 'string' ? review.image : review.image.url)}
                                                     alt="Review"
                                                     className="w-full h-full object-cover"
                                                 />
