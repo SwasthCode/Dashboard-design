@@ -120,6 +120,12 @@ export default function Products() {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Status
                                 </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Created At
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Updated At
+                                </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
                                     Actions
                                 </th>
@@ -128,7 +134,7 @@ export default function Products() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
+                                    <td colSpan={10} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             {/* Dot Loading */}
                                             <div className="flex space-x-1 text-brand-500 text-xl font-bold">
@@ -142,7 +148,7 @@ export default function Products() {
                                 </tr>
                             ) : currentProducts.length === 0 ? (
                                 <tr className="animate-fadeIn">
-                                    <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
+                                    <td colSpan={10} className="px-6 py-10 text-center text-gray-500">
                                         No products found.
                                     </td>
                                 </tr>
@@ -224,6 +230,16 @@ export default function Products() {
                                                     }`}
                                             >
                                                 {product.isAvailable ? "Available" : "Unavailable"}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "-"}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                {product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : "-"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -332,6 +348,6 @@ export default function Products() {
                 message={`Are you sure you want to delete "${selectedProduct?.name}"? This action cannot be undone.`}
                 loading={isDeleting}
             />
-        </div>
+        </div >
     );
 }

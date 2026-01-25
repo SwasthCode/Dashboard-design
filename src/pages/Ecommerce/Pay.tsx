@@ -10,6 +10,8 @@ interface Transaction {
     amount: string;
     method: string;
     status: "Paid" | "Pending" | "Failed";
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export default function Pay() {
@@ -17,20 +19,20 @@ export default function Pay() {
     const itemsPerPage = 8;
 
     const [transactions] = useState<Transaction[]>([
-        { id: "#TRX-8547", customer: "John Doe", date: "Jan 12, 2024", amount: "$120.00", method: "Credit Card", status: "Paid" },
-        { id: "#TRX-8548", customer: "Jane Smith", date: "Jan 13, 2024", amount: "$240.00", method: "PayPal", status: "Paid" },
-        { id: "#TRX-8549", customer: "Robert Fox", date: "Jan 14, 2024", amount: "$89.50", method: "Credit Card", status: "Pending" },
-        { id: "#TRX-8550", customer: "Alice Johnson", date: "Jan 15, 2024", amount: "$150.00", method: "Apple Pay", status: "Failed" },
-        { id: "#TRX-8551", customer: "Mike Brown", date: "Jan 16, 2024", amount: "$200.00", method: "Google Pay", status: "Paid" },
-        { id: "#TRX-8552", customer: "Sarah Wilson", date: "Jan 17, 2024", amount: "$300.00", method: "Credit Card", status: "Paid" },
-        { id: "#TRX-8553", customer: "David Lee", date: "Jan 18, 2024", amount: "$450.00", method: "PayPal", status: "Paid" },
-        { id: "#TRX-8554", customer: "Emily Davis", date: "Jan 19, 2024", amount: "$50.00", method: "Credit Card", status: "Paid" },
-        { id: "#TRX-8555", customer: "Michael Clark", date: "Jan 20, 2024", amount: "$120.00", method: "Credit Card", status: "Pending" },
-        { id: "#TRX-8556", customer: "Jessica White", date: "Jan 21, 2024", amount: "$330.00", method: "Apple Pay", status: "Paid" },
-        { id: "#TRX-8557", customer: "Daniel Martinez", date: "Jan 22, 2024", amount: "$90.00", method: "PayPal", status: "Paid" },
-        { id: "#TRX-8558", customer: "Laura Lewis", date: "Jan 23, 2024", amount: "$110.00", method: "Credit Card", status: "Paid" },
-        { id: "#TRX-8559", customer: "James Wilson", date: "Jan 24, 2024", amount: "$210.00", method: "Google Pay", status: "Failed" },
-        { id: "#TRX-8560", customer: "Linda Brown", date: "Jan 25, 2024", amount: "$180.00", method: "Credit Card", status: "Paid" },
+        { id: "#TRX-8547", customer: "John Doe", date: "Jan 12, 2024", amount: "$120.00", method: "Credit Card", status: "Paid", createdAt: "2024-01-12", updatedAt: "2024-01-12" },
+        { id: "#TRX-8548", customer: "Jane Smith", date: "Jan 13, 2024", amount: "$240.00", method: "PayPal", status: "Paid", createdAt: "2024-01-13", updatedAt: "2024-01-13" },
+        { id: "#TRX-8549", customer: "Robert Fox", date: "Jan 14, 2024", amount: "$89.50", method: "Credit Card", status: "Pending", createdAt: "2024-01-14", updatedAt: "2024-01-14" },
+        { id: "#TRX-8550", customer: "Alice Johnson", date: "Jan 15, 2024", amount: "$150.00", method: "Apple Pay", status: "Failed", createdAt: "2024-01-15", updatedAt: "2024-01-15" },
+        { id: "#TRX-8551", customer: "Mike Brown", date: "Jan 16, 2024", amount: "$200.00", method: "Google Pay", status: "Paid", createdAt: "2024-01-16", updatedAt: "2024-01-16" },
+        { id: "#TRX-8552", customer: "Sarah Wilson", date: "Jan 17, 2024", amount: "$300.00", method: "Credit Card", status: "Paid", createdAt: "2024-01-17", updatedAt: "2024-01-17" },
+        { id: "#TRX-8553", customer: "David Lee", date: "Jan 18, 2024", amount: "$450.00", method: "PayPal", status: "Paid", createdAt: "2024-01-18", updatedAt: "2024-01-18" },
+        { id: "#TRX-8554", customer: "Emily Davis", date: "Jan 19, 2024", amount: "$50.00", method: "Credit Card", status: "Paid", createdAt: "2024-01-19", updatedAt: "2024-01-19" },
+        { id: "#TRX-8555", customer: "Michael Clark", date: "Jan 20, 2024", amount: "$120.00", method: "Credit Card", status: "Pending", createdAt: "2024-01-20", updatedAt: "2024-01-20" },
+        { id: "#TRX-8556", customer: "Jessica White", date: "Jan 21, 2024", amount: "$330.00", method: "Apple Pay", status: "Paid", createdAt: "2024-01-21", updatedAt: "2024-01-21" },
+        { id: "#TRX-8557", customer: "Daniel Martinez", date: "Jan 22, 2024", amount: "$90.00", method: "PayPal", status: "Paid", createdAt: "2024-01-22", updatedAt: "2024-01-22" },
+        { id: "#TRX-8558", customer: "Laura Lewis", date: "Jan 23, 2024", amount: "$110.00", method: "Credit Card", status: "Paid", createdAt: "2024-01-23", updatedAt: "2024-01-23" },
+        { id: "#TRX-8559", customer: "James Wilson", date: "Jan 24, 2024", amount: "$210.00", method: "Google Pay", status: "Failed", createdAt: "2024-01-24", updatedAt: "2024-01-24" },
+        { id: "#TRX-8560", customer: "Linda Brown", date: "Jan 25, 2024", amount: "$180.00", method: "Credit Card", status: "Paid", createdAt: "2024-01-25", updatedAt: "2024-01-25" },
     ]);
 
     // Calculate pagination
@@ -84,6 +86,12 @@ export default function Pay() {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Status
                                 </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Created At
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Updated At
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -120,13 +128,23 @@ export default function Pay() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
                                             className={`px-2 py-1 text-[10px] font-semibold rounded-full ${trx.status === "Paid"
-                                                    ? "bg-green-100 text-green-600"
-                                                    : trx.status === "Pending"
-                                                        ? "bg-orange-100 text-orange-600"
-                                                        : "bg-red-100 text-red-600"
+                                                ? "bg-green-100 text-green-600"
+                                                : trx.status === "Pending"
+                                                    ? "bg-orange-100 text-orange-600"
+                                                    : "bg-red-100 text-red-600"
                                                 }`}
                                         >
                                             {trx.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {trx.createdAt ? new Date(trx.createdAt).toLocaleDateString() : "-"}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {trx.updatedAt ? new Date(trx.updatedAt).toLocaleDateString() : "-"}
                                         </span>
                                     </td>
                                 </tr>

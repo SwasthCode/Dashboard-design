@@ -11,6 +11,8 @@ interface Coupon {
     expiryDiff: string;
     status: "Active" | "Expired";
     usage: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export default function Coupons() {
@@ -18,16 +20,16 @@ export default function Coupons() {
     const itemsPerPage = 8;
 
     const [coupons, setCoupons] = useState<Coupon[]>([
-        { id: 1, code: "WELCOME20", description: "Welcome Discount", discount: "20%", expiryDiff: "25 days", status: "Active", usage: 154 },
-        { id: 2, code: "SUMMERSALE", description: "Summer Sale 2024", discount: "$50", expiryDiff: "5 days", status: "Active", usage: 890 },
-        { id: 3, code: "BLACKFRIDAY", description: "Black Friday Deal", discount: "50%", expiryDiff: "Expired", status: "Expired", usage: 2405 },
-        { id: 4, code: "LOYALTY10", description: "Loyalty Program", discount: "10%", expiryDiff: "Unlimited", status: "Active", usage: 45 },
-        { id: 5, code: "FREESHIP", description: "Free Shipping", discount: "Shipping", expiryDiff: "10 days", status: "Active", usage: 320 },
-        { id: 6, code: "FLASH50", description: "Flash Sale", discount: "50%", expiryDiff: "Expired", status: "Expired", usage: 112 },
-        { id: 7, code: "NEWYEAR30", description: "New Year Special", discount: "30%", expiryDiff: "360 days", status: "Active", usage: 12 },
-        { id: 8, code: "STUDENT15", description: "Student Discount", discount: "15%", expiryDiff: "Unlimited", status: "Active", usage: 560 },
-        { id: 9, code: "VIP25", description: "VIP Members", discount: "25%", expiryDiff: "Unlimited", status: "Active", usage: 78 },
-        { id: 10, code: "SPRING10", description: "Spring Season", discount: "10%", expiryDiff: "60 days", status: "Active", usage: 0 },
+        { id: 1, code: "WELCOME20", description: "Welcome Discount", discount: "20%", expiryDiff: "25 days", status: "Active", usage: 154, createdAt: "2024-01-01", updatedAt: "2024-01-01" },
+        { id: 2, code: "SUMMERSALE", description: "Summer Sale 2024", discount: "$50", expiryDiff: "5 days", status: "Active", usage: 890, createdAt: "2024-01-05", updatedAt: "2024-01-10" },
+        { id: 3, code: "BLACKFRIDAY", description: "Black Friday Deal", discount: "50%", expiryDiff: "Expired", status: "Expired", usage: 2405, createdAt: "2023-11-01", updatedAt: "2023-11-30" },
+        { id: 4, code: "LOYALTY10", description: "Loyalty Program", discount: "10%", expiryDiff: "Unlimited", status: "Active", usage: 45, createdAt: "2023-01-01", updatedAt: "2023-01-01" },
+        { id: 5, code: "FREESHIP", description: "Free Shipping", discount: "Shipping", expiryDiff: "10 days", status: "Active", usage: 320, createdAt: "2024-02-01", updatedAt: "2024-02-01" },
+        { id: 6, code: "FLASH50", description: "Flash Sale", discount: "50%", expiryDiff: "Expired", status: "Expired", usage: 112, createdAt: "2023-12-01", updatedAt: "2023-12-05" },
+        { id: 7, code: "NEWYEAR30", description: "New Year Special", discount: "30%", expiryDiff: "360 days", status: "Active", usage: 12, createdAt: "2024-01-01", updatedAt: "2024-01-01" },
+        { id: 8, code: "STUDENT15", description: "Student Discount", discount: "15%", expiryDiff: "Unlimited", status: "Active", usage: 560, createdAt: "2023-09-01", updatedAt: "2023-09-01" },
+        { id: 9, code: "VIP25", description: "VIP Members", discount: "25%", expiryDiff: "Unlimited", status: "Active", usage: 78, createdAt: "2023-06-01", updatedAt: "2023-06-01" },
+        { id: 10, code: "SPRING10", description: "Spring Season", discount: "10%", expiryDiff: "60 days", status: "Active", usage: 0, createdAt: "2024-03-01", updatedAt: "2024-03-01" },
     ]);
 
     // Calculate pagination
@@ -84,6 +86,12 @@ export default function Coupons() {
                                     Usage
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Created At
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Updated At
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -124,8 +132,8 @@ export default function Coupons() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
                                             className={`px-2 py-1 text-[10px] font-semibold rounded-full ${coupon.status === "Active"
-                                                    ? "bg-green-100 text-green-600"
-                                                    : "bg-red-100 text-red-600"
+                                                ? "bg-green-100 text-green-600"
+                                                : "bg-red-100 text-red-600"
                                                 }`}
                                         >
                                             {coupon.status}
@@ -134,6 +142,16 @@ export default function Coupons() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">
                                             {coupon.usage} used
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {coupon.createdAt ? new Date(coupon.createdAt).toLocaleDateString() : "-"}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {coupon.updatedAt ? new Date(coupon.updatedAt).toLocaleDateString() : "-"}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

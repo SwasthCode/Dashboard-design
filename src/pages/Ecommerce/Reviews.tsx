@@ -142,6 +142,12 @@ export default function Reviews() {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Status
                                 </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Created At
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Updated At
+                                </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
                                     Actions
                                 </th>
@@ -150,7 +156,7 @@ export default function Reviews() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {reviewsLoading && reviews.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                                    <td colSpan={9} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
                                             <span>Loading reviews...</span>
@@ -245,6 +251,16 @@ export default function Reviews() {
                                                 }`}
                                         >
                                             {review.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : "-"}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {review.updatedAt ? new Date(review.updatedAt).toLocaleDateString() : "-"}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right">

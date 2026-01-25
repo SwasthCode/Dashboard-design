@@ -11,6 +11,7 @@ interface Invoice {
     date: string;
     dueDate: string;
     status: "Paid" | "Unpaid" | "Overdue";
+    updatedAt?: string;
 }
 
 export default function Invoices() {
@@ -18,15 +19,15 @@ export default function Invoices() {
     const itemsPerPage = 7;
 
     const [invoices] = useState<Invoice[]>([
-        { id: "INV-001", client: "Acme Corp", email: "contact@acme.com", amount: "$3,400.00", date: "Jan 10, 2024", dueDate: "Feb 10, 2024", status: "Paid" },
-        { id: "INV-002", client: "Global Tech", email: "info@globaltech.com", amount: "$1,200.00", date: "Jan 12, 2024", dueDate: "Feb 12, 2024", status: "Unpaid" },
-        { id: "INV-003", client: "Soft Solutions", email: "support@softsol.com", amount: "$500.00", date: "Jan 15, 2024", dueDate: "Jan 25, 2024", status: "Overdue" },
-        { id: "INV-004", client: "Alpha Inc", email: "billing@alpha.com", amount: "$2,100.00", date: "Jan 18, 2024", dueDate: "Feb 18, 2024", status: "Paid" },
-        { id: "INV-005", client: "Beta Ltd", email: "fin@beta.com", amount: "$900.00", date: "Jan 20, 2024", dueDate: "Feb 20, 2024", status: "Unpaid" },
-        { id: "INV-006", client: "Gamma Co", email: "acc@gamma.com", amount: "$4,500.00", date: "Jan 22, 2024", dueDate: "Feb 22, 2024", status: "Paid" },
-        { id: "INV-007", client: "Delta LLC", email: "pay@delta.com", amount: "$1,200.00", date: "Jan 25, 2024", dueDate: "Feb 25, 2024", status: "Paid" },
-        { id: "INV-008", client: "Epsilon Group", email: "info@epsilon.com", amount: "$3,000.00", date: "Jan 28, 2024", dueDate: "Feb 28, 2024", status: "Unpaid" },
-        { id: "INV-009", client: "Zeta Ind", email: "bill@zeta.com", amount: "$750.00", date: "Jan 30, 2024", dueDate: "Mar 01, 2024", status: "Overdue" },
+        { id: "INV-001", client: "Acme Corp", email: "contact@acme.com", amount: "$3,400.00", date: "Jan 10, 2024", dueDate: "Feb 10, 2024", status: "Paid", updatedAt: "2024-01-10" },
+        { id: "INV-002", client: "Global Tech", email: "info@globaltech.com", amount: "$1,200.00", date: "Jan 12, 2024", dueDate: "Feb 12, 2024", status: "Unpaid", updatedAt: "2024-01-12" },
+        { id: "INV-003", client: "Soft Solutions", email: "support@softsol.com", amount: "$500.00", date: "Jan 15, 2024", dueDate: "Jan 25, 2024", status: "Overdue", updatedAt: "2024-01-20" },
+        { id: "INV-004", client: "Alpha Inc", email: "billing@alpha.com", amount: "$2,100.00", date: "Jan 18, 2024", dueDate: "Feb 18, 2024", status: "Paid", updatedAt: "2024-01-18" },
+        { id: "INV-005", client: "Beta Ltd", email: "fin@beta.com", amount: "$900.00", date: "Jan 20, 2024", dueDate: "Feb 20, 2024", status: "Unpaid", updatedAt: "2024-01-20" },
+        { id: "INV-006", client: "Gamma Co", email: "acc@gamma.com", amount: "$4,500.00", date: "Jan 22, 2024", dueDate: "Feb 22, 2024", status: "Paid", updatedAt: "2024-01-22" },
+        { id: "INV-007", client: "Delta LLC", email: "pay@delta.com", amount: "$1,200.00", date: "Jan 25, 2024", dueDate: "Feb 25, 2024", status: "Paid", updatedAt: "2024-01-25" },
+        { id: "INV-008", client: "Epsilon Group", email: "info@epsilon.com", amount: "$3,000.00", date: "Jan 28, 2024", dueDate: "Feb 28, 2024", status: "Unpaid", updatedAt: "2024-01-28" },
+        { id: "INV-009", client: "Zeta Ind", email: "bill@zeta.com", amount: "$750.00", date: "Jan 30, 2024", dueDate: "Mar 01, 2024", status: "Overdue", updatedAt: "2024-02-15" },
     ]);
 
     // Calculate pagination
@@ -79,6 +80,9 @@ export default function Invoices() {
                                     Status
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Updated At
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -122,13 +126,18 @@ export default function Invoices() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
                                             className={`px-2 py-1 text-[10px] font-semibold rounded-full ${invoice.status === "Paid"
-                                                    ? "bg-green-100 text-green-600"
-                                                    : invoice.status === "Unpaid"
-                                                        ? "bg-orange-100 text-orange-600"
-                                                        : "bg-red-100 text-red-600"
+                                                ? "bg-green-100 text-green-600"
+                                                : invoice.status === "Unpaid"
+                                                    ? "bg-orange-100 text-orange-600"
+                                                    : "bg-red-100 text-red-600"
                                                 }`}
                                         >
                                             {invoice.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {invoice.updatedAt ? new Date(invoice.updatedAt).toLocaleDateString() : "-"}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

@@ -12,6 +12,23 @@ export interface Role {
     is_deleted?: boolean;
 }
 
+export interface Address {
+    _id?: string;
+    name?: string;
+    shipping_phone?: string;
+    pincode?: string;
+    locality?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    landmark?: string;
+    alternate_phone?: string;
+    type?: string;
+    isDefault?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export interface User {
     _id?: string;
     id?: string;
@@ -25,6 +42,7 @@ export interface User {
     is_deleted?: boolean;
     image?: string | { url: string; _id: string };
     profile_image?: string;
+    addresses?: Address[];
     createdAt?: string;
     updatedAt?: string;
 }
