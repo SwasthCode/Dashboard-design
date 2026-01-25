@@ -1,94 +1,80 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrders, updateOrderStatus, Order, OrderStatus } from "../../store/slices/orderSlice";
+import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import Input from "../../components/form/input/InputField";
-import DatePicker from "../../components/form/date-picker";
-import { FilterIcon, CloseIcon } from "../../icons";
-import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import Pagination from "../../components/common/Pagination";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../../store";
-import { fetchOrders, updateOrderStatus, OrderStatus, Order } from "../../store/slices/orderSlice";
+import TableFilter from "../../components/common/TableFilter";
 
 export default function Orders() {
     const dispatch = useDispatch<AppDispatch>();
     const { orders, loading, updating } = useSelector((state: RootState) => state.order);
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-    const [selectedDate, setSelectedDate] = useState("");
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-    // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 7;
+
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+
+
+    const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
+
+    // Construct filter for backend
+    const buildFilter = useCallback(() => {
+        const filter: any = {};
+        if (searchQuery) {
+            filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
+                { customer_name: { $regex: searchQuery, $options: 'i' } },
+            ];
+        }
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) filter.createdAt.$gte = startDate;
+            if (endDate) filter.createdAt.$lte = endDate;
+        }
+        if (selectedStatuses.length > 0) {
+            filter.status = { $in: selectedStatuses.map(s => s.toLowerCase()) };
+        }
+        return filter;
+    }, [searchQuery, startDate, endDate, selectedStatuses]);
 
     useEffect(() => {
-        dispatch(fetchOrders());
-    }, [dispatch]);
+        const timer = setTimeout(() => {
+            const filter = buildFilter();
+            dispatch(fetchOrders({ filter }));
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [dispatch, buildFilter]);
 
-    const statusOptions: OrderStatus[] = ["pending", "hold", "ready", "shipped", "delivered", "cancelled", "returned"];
-
-    const handleDateChange = (_dates: Date[], dateStr: string) => {
-        setSelectedDate(dateStr);
-        setCurrentPage(1); // Reset page on filter change
-    };
-
-    const toggleStatus = (status: string) => {
-        setSelectedStatuses(prev =>
-            prev.includes(status)
-                ? prev.filter(s => s !== status)
-                : [...prev, status]
-        );
-        setCurrentPage(1); // Reset page on filter change
-    };
-
-    const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
-        try {
-            await dispatch(updateOrderStatus({ id: orderId, status: newStatus })).unwrap();
-        } catch (err) {
-            console.error("Failed to update status:", err);
-        }
-    };
-
-    const filteredOrders = orders.filter((order: Order) => {
-        const matchesSearch =
-            (order._id && order._id.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (order.customer_name && order.customer_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (order.user?.first_name && order.user.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (order.user?.last_name && order.user.last_name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-        const matchesStatus = selectedStatuses.length > 0 ? selectedStatuses.includes(order.status) : true;
-
-        let matchesDate = true;
-        if (selectedDate) {
-            const orderDate = new Date(order.createdAt).toDateString();
-            const filterDate = new Date(selectedDate).toDateString();
-            matchesDate = orderDate === filterDate;
-        }
-
-        return matchesSearch && matchesStatus && matchesDate;
-    });
-
-    // Pagination Logic on Filtered Orders
-    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    // Calculate pagination (Backend should ideally handle this too, but for now we filter then slice local or backend returns filtered list)
+    // Since we are fetching filtered orders from backend, 'orders' IS the current filtered list.
+    const totalPages = Math.ceil(orders.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+    const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
-    const getStatusColor = (status: OrderStatus) => {
-        switch (status) {
-            case "delivered": return "bg-green-100 text-green-600";
+    const handleStatusChange = (id: string, newStatus: string) => {
+        dispatch(updateOrderStatus({ id, status: newStatus as OrderStatus }));
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status.toLowerCase()) {
             case "pending": return "bg-orange-100 text-orange-600";
-            case "shipped": return "bg-blue-100 text-blue-600";
+            case "ready": return "bg-blue-100 text-blue-600";
+            case "shipped": return "bg-purple-100 text-purple-600";
+            case "delivered": return "bg-green-100 text-green-600";
             case "cancelled": return "bg-red-100 text-red-600";
-            case "returned": return "bg-purple-100 text-purple-600";
-            case "hold": return "bg-yellow-100 text-yellow-600";
-            case "ready": return "bg-teal-100 text-teal-600";
+            case "returned": return "bg-gray-100 text-gray-600";
             default: return "bg-gray-100 text-gray-600";
         }
     };
@@ -292,6 +278,10 @@ export default function Orders() {
                 actions = null;
         }
 
+        if (!actions) {
+            return <span className="text-xs text-gray-400 italic">Not available</span>;
+        }
+
         return (
             <div className="flex items-center justify-end gap-2">
                 {actions}
@@ -307,82 +297,37 @@ export default function Orders() {
             />
             <PageBreadcrumb pageTitle="Orders" />
             <div className="space-y-6">
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex-1 max-w-md relative">
-                        <Input
-                            placeholder="Search by ID or Customer..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setCurrentPage(1); // Reset page on search
-                            }}
-                            className="pl-11"
-                        />
-                        <svg
-                            className="absolute top-1/2 left-4 -translate-y-1/2 fill-gray-500 dark:fill-gray-400"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M3.04199 9.37363C3.04199 5.87611 5.87736 3.04074 9.37488 3.04074C12.8724 3.04074 15.7078 5.87611 15.7078 9.37363C15.7078 11.1226 14.9984 12.6891 13.8596 13.7997L16.6548 16.5949C16.9477 16.8878 16.9477 17.3627 16.6548 17.6556C16.3619 17.9485 15.8871 17.9485 15.5942 17.6556L12.799 14.8604C11.6883 15.9991 10.1219 16.7065 8.37289 16.7065C4.87537 16.7065 2.04001 13.8711 2.04001 10.3736C2.04001 10.1983 2.04786 10.0247 2.06328 9.85322C2.04786 9.69976 2.04001 9.5375 2.04001 9.37363ZM9.37488 4.54074C6.70585 4.54074 4.54199 6.7046 4.54199 9.37363C4.54199 12.0427 6.70585 14.2065 9.37488 14.2065C12.0439 14.2065 14.2078 12.0427 14.2078 9.37363C14.2078 6.7046 12.0439 4.54074 9.37488 4.54074Z"
-                                fill=""
-                            />
-                        </svg>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <DatePicker
-                                key={selectedDate || "reset"}
-                                id="order-date-picker"
-                                placeholder="Filter by Date"
-                                onChange={handleDateChange}
-                            />
-                            {selectedDate && (
-                                <button
-                                    className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 z-10"
-                                    onClick={() => setSelectedDate("")}
-                                    title="Clear Date"
-                                >
-                                    <CloseIcon className="size-4" />
-                                </button>
-                            )}
+                <div className="flex flex-col gap-4">
+                    <TableFilter
+                        placeholder="Search by ID or Customer..."
+                        onFilterChange={({ search, startDate: start, endDate: end }) => {
+                            setSearchQuery(search);
+                            setStartDate(start);
+                            setEndDate(end);
+                        }}
+                    >
+                        <div className="space-y-2">
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Filter by Status</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                                {statusOptions.map((status) => (
+                                    <label key={status} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                            checked={selectedStatuses.includes(status)}
+                                            onChange={() => {
+                                                const newStatuses = selectedStatuses.includes(status)
+                                                    ? selectedStatuses.filter(s => s !== status)
+                                                    : [...selectedStatuses, status];
+                                                setSelectedStatuses(newStatuses);
+                                            }}
+                                        />
+                                        <span className="text-sm text-gray-700 dark:text-gray-300">{status}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
-
-                        <div className="relative dropdown-toggle">
-                            <button
-                                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                className="flex items-center justify-center w-11 h-11 bg-white border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
-                            >
-                                <FilterIcon className="size-5" />
-                            </button>
-                            <Dropdown
-                                isOpen={isFilterOpen}
-                                onClose={() => setIsFilterOpen(false)}
-                                className="absolute right-0 mt-2 w-48 p-3"
-                            >
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Filter by Status</h4>
-                                    {statusOptions.map((status) => (
-                                        <label key={status} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                            <input
-                                                type="checkbox"
-                                                className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
-                                                checked={selectedStatuses.includes(status)}
-                                                onChange={() => toggleStatus(status)}
-                                            />
-                                            <span className="text-sm text-gray-700 dark:text-gray-300">{status}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </Dropdown>
-                        </div>
-                    </div>
+                    </TableFilter>
                 </div>
 
                 <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
@@ -471,7 +416,7 @@ export default function Orders() {
                         onPageChange={handlePageChange}
                         startIndex={indexOfFirstItem}
                         endIndex={indexOfLastItem}
-                        totalResults={filteredOrders.length}
+                        totalResults={orders.length}
                     />
                 </div>
             </div>

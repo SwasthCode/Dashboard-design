@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchReviews, deleteReview, updateReview, Review } from "../../store/slices/reviewSlice";
 import { fetchProducts } from "../../store/slices/productSlice";
@@ -10,10 +10,11 @@ import Pagination from "../../components/common/Pagination";
 import AddReviewModal from "./AddReviewModal";
 import EditReviewModal from "./EditReviewModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import TableFilter from "../../components/common/TableFilter";
 
 export default function Reviews() {
     const dispatch = useDispatch<AppDispatch>();
-    const { reviews, loading: reviewsLoading, error } = useSelector((state: RootState) => state.review);
+    const { reviews, loading: reviewsLoading } = useSelector((state: RootState) => state.review);
     const { products, loading: productsLoading } = useSelector((state: RootState) => state.product);
     const { users, loading: usersLoading } = useSelector((state: RootState) => state.user);
 
@@ -24,13 +25,52 @@ export default function Reviews() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 5;
+
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
 
     useEffect(() => {
-        dispatch(fetchReviews());
-        if (products.length === 0) dispatch(fetchProducts());
-        if (users.length === 0) dispatch(fetchUsers());
+        // Initial fetch for products and users if not already loaded
+        if (products.length === 0) dispatch(fetchProducts({}));
+        if (users.length === 0) dispatch(fetchUsers({}));
     }, [dispatch, products.length, users.length]);
+
+    // Construct filter for backend
+    const buildFilter = useCallback(() => {
+        const filter: any = {};
+        if (searchQuery) {
+            filter.$or = [
+                { comment: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } }
+            ];
+            // Note: Searching by product name or user name would require backend support to filter on populated fields or aggregations.
+            // For now, we search on fields directly on the review model + status.
+        }
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) filter.createdAt.$gte = startDate;
+            if (endDate) filter.createdAt.$lte = endDate;
+        }
+        return filter;
+    }, [searchQuery, startDate, endDate]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const filter = buildFilter();
+            dispatch(fetchReviews({ filter }));
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [dispatch, buildFilter, products.length, users.length]);
+
+    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+        setSearchQuery(search);
+        setStartDate(start);
+        setEndDate(end);
+    };
 
     // Calculate pagination
     const totalPages = Math.ceil(reviews.length / itemsPerPage);
@@ -92,33 +132,36 @@ export default function Reviews() {
         return user ? `${user.first_name} ${user.last_name}` : "Unknown Customer";
     };
 
-    if (error) {
-        return (
-            <div className="p-6 text-center text-red-500 font-medium">
-                Error loading reviews: {error}
-            </div>
-        );
-    }
-
     return (
         <div>
             <PageMeta
-                title="Reviews | Admin Dashboard"
-                description="Manage product reviews and ratings"
+                title="Reviews | TailAdmin - React.js Admin Dashboard"
+                description="Reviews page for TailAdmin"
             />
             <PageBreadcrumb pageTitle="Reviews" />
+
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
+                        <TableFilter
+                            placeholder="Search Reviews..."
+                            onFilterChange={handleFilterChange}
+                        />
+                    </div>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-brand-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors whitespace-nowrap mt-1"
+                    >
+                        Add Review
+                    </button>
+                </div>
+            </div>
 
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                        Customer Reviews
+                        Review List
                     </h3>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-                    >
-                        Add Review
-                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">

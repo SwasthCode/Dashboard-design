@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +10,7 @@ import Pagination from "../../components/common/Pagination";
 import AddProductModal from "./AddProductModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import EditProductModal from "./EditProductModal";
+import TableFilter from "../../components/common/TableFilter";
 
 export default function Products() {
     const dispatch = useDispatch<AppDispatch>();
@@ -26,6 +27,11 @@ export default function Products() {
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const itemsPerPage = 5;
 
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+
     const toggleRow = (id: string) => {
         const newExpandedRows = new Set(expandedRows);
         if (newExpandedRows.has(id)) {
@@ -37,10 +43,40 @@ export default function Products() {
     };
 
     useEffect(() => {
-        dispatch(fetchProducts());
+        dispatch(fetchProducts({}));
         if (categories.length === 0) dispatch(fetchCategories());
         if (subCategories.length === 0) dispatch(fetchSubCategories());
     }, [dispatch, categories.length, subCategories.length]);
+
+    // Construct filter for backend
+    // Construct filter for backend
+    const buildFilter = useCallback(() => {
+        const filter: any = {};
+        if (searchQuery) {
+            filter.name = { $regex: searchQuery, $options: 'i' };
+        }
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) filter.createdAt.$gte = startDate;
+            if (endDate) filter.createdAt.$lte = endDate;
+        }
+        return filter;
+    }, [searchQuery, startDate, endDate]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const filter = buildFilter();
+            dispatch(fetchProducts({ filter }));
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [dispatch, buildFilter, categories.length, subCategories.length]);
+
+    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+        setSearchQuery(search);
+        setStartDate(start);
+        setEndDate(end);
+    };
 
     // Calculate pagination
     const totalPages = Math.ceil(products.length / itemsPerPage);
@@ -83,17 +119,29 @@ export default function Products() {
                 description="This is the Products page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Products" />
+
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
+                        <TableFilter
+                            placeholder="Search Products..."
+                            onFilterChange={handleFilterChange}
+                        />
+                    </div>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-brand-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors whitespace-nowrap mt-1"
+                    >
+                        Add Product
+                    </button>
+                </div>
+            </div>
+
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Product List
                     </h3>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-                    >
-                        Add Product
-                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">

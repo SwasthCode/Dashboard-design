@@ -2,6 +2,7 @@ import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
+import TableFilter from "../../components/common/TableFilter";
 
 interface Coupon {
     id: number;
@@ -32,18 +33,48 @@ export default function Coupons() {
         { id: 10, code: "SPRING10", description: "Spring Season", discount: "10%", expiryDiff: "60 days", status: "Active", usage: 0, createdAt: "2024-03-01", updatedAt: "2024-03-01" },
     ]);
 
+    const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>(coupons);
+
+    const handleFilterChange = ({ search, startDate, endDate }: any) => {
+        let result = coupons;
+
+        if (search) {
+            const lowerSearch = search.toLowerCase();
+            result = result.filter(c =>
+                c.code.toLowerCase().includes(lowerSearch) ||
+                c.description.toLowerCase().includes(lowerSearch)
+            );
+        }
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            result = result.filter(c => {
+                if (!c.createdAt) return true;
+                const date = new Date(c.createdAt);
+                return date >= start && date <= end;
+            });
+        }
+
+        setFilteredCoupons(result);
+        setCurrentPage(1);
+    };
+
     // Calculate pagination
-    const totalPages = Math.ceil(coupons.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredCoupons.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentCoupons = coupons.slice(indexOfFirstItem, indexOfLastItem);
+    const currentCoupons = filteredCoupons.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
     const handleDelete = (id: number) => {
-        setCoupons(coupons.filter(c => c.id !== id));
+        const updated = coupons.filter(c => c.id !== id);
+        setCoupons(updated);
+        // Re-apply filters to update view
+        setFilteredCoupons(prev => prev.filter(c => c.id !== id));
     };
 
     return (
@@ -54,14 +85,25 @@ export default function Coupons() {
             />
             <PageBreadcrumb pageTitle="Coupons & Discounts" />
 
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
+                        <TableFilter
+                            placeholder="Search Coupons..."
+                            onFilterChange={handleFilterChange}
+                        />
+                    </div>
+                    <button className="bg-brand-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors whitespace-nowrap mt-1">
+                        Create Coupon
+                    </button>
+                </div>
+            </div>
+
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Active Coupons
                     </h3>
-                    <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
-                        Create Coupon
-                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -103,63 +145,77 @@ export default function Coupons() {
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-8 h-8 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-brand-500">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                                </svg>
-                                            </span>
-                                            <span className="text-sm font-bold text-gray-800 dark:text-white font-mono">
-                                                {coupon.code}
-                                            </span>
-                                        </div>
+                                        <span className="text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-500/10 px-2 py-1 rounded border border-brand-100 dark:border-brand-500/20 font-mono">
+                                            {coupon.code}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        <span className="text-sm text-gray-800 dark:text-gray-300">
                                             {coupon.description}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                                        <span className="text-sm font-bold text-gray-800 dark:text-white">
                                             {coupon.discount}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {coupon.expiryDiff}
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={`w-1.5 h-1.5 rounded-full ${coupon.expiryDiff === "Expired" ? "bg-red-500" : "bg-green-500"
+                                                }`}></span>
+                                            <span className={`text-sm ${coupon.expiryDiff === "Expired"
+                                                ? "text-red-500 font-medium"
+                                                : "text-gray-500 dark:text-gray-400"
+                                                }`}>
+                                                {coupon.expiryDiff}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            className={`px-2 py-1 text-[10px] font-semibold rounded-full ${coupon.status === "Active"
-                                                ? "bg-green-100 text-green-600"
-                                                : "bg-red-100 text-red-600"
+                                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${coupon.status === "Active"
+                                                ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400"
+                                                : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
                                                 }`}
                                         >
                                             {coupon.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-16 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-brand-500 rounded-full"
+                                                    style={{ width: `${Math.min((coupon.usage / 2500) * 100, 100)}%` }}
+                                                ></div>
+                                            </div>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                {coupon.usage}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {coupon.usage} used
+                                            {coupon.createdAt}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {coupon.createdAt ? new Date(coupon.createdAt).toLocaleDateString() : "-"}
+                                            {coupon.updatedAt}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {coupon.updatedAt ? new Date(coupon.updatedAt).toLocaleDateString() : "-"}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <button onClick={() => handleDelete(coupon.id)} className="text-gray-400 hover:text-red-500 transition-colors">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex gap-2">
+                                            <button className="text-brand-500 hover:text-brand-700">
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(coupon.id)}
+                                                className="text-red-500 hover:text-red-700"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -173,7 +229,7 @@ export default function Coupons() {
                     onPageChange={handlePageChange}
                     startIndex={indexOfFirstItem}
                     endIndex={indexOfLastItem}
-                    totalResults={coupons.length}
+                    totalResults={filteredCoupons.length}
                 />
             </div>
         </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
+import TableFilter from "../../components/common/TableFilter";
 
 interface Invoice {
     id: string;
@@ -30,11 +31,39 @@ export default function Invoices() {
         { id: "INV-009", client: "Zeta Ind", email: "bill@zeta.com", amount: "$750.00", date: "Jan 30, 2024", dueDate: "Mar 01, 2024", status: "Overdue", updatedAt: "2024-02-15" },
     ]);
 
+    const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>(invoices);
+
+    const handleFilterChange = ({ search, startDate, endDate }: any) => {
+        let result = invoices;
+
+        if (search) {
+            const lowerSearch = search.toLowerCase();
+            result = result.filter(inv =>
+                inv.client.toLowerCase().includes(lowerSearch) ||
+                inv.id.toLowerCase().includes(lowerSearch) ||
+                inv.email.toLowerCase().includes(lowerSearch)
+            );
+        }
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            result = result.filter(inv => {
+                if (!inv.updatedAt) return true;
+                const date = new Date(inv.updatedAt);
+                return date >= start && date <= end;
+            });
+        }
+
+        setFilteredInvoices(result);
+        setCurrentPage(1);
+    };
+
     // Calculate pagination
-    const totalPages = Math.ceil(invoices.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentInvoices = invoices.slice(indexOfFirstItem, indexOfLastItem);
+    const currentInvoices = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -48,14 +77,25 @@ export default function Invoices() {
             />
             <PageBreadcrumb pageTitle="Invoices" />
 
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
+                        <TableFilter
+                            placeholder="Search Invoices..."
+                            onFilterChange={handleFilterChange}
+                        />
+                    </div>
+                    <button className="bg-brand-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors whitespace-nowrap mt-1">
+                        Create Invoice
+                    </button>
+                </div>
+            </div>
+
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Invoice List
                     </h3>
-                    <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
-                        Create Invoice
-                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -125,11 +165,11 @@ export default function Invoices() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            className={`px-2 py-1 text-[10px] font-semibold rounded-full ${invoice.status === "Paid"
-                                                ? "bg-green-100 text-green-600"
+                                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${invoice.status === "Paid"
+                                                ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400"
                                                 : invoice.status === "Unpaid"
-                                                    ? "bg-orange-100 text-orange-600"
-                                                    : "bg-red-100 text-red-600"
+                                                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400"
+                                                    : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"
                                                 }`}
                                         >
                                             {invoice.status}
@@ -137,16 +177,18 @@ export default function Invoices() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {invoice.updatedAt ? new Date(invoice.updatedAt).toLocaleDateString() : "-"}
+                                            {invoice.updatedAt}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <button className="text-gray-500 hover:text-brand-500 transition-colors">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </button>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex gap-2">
+                                            <button className="text-brand-500 hover:text-brand-700">
+                                                Edit
+                                            </button>
+                                            <button className="text-red-500 hover:text-red-700">
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -160,7 +202,7 @@ export default function Invoices() {
                     onPageChange={handlePageChange}
                     startIndex={indexOfFirstItem}
                     endIndex={indexOfLastItem}
-                    totalResults={invoices.length}
+                    totalResults={filteredInvoices.length}
                 />
             </div>
         </div>

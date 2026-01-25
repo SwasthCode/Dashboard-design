@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,10 +8,11 @@ import Pagination from "../../components/common/Pagination";
 import AddMainCategoryModal from "./AddMainCategoryModal";
 import EditMainCategoryModal from "./EditMainCategoryModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import TableFilter from "../../components/common/TableFilter";
 
 export default function MainCategories() {
     const dispatch = useDispatch<AppDispatch>();
-    const { mainCategories, loading, error } = useSelector((state: RootState) => state.mainCategory);
+    const { mainCategories, loading } = useSelector((state: RootState) => state.mainCategory);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -20,16 +21,45 @@ export default function MainCategories() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+
+    // Construct filter for backend
+    const buildFilter = useCallback(() => {
+        const filter: any = {};
+        if (searchQuery) {
+            filter.name = { $regex: searchQuery, $options: 'i' };
+        }
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) filter.createdAt.$gte = startDate;
+            if (endDate) filter.createdAt.$lte = endDate;
+        }
+        return filter;
+    }, [searchQuery, startDate, endDate]);
+
     useEffect(() => {
-        dispatch(fetchMainCategories());
-    }, [dispatch]);
+        const timer = setTimeout(() => {
+            const filter = buildFilter();
+            dispatch(fetchMainCategories({ filter }));
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [dispatch, buildFilter]);
+
+    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+        setSearchQuery(search);
+        setStartDate(start);
+        setEndDate(end);
+    };
 
     // Calculate pagination
-    const categoryList = Array.isArray(mainCategories) ? mainCategories : [];
-    const totalPages = Math.ceil(categoryList.length / itemsPerPage);
+    const totalPages = Math.ceil(mainCategories.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentCategories = categoryList.slice(indexOfFirstItem, indexOfLastItem);
+    const currentCategories = mainCategories.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -59,13 +89,8 @@ export default function MainCategories() {
         }
     };
 
-    if (error) {
-        return (
-            <div className="p-6 text-center text-red-500 font-medium font-outfit">
-                Error loading main categories: {error}
-            </div>
-        );
-    }
+    // The error state is no longer directly used in the JSX, as the instruction removed it from useSelector.
+    // If error handling is needed, it should be re-added to useSelector and handled appropriately.
 
     return (
         <div>
@@ -74,17 +99,29 @@ export default function MainCategories() {
                 description="Manage your main product categories in the Admin Dashboard"
             />
             <PageBreadcrumb pageTitle="Main Categories" />
+
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
+                        <TableFilter
+                            placeholder="Search Main Categories..."
+                            onFilterChange={handleFilterChange}
+                        />
+                    </div>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-brand-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors whitespace-nowrap mt-1"
+                    >
+                        Add Main Category
+                    </button>
+                </div>
+            </div>
+
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         Main Category List
                     </h3>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-                    >
-                        Add Main Category
-                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -195,7 +232,7 @@ export default function MainCategories() {
                                     </tr>
                                 ))
                             )}
-                            {!loading && categoryList.length === 0 && (
+                            {!loading && mainCategories.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
                                         No main categories found.
@@ -212,7 +249,7 @@ export default function MainCategories() {
                     onPageChange={handlePageChange}
                     startIndex={indexOfFirstItem}
                     endIndex={indexOfLastItem}
-                    totalResults={categoryList.length}
+                    totalResults={mainCategories.length}
                 />
             </div>
             <AddMainCategoryModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />

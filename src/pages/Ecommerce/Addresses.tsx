@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAddresses, deleteAddress, Address } from "../../store/slices/addressSlice";
-import { fetchUsers } from "../../store/slices/userSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -9,11 +8,11 @@ import Pagination from "../../components/common/Pagination";
 import AddAddressModal from "./AddAddressModal";
 import EditAddressModal from "./EditAddressModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import TableFilter from "../../components/common/TableFilter";
 
 export default function Addresses() {
     const dispatch = useDispatch<AppDispatch>();
-    const { addresses, loading, error } = useSelector((state: RootState) => state.address);
-    const { users } = useSelector((state: RootState) => state.user);
+    const { addresses, loading } = useSelector((state: RootState) => state.address);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -24,10 +23,49 @@ export default function Addresses() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+
     useEffect(() => {
-        dispatch(fetchAddresses());
-        if (users.length === 0) dispatch(fetchUsers());
-    }, [dispatch, users.length]);
+        dispatch(fetchAddresses({}));
+    }, [dispatch]);
+
+    // Construct filter for backend
+    const buildFilter = useCallback(() => {
+        const filter: any = {};
+        if (searchQuery) {
+            filter.$or = [
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { shipping_phone: { $regex: searchQuery, $options: 'i' } },
+                { city: { $regex: searchQuery, $options: 'i' } },
+                { state: { $regex: searchQuery, $options: 'i' } },
+                { pincode: { $regex: searchQuery, $options: 'i' } }
+            ];
+        }
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) filter.createdAt.$gte = startDate;
+            if (endDate) filter.createdAt.$lte = endDate;
+        }
+        return filter;
+    }, [searchQuery, startDate, endDate]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const filter = buildFilter();
+            dispatch(fetchAddresses({ filter }));
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [dispatch, buildFilter]); // Removed users.length as it's not defined here and addresses.length is not a direct dependency for re-fetching based on filter changes.
+
+    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+        setSearchQuery(search);
+        setStartDate(start);
+        setEndDate(end);
+    };
 
     // Calculate pagination
     const totalPages = Math.ceil(addresses.length / itemsPerPage);
@@ -63,19 +101,6 @@ export default function Addresses() {
         }
     };
 
-    // const getUserName = (id: string) => {
-    //     const user = users.find(u => (u.id || u._id) === id);
-    //     return user ? `${user.first_name} ${user.last_name}` : "Unknown User";
-    // };
-
-    if (error) {
-        return (
-            <div className="p-6 text-center text-red-500 font-medium">
-                Error loading addresses: {error}
-            </div>
-        );
-    }
-
     return (
         <div>
             <PageMeta
@@ -83,17 +108,29 @@ export default function Addresses() {
                 description="Manage user addresses"
             />
             <PageBreadcrumb pageTitle="Addresses" />
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                        User Addresses
-                    </h3>
+
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
+                        <TableFilter
+                            placeholder="Search Addresses..."
+                            onFilterChange={handleFilterChange}
+                        />
+                    </div>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+                        className="bg-brand-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors whitespace-nowrap mt-1"
                     >
                         Add Address
                     </button>
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                        Address List
+                    </h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
