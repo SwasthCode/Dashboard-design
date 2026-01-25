@@ -69,7 +69,9 @@ export default function EditRoleModal({ isOpen, onClose, role }: EditRoleModalPr
 
         setLoading(true);
         try {
-            await dispatch(updateRole({ id: role._id, data: { ...role, ...formData } })).unwrap();
+            const { key, status, is_active, ...formDataPayload } = formData;
+            const { key: roleKey, status: roleStatus, is_active: roleIsActive, ...cleanRole } = role;
+            await dispatch(updateRole({ id: role._id, data: { ...cleanRole, ...formDataPayload } })).unwrap();
             onClose();
         } catch (err: any) {
             setError(err || "Failed to update role");

@@ -56,7 +56,8 @@ export default function AddRoleModal({ isOpen, onClose }: AddRoleModalProps) {
 
         setLoading(true);
         try {
-            await dispatch(createRole(formData)).unwrap();
+            const { key, status, is_active, ...payload } = formData;
+            await dispatch(createRole(payload)).unwrap();
             setFormData({ name: "", key: "", status: "active", is_active: true });
             onClose();
         } catch (err: any) {
