@@ -93,11 +93,115 @@ export default function Orders() {
         }
     };
 
+    const printOrder = (order: Order) => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const date = new Date(order.createdAt).toLocaleDateString();
+        const customerName = order.user ? `${order.user.first_name} ${order.user.last_name}` : order.customer_name || 'Customer';
+
+        const itemsHtml = order.items?.map(item => `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px;">${item.product_name}</td>
+                <td style="padding: 10px; text-align: center;">${item.quantity}</td>
+                <td style="padding: 10px; text-align: right;">₹${item.price}</td>
+                <td style="padding: 10px; text-align: right;">₹${item.price * item.quantity}</td>
+            </tr>
+        `).join('') || '';
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Order Invoice #${order._id.slice(-8)}</title>
+                    <style>
+                        body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; }
+                        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+                        .logo { font-size: 24px; font-weight: bold; color: #0aad0a; }
+                        .invoice-title { font-size: 32px; font-weight: bold; color: #111; }
+                        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+                        .label { color: #888; font-size: 14px; margin-bottom: 5px; }
+                        .value { font-size: 16px; font-weight: 600; }
+                        table { w-full; width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                        th { text-align: left; padding: 10px; background: #f9f9f9; color: #666; font-size: 14px; }
+                        .total-section { display: flex; justify-content: flex-end; }
+                        .total-row { display: flex; justify-content: space-between; width: 250px; padding: 5px 0; }
+                        .grand-total { font-size: 20px; font-weight: bold; border-top: 2px solid #eee; padding-top: 10px; margin-top: 10px; }
+                        .status-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; background: #f3f4f6; color: #374151; }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="logo">Blinkit</div>
+                        <div class="invoice-title">INVOICE</div>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div>
+                            <div style="margin-bottom: 20px;">
+                                <div class="label">BILLED TO</div>
+                                <div class="value">${customerName}</div>
+                            </div>
+                            <div>
+                                <div class="label">ORDER ID</div>
+                                <div class="value">#${order._id}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="margin-bottom: 20px;">
+                                <div class="label">DATE</div>
+                                <div class="value">${date}</div>
+                            </div>
+                            <div>
+                                <div class="label">STATUS</div>
+                                <span class="status-badge">${order.status}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ITEM</th>
+                                <th style="text-align: center;">QTY</th>
+                                <th style="text-align: right;">PRICE</th>
+                                <th style="text-align: right;">AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+
+                    <div class="total-section">
+                        <div>
+                            <div class="total-row grand-total">
+                                <div>TOTAL AMOUNT</div>
+                                <div>₹${order.total_amount}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 60px; text-align: center; color: #888; font-size: 14px;">
+                        <p>Thank you for shopping with us!</p>
+                    </div>
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 500);
+    };
+
     const renderActions = (order: Order) => {
+        let actions = null;
         switch (order.status) {
             case "pending":
-                return (
-                    <div className="flex gap-2">
+                actions = (
+                    <>
                         <button
                             disabled={updating}
                             onClick={() => handleStatusChange(order._id, "ready")}
@@ -119,11 +223,12 @@ export default function Orders() {
                         >
                             Cancel
                         </button>
-                    </div>
+                    </>
                 );
+                break;
             case "hold":
-                return (
-                    <div className="flex gap-2">
+                actions = (
+                    <>
                         <button
                             disabled={updating}
                             onClick={() => handleStatusChange(order._id, "ready")}
@@ -138,11 +243,12 @@ export default function Orders() {
                         >
                             Cancel
                         </button>
-                    </div>
+                    </>
                 );
+                break;
             case "ready":
-                return (
-                    <div className="flex gap-2">
+                actions = (
+                    <>
                         <button
                             disabled={updating}
                             onClick={() => handleStatusChange(order._id, "shipped")}
@@ -157,22 +263,22 @@ export default function Orders() {
                         >
                             Cancel
                         </button>
-                    </div>
+                    </>
                 );
+                break;
             case "shipped":
-                return (
-                    <div className="flex gap-2">
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "delivered")}
-                            className={`px-3 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Mark Delivered
-                        </button>
-                    </div>
+                actions = (
+                    <button
+                        disabled={updating}
+                        onClick={() => handleStatusChange(order._id, "delivered")}
+                        className={`px-3 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        Mark Delivered
+                    </button>
                 );
+                break;
             case "delivered":
-                return (
+                actions = (
                     <button
                         disabled={updating}
                         onClick={() => handleStatusChange(order._id, "returned")}
@@ -181,9 +287,16 @@ export default function Orders() {
                         Mark Returned
                     </button>
                 );
+                break;
             default:
-                return <span className="text-xs text-gray-400">No actions</span>;
+                actions = null;
         }
+
+        return (
+            <div className="flex items-center justify-end gap-2">
+                {actions}
+            </div>
+        );
     };
 
     return (
@@ -282,8 +395,10 @@ export default function Orders() {
                                 <tr className="bg-gray-50 dark:bg-gray-800/50">
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Products</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">INVOICE</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">STATUS</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">ACTIONS</th>
                                 </tr>
@@ -291,7 +406,7 @@ export default function Orders() {
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                                        <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                                             <div className="flex flex-col items-center gap-2">
                                                 {/* Dot Loading */}
                                                 <div className="flex space-x-1 text-brand-500 text-xl font-bold">
@@ -308,8 +423,28 @@ export default function Orders() {
                                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.slice(- 8)}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{`${order.user?.first_name} ${order.user?.last_name}` || 'Customer'}</span></td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1">
+                                                    {order.items?.map((item, idx) => (
+                                                        <span key={idx} className="text-sm text-gray-600 dark:text-gray-300">
+                                                            {item.name || item.product_name} <span className="text-xs text-gray-400">x{item.quantity}</span>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">&#8377;{order.total_amount}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <button
+                                                    onClick={() => printOrder(order)}
+                                                    className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors inline-block"
+                                                    title="Print Invoice"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                                                    </svg>
+                                                </button>
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
                                                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${getStatusColor(order.status)}`}>
                                                     {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}

@@ -6,7 +6,8 @@ export type OrderStatus = "pending" | "hold" | "ready" | "shipped" | "delivered"
 
 export interface OrderItem {
     product_id: string;
-    product_name: string;
+    product_name?: string;
+    name?: string; // Matching API response
     quantity: number;
     price: number;
     image?: string;

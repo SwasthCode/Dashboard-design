@@ -437,12 +437,12 @@ const AppSidebar: React.FC = () => {
         </Link> */}
 
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 font-black text-black bg-[#F8CB46] rounded-xl shrink-0 text-xl shadow-sm border border-[#E5B539]">
-            D
+          <div className="flex items-center justify-center w-8 h-8 shrink-0">
+            <img src="/logo.jpeg" alt="KahnaFast" className="w-full h-full object-contain" />
           </div>
           {(isExpanded || isHovered || isMobileOpen) && (
-            <span className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white uppercase">
-              DASH<span className="text-[#F8CB46] ml-[1.5px]">BOARD</span>
+            <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white uppercase">
+              KAHNA<span className="text-[#F8CB46] ml-[1.5px]">FAST</span>
             </span>
           )}
         </Link>
