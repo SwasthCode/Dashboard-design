@@ -4,7 +4,6 @@ import { QueryParams, buildQueryString } from '../types';
 
 export interface Address {
     _id?: string;
-    user_id: string;
     name: string;
     shipping_phone: string;
     pincode: string;
@@ -14,8 +13,9 @@ export interface Address {
     state: string;
     landmark?: string;
     alternate_phone?: string;
-    type: 'Home' | 'Work' | 'Other' | string;
+    type: string;
     isDefault: boolean;
+    user_id?: string;
     userInfo?: {
         fullname: string;
         _id: string;
@@ -39,8 +39,7 @@ const initialState: AddressState = {
 // Async Thunks
 export const fetchAddresses = createAsyncThunk('address/fetchAddresses', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
-        const mergedParams = { sort: { createdAt: -1 }, ...params };
-        const queryString = buildQueryString(mergedParams);
+        const queryString = buildQueryString(params || {});
         const response = await https.get(`addresses${queryString}`);
         return response.data || [];
     } catch (error: any) {
@@ -48,7 +47,7 @@ export const fetchAddresses = createAsyncThunk('address/fetchAddresses', async (
     }
 });
 
-export const createAddress = createAsyncThunk('address/createAddress', async (address: Partial<Address>, { rejectWithValue }) => {
+export const createAddress = createAsyncThunk('address/createAddress', async (address: Address, { rejectWithValue }) => {
     try {
         const response = await https.post('addresses', address);
         return response.data;
@@ -57,7 +56,7 @@ export const createAddress = createAsyncThunk('address/createAddress', async (ad
     }
 });
 
-export const updateAddress = createAsyncThunk('address/updateAddress', async ({ id, data }: { id: string; data: Partial<Address> }, { rejectWithValue }) => {
+export const updateAddress = createAsyncThunk('address/updateAddress', async ({ id, data }: { id: string; data: Address }, { rejectWithValue }) => {
     try {
         const response = await https.put(`addresses/${id}`, data);
         return response.data;
@@ -81,7 +80,6 @@ const addressSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // Fetch Addresses
             .addCase(fetchAddresses.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -90,22 +88,19 @@ const addressSlice = createSlice({
                 state.loading = false;
                 state.addresses = action.payload;
             })
-            .addCase(fetchAddresses.rejected, (state, action) => {
+            .addCase(fetchAddresses.rejected, (state, action: any) => {
                 state.loading = false;
-                state.error = action.payload as string;
+                state.error = action.payload;
             })
-            // Create Address
             .addCase(createAddress.fulfilled, (state, action: PayloadAction<Address>) => {
                 state.addresses.unshift(action.payload);
             })
-            // Update Address
             .addCase(updateAddress.fulfilled, (state, action: PayloadAction<Address>) => {
                 const index = state.addresses.findIndex(a => a._id === action.payload._id);
                 if (index !== -1) {
                     state.addresses[index] = action.payload;
                 }
             })
-            // Delete Address
             .addCase(deleteAddress.fulfilled, (state, action: PayloadAction<string>) => {
                 state.addresses = state.addresses.filter(a => a._id !== action.payload);
             });

@@ -140,7 +140,10 @@ export default function Addresses() {
                                     Customer
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Phone
+                                    Shipping Phone
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Alternate Phone
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Address
@@ -185,9 +188,13 @@ export default function Addresses() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm">
-                                            <div className="font-medium text-gray-800 dark:text-white">{addr.shipping_phone}</div>
-                                            {/* <div className="text-gray-500 dark:text-gray-400">{addr.shipping_phone}</div> */}
+                                        <div className="text-sm font-medium text-gray-800 dark:text-white">
+                                            {addr.shipping_phone || <span className="text-gray-400 italic">Not available</span>}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-gray-800 dark:text-white">
+                                            {addr.alternate_phone || <span className="text-gray-400 italic">Not available</span>}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

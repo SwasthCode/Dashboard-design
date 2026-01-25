@@ -58,6 +58,7 @@ import FAQ from "./pages/Utility/FAQ";
 import StepOne from "./pages/Onboarding/StepOne";
 import StepTwo from "./pages/Onboarding/StepTwo";
 import ResetPassword from "./pages/Authpages/ResetPassword";
+import Roles from "./pages/Acl/Roles";
 
 import { useSelector } from 'react-redux';
 
@@ -134,6 +135,12 @@ export default function App() {
             {/* Tasks Sub-pages */}
             <Route path="/tasks/list" element={<TaskList />} />
             <Route path="/tasks/board" element={<TaskBoard />} />
+
+            {/* ACL - Access Control List */}
+            <Route path="/acl/roles" element={<Roles />} />
+
+            {/* Address */}
+            <Route path="/customer-addresses" element={<Addresses />} />
 
             {/* Settings Sub-pages */}
             <Route path="/settings/account" element={<AccountSettings />} />

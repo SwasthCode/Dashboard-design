@@ -13,6 +13,7 @@ import {
   GroupIcon,
   HorizontaLDots,
   PlugInIcon,
+  LockIcon,
   // ShootingStarIcon,
   // TaskIcon,
   ChatIcon,
@@ -153,6 +154,13 @@ const navItems: NavItem[] = [
   //   path: "/campaigns",
   // },
   {
+    icon: <LockIcon />,
+    name: "ACL",
+    subItems: [
+      { name: "Roles", path: "/acl/roles", pro: false },
+    ],
+  },
+  {
     icon: <PlugInIcon />,
     name: "Settings",
     subItems: [
@@ -197,6 +205,7 @@ const othersItems: NavItem[] = [
       { name: "Forms", path: "/form-elements", pro: false },
       { name: "Tables", path: "/basic-tables", pro: false },
       { name: "Buttons", path: "/ui/buttons", pro: false },
+      { name: "Addresses", path: "/customer-addresses", pro: false },
     ],
   },
 ];

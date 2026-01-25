@@ -10,6 +10,7 @@ import addressReducer from './slices/addressSlice';
 import dashboardReducer from './slices/dashboardSlice';
 
 import orderReducer from './slices/orderSlice';
+import roleReducer from './slices/roleSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
     address: addressReducer,
     dashboard: dashboardReducer,
     order: orderReducer,
+    role: roleReducer,
 });
 
 export default rootReducer;
