@@ -10,6 +10,7 @@ import RecentProducts from "../../components/ecommerce/RecentProducts";
 // import DemographicCard from "../../components/ecommerce/DemographicCard";
 import PageMeta from "../../components/common/PageMeta";
 import DemographicCard from "../../components/ecommerce/DemographicCard";
+import DotLoading from "../../components/common/DotLoading";
 // import FilterDropdown from "../../components/header/FilterDropdown";
 // import DateRangePicker from "../../components/header/DateRangePicker";
 
@@ -24,7 +25,10 @@ export default function Home() {
   if (status == "loading") {
     // You can implement a skeletal loader here
     return <div className="flex items-center justify-center h-screen">
-      <div>Loading dashboard...</div>
+      <DotLoading size="lg" />
+      <p className="text-gray-500 gap-4 dark:text-gray-400">
+        Loading dashboard...
+      </p>
     </div>;
   }
 

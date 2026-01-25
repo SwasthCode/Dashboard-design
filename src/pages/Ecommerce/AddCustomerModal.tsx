@@ -5,6 +5,8 @@ import { AppDispatch, RootState } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
+import DotLoading from "../../components/common/DotLoading";
+
 
 interface AddCustomerModalProps {
     isOpen: boolean;
@@ -170,20 +172,25 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                     </div>
                 </div>
 
-                <div className="pt-4 flex gap-3">
+                <div className="pt-6 flex gap-4">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex-1 px-4 py-2.5 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 px-4 py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2"
                     >
-                        {loading ? "Adding..." : "Add Customer"}
+                        {loading ? (
+                            <>
+                                <DotLoading size="md" className="text-white" />
+                                <span>Adding...</span>
+                            </>
+                        ) : "Add Customer"}
                     </button>
                 </div>
             </form>

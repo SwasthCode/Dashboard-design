@@ -8,8 +8,11 @@ import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
 import Pagination from "../../components/common/Pagination";
 import AddBrandModal from "./AddBrandModal";
 import EditBrandModal from "./EditBrandModal";
+
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
+import DotLoading from "../../components/common/DotLoading";
+
 
 export default function Brands() {
     const dispatch = useDispatch<AppDispatch>();
@@ -163,7 +166,7 @@ export default function Brands() {
                                 <tr>
                                     <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
-                                            <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <DotLoading />
                                             <span>Loading brands...</span>
                                         </div>
                                     </td>

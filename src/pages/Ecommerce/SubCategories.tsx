@@ -11,6 +11,8 @@ import AddSubCategoryModal from "./AddSubCategoryModal";
 import EditSubCategoryModal from "./EditSubCategoryModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
+import DotLoading from "../../components/common/DotLoading";
+
 
 export default function SubCategories() {
     const dispatch = useDispatch<AppDispatch>();
@@ -166,15 +168,8 @@ export default function SubCategories() {
                                 <tr>
                                     <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
-
-                                            {/* Dot Loading */}
-                                            <div className="flex space-x-1 text-brand-500 text-xl font-bold">
-                                                <span className="animate-bounce [animation-delay:0ms]">.</span>
-                                                <span className="animate-bounce [animation-delay:150ms]">.</span>
-                                                <span className="animate-bounce [animation-delay:300ms]">.</span>
-                                            </div>
-
-                                            <span>Loading sub-categories</span>
+                                            <DotLoading />
+                                            <span>Loading sub-categories...</span>
                                         </div>
                                     </td>
                                 </tr>

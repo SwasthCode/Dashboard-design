@@ -10,6 +10,8 @@ import EditCustomerModal from "./EditCustomerModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import Input from "../../components/form/input/InputField";
+import DotLoading from "../../components/common/DotLoading";
+
 
 const sanitizeUrl = (url: string | undefined): string => {
     if (!url) return "";
@@ -215,7 +217,7 @@ export default function Customers() {
                                 <tr>
                                     <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
-                                            <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <DotLoading />
                                             <span>Loading customers...</span>
                                         </div>
                                     </td>

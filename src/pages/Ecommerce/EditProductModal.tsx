@@ -6,6 +6,8 @@ import { RootState, AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
+import DotLoading from "../../components/common/DotLoading";
+
 
 interface EditProductModalProps {
     isOpen: boolean;
@@ -574,9 +576,14 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex-1 px-6 py-3 bg-brand-500 text-white font-bold text-sm rounded-xl hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-[0.98] disabled:opacity-50"
+                        className="flex-1 px-6 py-3 bg-brand-500 text-white font-bold text-sm rounded-xl hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        {loading ? "Saving..." : "Save Changes"}
+                        {loading ? (
+                            <>
+                                <DotLoading size="md" className="text-white" />
+                                <span>Saving...</span>
+                            </>
+                        ) : "Save Changes"}
                     </button>
                 </div>
             </form>

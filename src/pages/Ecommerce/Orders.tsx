@@ -6,6 +6,8 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
+import DotLoading from "../../components/common/DotLoading";
+
 
 export default function Orders() {
     const dispatch = useDispatch<AppDispatch>();
@@ -375,12 +377,7 @@ export default function Orders() {
                                     <tr>
                                         <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
                                             <div className="flex flex-col items-center gap-2">
-                                                {/* Dot Loading */}
-                                                <div className="flex space-x-1 text-brand-500 text-xl font-bold">
-                                                    <span className="animate-bounce [animation-delay:0ms]">.</span>
-                                                    <span className="animate-bounce [animation-delay:150ms]">.</span>
-                                                    <span className="animate-bounce [animation-delay:300ms]">.</span>
-                                                </div>
+                                                <DotLoading />
                                                 <span>Loading orders...</span>
                                             </div>
                                         </td>
