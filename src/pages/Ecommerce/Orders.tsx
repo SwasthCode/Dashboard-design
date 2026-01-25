@@ -102,7 +102,7 @@ export default function Orders() {
 
         const itemsHtml = order.items?.map(item => `
             <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 10px;">${item.product_name}</td>
+                <td style="padding: 10px;">${item.product_name || item.name}</td>
                 <td style="padding: 10px; text-align: center;">${item.quantity}</td>
                 <td style="padding: 10px; text-align: right;">₹${item.price}</td>
                 <td style="padding: 10px; text-align: right;">₹${item.price * item.quantity}</td>
