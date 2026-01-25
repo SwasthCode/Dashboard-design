@@ -41,7 +41,14 @@ const navItems: NavItem[] = [
     //   { name: "Main", path: "/dashboard", pro: false },
     //   { name: "Analytics", path: "/analytics", pro: false },
     //   { name: "Fintech", path: "/fintech", pro: false },
-    // ],
+    // ],s
+  },
+  {
+    icon: <LockIcon />,
+    name: "ACL",
+    subItems: [
+      { name: "Roles", path: "/acl/roles", pro: false },
+    ],
   },
   {
     icon: <GroupIcon />,
@@ -54,6 +61,11 @@ const navItems: NavItem[] = [
     path: "/main-categories",
   },
   {
+    icon: <GridIcon />,
+    name: "Brands",
+    path: "/brands",
+  },
+  {
     icon: <FolderIcon />,
     name: "Categories",
     path: "/categories",
@@ -63,15 +75,16 @@ const navItems: NavItem[] = [
     name: "Sub-Categories",
     path: "/sub-categories",
   },
-  {
-    icon: <GridIcon />,
-    name: "Brands",
-    path: "/brands",
-  },
+
   {
     icon: <BoxCubeIcon />,
     name: "Products",
     path: "/products",
+  },
+  {
+    icon: <EnvelopeIcon />,
+    name: "Addresses",
+    path: "/addresses",
   },
   {
     icon: <TableIcon />,
@@ -79,10 +92,11 @@ const navItems: NavItem[] = [
     path: "/orders",
   },
   {
-    icon: <EnvelopeIcon />,
-    name: "Addresses",
-    path: "/addresses",
+    icon: <DocsIcon />,
+    name: "Invoices",
+    path: "/invoices",
   },
+
   {
     icon: <ChatIcon />,
     name: "Reviews",
@@ -158,13 +172,7 @@ const navItems: NavItem[] = [
   //   name: "Campaigns",
   //   path: "/campaigns",
   // },
-  {
-    icon: <LockIcon />,
-    name: "ACL",
-    subItems: [
-      { name: "Roles", path: "/acl/roles", pro: false },
-    ],
-  },
+
   {
     icon: <PlugInIcon />,
     name: "Settings",

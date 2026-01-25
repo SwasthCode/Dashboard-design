@@ -11,6 +11,7 @@ interface EditBrandModalProps {
     brand: Brand | null;
 }
 
+// EditBrandModal Component
 export default function EditBrandModal({ isOpen, onClose, brand }: EditBrandModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { mainCategories } = useSelector((state: RootState) => state.mainCategory);

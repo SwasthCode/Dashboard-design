@@ -165,8 +165,8 @@ export default function SubCategories() {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading && subCategories.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                                <tr className="animate-pulse">
+                                    <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading sub-categories...</span>

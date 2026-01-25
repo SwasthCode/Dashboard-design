@@ -8,7 +8,7 @@ import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
 
-
+import EditOrderModal from './EditOrderModal';
 export default function Orders() {
     const dispatch = useDispatch<AppDispatch>();
     const { orders, loading, updating } = useSelector((state: RootState) => state.order);
@@ -21,6 +21,10 @@ export default function Orders() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+
+    // Edit Modal State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedOrderForEdit, setSelectedOrderForEdit] = useState<Order | null>(null);
 
 
     const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
@@ -301,13 +305,45 @@ export default function Orders() {
                 actions = null;
         }
 
+        const editButton = (
+            <button
+                disabled={updating}
+                onClick={() => {
+                    setSelectedOrderForEdit(order);
+                    setIsEditModalOpen(true);
+                }}
+                className="p-1.5 text-gray-500 hover:text-brand-500 transition-colors"
+                title="Edit Order"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+            </button>
+        );
+
         if (!actions) {
-            return <span className="text-xs text-gray-400 italic">Not available</span>;
+            return (
+                <div className="flex justify-end gap-2">
+                    {order.status !== 'cancelled' && order.status !== 'returned' && order.status !== 'delivered' && editButton}
+                    <span className="text-xs text-gray-400 italic self-center">Not available</span>
+                    <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
+                    <span className="text-xs text-gray-400 italic self-center">Not available</span>
+
+                </div>
+            );
         }
 
         return (
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-3">
+
                 {actions}
+                <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
+
+                {order.status !== 'cancelled' && order.status !== 'returned' && order.status !== 'delivered' && (
+                    <>
+                        {editButton}
+                    </>
+                )}
             </div>
         );
     };
@@ -374,8 +410,8 @@ export default function Orders() {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                 {loading ? (
-                                    <tr>
-                                        <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
+                                    <tr className="animate-pulse">
+                                        <td colSpan={9} className="px-6 py-10 text-center text-gray-500">
                                             <div className="flex flex-col items-center gap-2">
                                                 <DotLoading />
                                                 <span>Loading orders...</span>
@@ -445,6 +481,12 @@ export default function Orders() {
                     />
                 </div>
             </div>
+
+            <EditOrderModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                order={selectedOrderForEdit}
+            />
         </div>
     );
 }

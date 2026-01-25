@@ -6,12 +6,12 @@ import { RootState, AppDispatch } from "../../store";
 import { fetchBrands, deleteBrand, Brand } from "../../store/slices/brandSlice";
 import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
 import Pagination from "../../components/common/Pagination";
-import AddBrandModal from "./AddBrandModal";
-import EditBrandModal from "./EditBrandModal";
+import AddBrandModal from './AddBrandModal';
 
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
+import EditBrandModal from "./EditBrandModal";
 
 
 export default function Brands() {
@@ -163,8 +163,8 @@ export default function Brands() {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                                <tr className="animate-pulse">
+                                    <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading brands...</span>

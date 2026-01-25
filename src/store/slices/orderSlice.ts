@@ -77,6 +77,15 @@ export const updateOrderStatus = createAsyncThunk('order/updateOrderStatus', asy
     }
 });
 
+export const updateOrder = createAsyncThunk('order/updateOrder', async ({ id, data }: { id: string; data: any }, { rejectWithValue }) => {
+    try {
+        const response = await https.put(`orders/${id}`, data);
+        return response.data;
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to update order');
+    }
+});
+
 const orderSlice = createSlice({
     name: 'order',
     initialState,
@@ -128,6 +137,26 @@ const orderSlice = createSlice({
             .addCase(updateOrderStatus.rejected, (state, action: any) => {
                 state.updating = false;
                 state.error = action.payload || 'Failed to update order status';
+            })
+            // Update Order (General)
+            .addCase(updateOrder.pending, (state) => {
+                state.updating = true;
+                state.error = null;
+            })
+            .addCase(updateOrder.fulfilled, (state, action: PayloadAction<Order>) => {
+                state.updating = false;
+                const updatedOrder = action.payload;
+                const index = state.orders.findIndex(o => o._id === updatedOrder._id);
+                if (index !== -1) {
+                    state.orders[index] = updatedOrder;
+                }
+                if (state.selectedOrder && state.selectedOrder._id === updatedOrder._id) {
+                    state.selectedOrder = updatedOrder;
+                }
+            })
+            .addCase(updateOrder.rejected, (state, action: any) => {
+                state.updating = false;
+                state.error = action.payload || 'Failed to update order';
             });
     },
 });

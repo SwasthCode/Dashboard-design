@@ -258,7 +258,7 @@ export default function Products() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {brands.find(b => b._id === product.brand_id)?.name || "N/A"}
+                                                {brands.find((b: any) => b._id === product.brand_id)?.name || "N/A"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

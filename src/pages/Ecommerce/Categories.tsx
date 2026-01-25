@@ -172,8 +172,8 @@ export default function Categories() {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
-                                <tr>
-                                    <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
+                                <tr className="animate-pulse">
+                                    <td colSpan={9} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading categories...</span>
