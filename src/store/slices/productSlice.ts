@@ -30,6 +30,7 @@ export interface Product {
     unit: string;
     category_id: string;
     subcategory_id: string;
+    brand_id?: string;
     stock: number;
     isAvailable: boolean;
     images: ProductImage[];

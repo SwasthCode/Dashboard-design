@@ -64,6 +64,11 @@ const navItems: NavItem[] = [
     path: "/sub-categories",
   },
   {
+    icon: <GridIcon />,
+    name: "Brands",
+    path: "/brands",
+  },
+  {
     icon: <BoxCubeIcon />,
     name: "Products",
     path: "/products",
@@ -446,13 +451,18 @@ const AppSidebar: React.FC = () => {
         </Link> */}
 
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 shrink-0">
-            <img src="/logo.jpeg" alt="KahnaFast" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center w-10 h-10 shrink-0">
+            <img src="/logo.jpeg" alt="Khana Fast" className="w-full h-full object-contain rounded-lg" />
           </div>
           {(isExpanded || isHovered || isMobileOpen) && (
-            <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white uppercase">
-              KAHNA<span className="text-[#F8CB46] ml-[1.5px]">FAST</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-none">
+                Khana<span className="text-brand-500 text-2xl">Fast</span>
+              </span>
+              <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase mt-1 leading-none">
+                Express Delivery
+              </span>
+            </div>
           )}
         </Link>
       </div>

@@ -37,7 +37,7 @@ export default function Customers() {
     const [phone, setPhone] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 6;
 
     useEffect(() => {
         if (roles.length === 0) dispatch(fetchRoles({}));
@@ -288,7 +288,7 @@ export default function Customers() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {user.updatedAt ? new Date(user.updatedAt).toLocaleString() : "-"}
+                                                {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "-"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">

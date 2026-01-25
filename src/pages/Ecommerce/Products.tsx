@@ -6,6 +6,7 @@ import { RootState, AppDispatch } from "../../store";
 import { fetchProducts, deleteProduct, Product } from "../../store/slices/productSlice";
 import { fetchCategories, Category } from "../../store/slices/categorySlice";
 import { fetchSubCategories, SubCategory } from "../../store/slices/subCategorySlice";
+import { fetchBrands } from "../../store/slices/brandSlice";
 import Pagination from "../../components/common/Pagination";
 import AddProductModal from "./AddProductModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -17,6 +18,7 @@ export default function Products() {
     const { products, loading } = useSelector((state: RootState) => state.product);
     const { categories } = useSelector((state: RootState) => state.category);
     const { subCategories } = useSelector((state: RootState) => state.subCategory);
+    const { brands } = useSelector((state: RootState) => state.brand);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -25,7 +27,7 @@ export default function Products() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-    const itemsPerPage = 5;
+    const itemsPerPage = 6;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -46,7 +48,8 @@ export default function Products() {
         dispatch(fetchProducts({}));
         if (categories.length === 0) dispatch(fetchCategories());
         if (subCategories.length === 0) dispatch(fetchSubCategories());
-    }, [dispatch, categories.length, subCategories.length]);
+        if (brands.length === 0) dispatch(fetchBrands({}));
+    }, [dispatch, categories.length, subCategories.length, brands.length]);
 
     // Construct filter for backend
     // Construct filter for backend
@@ -160,6 +163,9 @@ export default function Products() {
                                     Category
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Brand
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Price
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -171,9 +177,9 @@ export default function Products() {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Created At
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Updated At
-                                </th>
+                                </th> */}
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
                                     Actions
                                 </th>
@@ -254,6 +260,11 @@ export default function Products() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                {brands.find(b => b._id === product.brand_id)?.name || "N/A"}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-gray-800 dark:text-white">
                                                     &#8377;{product.price}
@@ -285,11 +296,11 @@ export default function Products() {
                                                 {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "-"}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        {/* <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
                                                 {product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : "-"}
                                             </span>
-                                        </td>
+                                        </td> */}
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
                                             <div className="flex justify-end gap-2">
                                                 <button

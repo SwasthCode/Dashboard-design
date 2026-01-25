@@ -12,7 +12,7 @@ export default function Orders() {
     const { orders, loading, updating } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 7;
+    const itemsPerPage = 6;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -85,93 +85,114 @@ export default function Orders() {
 
         const date = new Date(order.createdAt).toLocaleDateString();
         const customerName = order.user ? `${order.user.first_name} ${order.user.last_name}` : order.customer_name || 'Customer';
+        const address = order.shipping_address || 'Not available';
+        const phone = order.shipping_phone || 'Not available';
 
         const itemsHtml = order.items?.map(item => `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 10px;">${item.product_name || item.name}</td>
-                <td style="padding: 10px; text-align: center;">${item.quantity}</td>
-                <td style="padding: 10px; text-align: right;">₹${item.price}</td>
-                <td style="padding: 10px; text-align: right;">₹${item.price * item.quantity}</td>
+            <tr style="border-bottom: 1px solid #f3f4f6;">
+                <td style="padding: 12px 0; font-size: 14px; color: #1f2937;">${item.product_name || item.name}</td>
+                <td style="padding: 12px 0; text-align: center; font-size: 14px; color: #1f2937;">${item.quantity}</td>
+                <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1f2937;">₹${item.price.toLocaleString()}</td>
+                <td style="padding: 12px 0; text-align: right; font-size: 14px; font-weight: 600; color: #111827;">₹${(item.price * item.quantity).toLocaleString()}</td>
             </tr>
         `).join('') || '';
 
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>Order Invoice #${order._id.slice(-8)}</title>
+                    <title>Invoice #${order._id.slice(-8)} | Khana Fast</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
                     <style>
-                        body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; }
-                        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-                        .logo { font-size: 24px; font-weight: bold; color: #0aad0a; }
-                        .invoice-title { font-size: 32px; font-weight: bold; color: #111; }
-                        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-                        .label { color: #888; font-size: 14px; margin-bottom: 5px; }
-                        .value { font-size: 16px; font-weight: 600; }
-                        table { w-full; width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-                        th { text-align: left; padding: 10px; background: #f9f9f9; color: #666; font-size: 14px; }
-                        .total-section { display: flex; justify-content: flex-end; }
-                        .total-row { display: flex; justify-content: space-between; width: 250px; padding: 5px 0; }
-                        .grand-total { font-size: 20px; font-weight: bold; border-top: 2px solid #eee; padding-top: 10px; margin-top: 10px; }
-                        .status-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; background: #f3f4f6; color: #374151; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: 'Outfit', sans-serif; padding: 40px; color: #4b5563; line-height: 1.5; }
+                        .container { max-width: 800px; margin: 0 auto; }
+                        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+                        .brand { display: flex; flex-direction: column; }
+                        .logo-text { font-size: 28px; font-weight: 800; color: #f97316; letter-spacing: -0.5px; }
+                        .logo-subtext { font-size: 12px; color: #059669; font-weight: 600; text-transform: uppercase; margin-top: -4px; }
+                        .invoice-label { font-size: 40px; font-weight: 200; color: #9ca3af; text-align: right; }
+                        
+                        .info-section { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-bottom: 40px; padding-bottom: 40px; border-bottom: 1px solid #f3f4f6; }
+                        .section-title { font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.1em; }
+                        .text-bold { font-weight: 600; color: #111827; margin-bottom: 4px; }
+                        .text-small { font-size: 14px; color: #6b7280; }
+
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+                        th { text-align: left; padding-bottom: 12px; border-bottom: 2px solid #111827; font-size: 12px; font-weight: 700; color: #111827; text-transform: uppercase; letter-spacing: 0.05em; }
+                        
+                        .footer { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; }
+                        .notes-section { font-size: 13px; color: #9ca3af; }
+                        .totals-grid { display: flex; flex-direction: column; gap: 12px; }
+                        .total-row { display: flex; justify-content: space-between; font-size: 14px; }
+                        .grand-total { border-top: 1px solid #f3f4f6; padding-top: 12px; margin-top: 4px; font-size: 20px; font-weight: 700; color: #111827; }
+                        
                         @media print {
-                            body { -webkit-print-color-adjust: exact; }
+                            body { padding: 20px; }
+                            .container { width: 100%; }
+                            -webkit-print-color-adjust: exact;
                         }
                     </style>
                 </head>
                 <body>
-                    <div class="header">
-                        <div class="logo">Blinkit</div>
-                        <div class="invoice-title">INVOICE</div>
-                    </div>
-                    
-                    <div class="info-grid">
-                        <div>
-                            <div style="margin-bottom: 20px;">
-                                <div class="label">BILLED TO</div>
-                                <div class="value">${customerName}</div>
+                    <div class="container">
+                        <div class="header">
+                            <div class="brand">
+                                <div class="logo-text">KHANA FAST</div>
+                                <div class="logo-subtext">Quick • Fresh • Reliable</div>
+                            </div>
+                            <div class="invoice-label">INVOICE</div>
+                        </div>
+                        
+                        <div class="info-section">
+                            <div>
+                                <div class="section-title">Billed To</div>
+                                <div class="text-bold">${customerName}</div>
+                                <div class="text-small">${address}</div>
+                                <div class="text-small">Phone: ${phone}</div>
                             </div>
                             <div>
-                                <div class="label">ORDER ID</div>
-                                <div class="value">#${order._id}</div>
+                                <div class="section-title">Order Details</div>
+                                <div class="text-small"><span class="text-bold">Order ID:</span> #${order._id}</div>
+                                <div class="text-small"><span class="text-bold">Date:</span> ${date}</div>
+                                <div class="text-small"><span class="text-bold">Status:</span> ${order.status.toUpperCase()}</div>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="margin-bottom: 20px;">
-                                <div class="label">DATE</div>
-                                <div class="value">${date}</div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Service/Product</th>
+                                    <th style="text-align: center;">Qty</th>
+                                    <th style="text-align: right;">Rate</th>
+                                    <th style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+
+                        <div class="footer">
+                            <div class="notes-section">
+                                <div class="section-title">Important Note</div>
+                                <p>Thank you for choosing Khana Fast. If you have any questions about this invoice, please reach out to our support team.</p>
+                                <p style="margin-top: 20px;">© 2026 Khana Fast. All rights reserved.</p>
                             </div>
-                            <div>
-                                <div class="label">STATUS</div>
-                                <span class="status-badge">${order.status}</span>
+                            <div class="totals-grid">
+                                <div class="total-row">
+                                    <div style="color: #9ca3af;">Subtotal</div>
+                                    <div class="text-bold">₹${order.total_amount.toLocaleString()}</div>
+                                </div>
+                                <div class="total-row">
+                                    <div style="color: #9ca3af;">Delivery Fee</div>
+                                    <div class="text-bold">₹0</div>
+                                </div>
+                                <div class="total-row grand-total">
+                                    <div>Total</div>
+                                    <div>₹${order.total_amount.toLocaleString()}</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ITEM</th>
-                                <th style="text-align: center;">QTY</th>
-                                <th style="text-align: right;">PRICE</th>
-                                <th style="text-align: right;">AMOUNT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${itemsHtml}
-                        </tbody>
-                    </table>
-
-                    <div class="total-section">
-                        <div>
-                            <div class="total-row grand-total">
-                                <div>TOTAL AMOUNT</div>
-                                <div>₹${order.total_amount}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 60px; text-align: center; color: #888; font-size: 14px;">
-                        <p>Thank you for shopping with us!</p>
                     </div>
                 </body>
             </html>
@@ -292,8 +313,8 @@ export default function Orders() {
     return (
         <div>
             <PageMeta
-                title="Orders | Admin Dashboard"
-                description="Manage your orders in the Admin Dashboard"
+                title="Orders | Khana Fast"
+                description="Manage your orders in the Khana Fast Admin Dashboard"
             />
             <PageBreadcrumb pageTitle="Orders" />
             <div className="space-y-6">
@@ -372,9 +393,16 @@ export default function Orders() {
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col gap-1">
                                                     {order.items?.map((item, idx) => (
-                                                        <span key={idx} className="text-sm text-gray-600 dark:text-gray-300">
-                                                            {item.name || item.product_name} <span className="text-xs text-gray-400">x{item.quantity}</span>
-                                                        </span>
+                                                        <div key={idx} className="flex flex-col">
+                                                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                                                {item.name || item.product_name}
+                                                            </span>
+                                                            {item.brand_name && (
+                                                                <span className="text-[10px] text-gray-400 font-medium">
+                                                                    {item.brand_name}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     ))}
                                                 </div>
                                             </td>

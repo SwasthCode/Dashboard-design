@@ -11,6 +11,7 @@ export interface OrderItem {
     quantity: number;
     price: number;
     image?: string;
+    brand_name?: string;
 }
 
 export interface Order {
@@ -24,6 +25,8 @@ export interface Order {
     total_amount: number;
     status: OrderStatus;
     items?: OrderItem[];
+    shipping_address?: string;
+    shipping_phone?: string;
     createdAt: string;
     updatedAt: string;
 }

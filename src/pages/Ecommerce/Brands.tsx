@@ -3,20 +3,23 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
-import { fetchMainCategories, deleteMainCategory, MainCategory } from "../../store/slices/mainCategorySlice";
+import { fetchBrands, deleteBrand, Brand } from "../../store/slices/brandSlice";
+import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
 import Pagination from "../../components/common/Pagination";
-import AddMainCategoryModal from "./AddMainCategoryModal";
-import EditMainCategoryModal from "./EditMainCategoryModal";
+import AddBrandModal from "./AddBrandModal";
+import EditBrandModal from "./EditBrandModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 
-export default function MainCategories() {
+export default function Brands() {
     const dispatch = useDispatch<AppDispatch>();
-    const { mainCategories, loading } = useSelector((state: RootState) => state.mainCategory);
+    const { brands, loading } = useSelector((state: RootState) => state.brand);
+    const { mainCategories } = useSelector((state: RootState) => state.mainCategory);
+
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(null);
+    const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
@@ -25,6 +28,13 @@ export default function MainCategories() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+
+    useEffect(() => {
+        dispatch(fetchBrands({}));
+        if (mainCategories.length === 0) {
+            dispatch(fetchMainCategories({}));
+        }
+    }, [dispatch, mainCategories.length]);
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
@@ -43,8 +53,7 @@ export default function MainCategories() {
     useEffect(() => {
         const timer = setTimeout(() => {
             const filter = buildFilter();
-            dispatch(fetchMainCategories({ filter }));
-            setCurrentPage(1);
+            dispatch(fetchBrands({ filter }));
         }, 500);
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter]);
@@ -55,56 +64,52 @@ export default function MainCategories() {
         setEndDate(end);
     };
 
-    // Calculate pagination
-    const totalPages = Math.ceil(mainCategories.length / itemsPerPage);
+    const totalPages = Math.ceil(brands.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentCategories = mainCategories.slice(indexOfFirstItem, indexOfLastItem);
+    const currentBrands = brands.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
-    const handleEdit = (category: MainCategory) => {
-        setSelectedCategory(category);
+    const handleEdit = (brand: Brand) => {
+        setSelectedBrand(brand);
         setIsEditModalOpen(true);
     };
 
-    const handleDeleteClick = (category: MainCategory) => {
-        setSelectedCategory(category);
+    const handleDeleteClick = (brand: Brand) => {
+        setSelectedBrand(brand);
         setIsDeleteModalOpen(true);
     };
 
     const confirmDelete = async () => {
-        if (selectedCategory?._id) {
+        if (selectedBrand?._id) {
             setIsDeleting(true);
             try {
-                await dispatch(deleteMainCategory(selectedCategory._id)).unwrap();
+                await dispatch(deleteBrand(selectedBrand._id)).unwrap();
                 setIsDeleteModalOpen(false);
             } catch (err) {
-                console.error("Failed to delete main category:", err);
+                console.error("Failed to delete brand:", err);
             } finally {
                 setIsDeleting(false);
             }
         }
     };
 
-    // The error state is no longer directly used in the JSX, as the instruction removed it from useSelector.
-    // If error handling is needed, it should be re-added to useSelector and handled appropriately.
-
     return (
         <div>
             <PageMeta
-                title="Main Categories | Admin Dashboard"
-                description="Manage your main product categories in the Admin Dashboard"
+                title="Brands | Khana Fast Admin"
+                description="Manage your product brands in the Khana Fast Admin Dashboard"
             />
-            <PageBreadcrumb pageTitle="Main Categories" />
+            <PageBreadcrumb pageTitle="Brands" />
 
             <div className="flex flex-col gap-4 mb-6">
                 <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
                     <div className="flex-1 w-full">
                         <TableFilter
-                            placeholder="Search Main Categories..."
+                            placeholder="Search Brands..."
                             onFilterChange={handleFilterChange}
                         />
                     </div>
@@ -112,7 +117,7 @@ export default function MainCategories() {
                         onClick={() => setIsAddModalOpen(true)}
                         className="bg-brand-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors whitespace-nowrap mt-1"
                     >
-                        Add Main Category
+                        Add Brand
                     </button>
                 </div>
             </div>
@@ -120,7 +125,7 @@ export default function MainCategories() {
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                        Main Category List
+                        Brand List
                     </h3>
                 </div>
                 <div className="overflow-x-auto">
@@ -128,12 +133,14 @@ export default function MainCategories() {
                         <thead>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Image
+                                    Logo
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Name
                                 </th>
-
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Main Category
+                                </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Description
                                 </th>
@@ -157,60 +164,70 @@ export default function MainCategories() {
                                     <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
-                                            <span>Loading main categories...</span>
+                                            <span>Loading brands...</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
-                                currentCategories.map((category, i) => (
+                                currentBrands.map((brand, i) => (
                                     <tr
-                                        key={category._id || i}
+                                        key={brand._id || i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                                <img
-                                                    src={category.image}
-                                                    alt={category.name}
-                                                    className="h-full w-full object-cover"
-                                                />
+                                            <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                                {brand.image ? (
+                                                    <img
+                                                        src={brand.image}
+                                                        alt={brand.name}
+                                                        className="h-full w-full object-contain p-1"
+                                                    />
+                                                ) : (
+                                                    <div className="h-full w-full flex items-center justify-center text-xs text-gray-400 bg-gray-50">
+                                                        No Logo
+                                                    </div>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm font-medium text-gray-800 dark:text-white">
-                                                {category.name}
+                                                {brand.name}
                                             </span>
                                         </td>
-
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {category.description}
+                                                {mainCategories.find(mc => mc._id === brand.main_category_id)?.name || "N/A"}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px] block">
+                                                {brand.description || "No description"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span
-                                                className={`px-2 py-1 text-[10px] font-semibold rounded-full ${(category.status || "inactive").toLowerCase() === "active"
-                                                    ? "bg-green-100 text-green-600"
-                                                    : "bg-gray-100 text-gray-600"
+                                                className={`px-2 py-1 text-[10px] font-semibold rounded-full uppercase tracking-wider ${brand.status === "active"
+                                                    ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500"
+                                                    : "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500"
                                                     }`}
                                             >
-                                                {category.status || "Inactive"}
+                                                {brand.status}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {category.createdAt ? new Date(category.createdAt).toLocaleDateString() : "-"}
+                                                {brand.createdAt ? new Date(brand.createdAt).toLocaleDateString() : "-"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {category.updatedAt ? new Date(category.updatedAt).toLocaleDateString() : "-"}
+                                                {brand.updatedAt ? new Date(brand.updatedAt).toLocaleDateString() : "-"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                             <div className="flex justify-end gap-2">
                                                 <button
-                                                    onClick={() => handleEdit(category)}
+                                                    onClick={() => handleEdit(brand)}
                                                     className="p-1.5 text-gray-500 hover:text-brand-500 transition-colors"
                                                     title="Edit"
                                                 >
@@ -219,7 +236,7 @@ export default function MainCategories() {
                                                     </svg>
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteClick(category)}
+                                                    onClick={() => handleDeleteClick(brand)}
                                                     className="p-1.5 text-gray-500 hover:text-red-500 transition-colors"
                                                     title="Delete"
                                                 >
@@ -232,10 +249,10 @@ export default function MainCategories() {
                                     </tr>
                                 ))
                             )}
-                            {!loading && mainCategories.length === 0 && (
+                            {!loading && brands.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
-                                        No main categories found.
+                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                                        No brands found.
                                     </td>
                                 </tr>
                             )}
@@ -249,23 +266,29 @@ export default function MainCategories() {
                     onPageChange={handlePageChange}
                     startIndex={indexOfFirstItem}
                     endIndex={indexOfLastItem}
-                    totalResults={mainCategories.length}
+                    totalResults={brands.length}
                 />
             </div>
-            <AddMainCategoryModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-            <EditMainCategoryModal
+
+            <AddBrandModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+
+            <EditBrandModal
                 isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                category={selectedCategory}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedBrand(null);
+                }}
+                brand={selectedBrand}
             />
+
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Delete Main Category"
-                message={`Are you sure you want to delete "${selectedCategory?.name}"? This action cannot be undone.`}
+                title="Delete Brand"
+                message={`Are you sure you want to delete "${selectedBrand?.name}"? This action cannot be undone.`}
                 loading={isDeleting}
             />
-        </div>
+        </div >
     );
 }

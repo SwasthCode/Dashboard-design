@@ -87,7 +87,7 @@ export default function Roles() {
 
     return (
         <>
-            <PageMeta title="Blinkit | Roles Management" description="Manage user roles and permissions." />
+            <PageMeta title="Khana Fast | Roles Management" description="Manage user roles and permissions." />
             <PageBreadcrumb pageTitle="Roles" />
 
             <div className="space-y-6">
@@ -159,8 +159,8 @@ export default function Roles() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
                                                     className={`px-2 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${role.status === "active" || role.is_active === true
-                                                            ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500"
-                                                            : "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500"
+                                                        ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500"
+                                                        : "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500"
                                                         }`}
                                                 >
                                                     {role.status || (role.is_active ? 'active' : 'inactive')}

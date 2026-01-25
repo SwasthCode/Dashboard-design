@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateSubCategory, SubCategory } from "../../store/slices/subCategorySlice";
+import { fetchBrands } from "../../store/slices/brandSlice";
 import { RootState, AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -15,22 +16,31 @@ interface EditSubCategoryModalProps {
 export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: EditSubCategoryModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { categories } = useSelector((state: RootState) => state.category);
+    const { brands } = useSelector((state: RootState) => state.brand);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         name: "",
         category_id: "",
+        brand_id: "",
         description: "",
     });
     const [images, setImages] = useState<File[]>([]);
     const [preview, setPreview] = useState<string | null>(null);
 
     useEffect(() => {
+        if (isOpen && brands.length === 0) {
+            dispatch(fetchBrands({}));
+        }
+    }, [isOpen, brands.length, dispatch]);
+
+    useEffect(() => {
         if (subCategory) {
             setFormData({
                 name: subCategory.name || "",
                 category_id: subCategory.category_id || "",
+                brand_id: subCategory.brand_id || "",
                 description: subCategory.description || "",
             });
             setPreview(subCategory.image || null);
@@ -64,6 +74,7 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
         const data = new FormData();
         data.append("name", formData.name);
         data.append("category_id", formData.category_id);
+        data.append("brand_id", formData.brand_id);
         data.append("description", formData.description);
 
         if (images.length > 0) {
@@ -111,6 +122,28 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
                             <option value="">Select Parent Category</option>
                             {categories.map((category, index) => (
                                 <option key={index} value={category._id}>{category.name}</option>
+                            ))}
+                        </select>
+                        <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2 pointer-events-none">
+                            <svg className="fill-current text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="currentColor" />
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+
+                <div className="mb-4">
+                    <Label htmlFor="brand_id">Brand</Label>
+                    <div className="relative">
+                        <select
+                            id="brand_id"
+                            value={formData.brand_id}
+                            onChange={handleInputChange}
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                        >
+                            <option value="">Select Brand</option>
+                            {brands.map((brand, index) => (
+                                <option key={index} value={brand._id}>{brand.name}</option>
                             ))}
                         </select>
                         <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2 pointer-events-none">

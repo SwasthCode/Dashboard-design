@@ -25,7 +25,7 @@ export default function Reviews() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 6;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");

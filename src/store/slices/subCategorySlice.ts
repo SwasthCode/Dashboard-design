@@ -6,6 +6,7 @@ export interface SubCategory {
     _id?: string;
     name: string;
     category_id: string;
+    brand_id?: string;
     description: string;
     image?: string;
     status?: string;

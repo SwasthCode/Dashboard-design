@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchSubCategories, deleteSubCategory, SubCategory } from "../../store/slices/subCategorySlice";
 import { fetchCategories } from "../../store/slices/categorySlice";
+import { fetchBrands } from "../../store/slices/brandSlice";
 import Pagination from "../../components/common/Pagination";
 import AddSubCategoryModal from "./AddSubCategoryModal";
 import EditSubCategoryModal from "./EditSubCategoryModal";
@@ -15,6 +16,7 @@ export default function SubCategories() {
     const dispatch = useDispatch<AppDispatch>();
     const { subCategories, loading } = useSelector((state: RootState) => state.subCategory);
     const { categories } = useSelector((state: RootState) => state.category);
+    const { brands } = useSelector((state: RootState) => state.brand);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -22,7 +24,7 @@ export default function SubCategories() {
     const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 6;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -32,7 +34,8 @@ export default function SubCategories() {
     useEffect(() => {
         dispatch(fetchSubCategories({}));
         if (categories.length === 0) dispatch(fetchCategories({}));
-    }, [dispatch, categories.length]);
+        if (brands.length === 0) dispatch(fetchBrands({}));
+    }, [dispatch, categories.length, brands.length]);
 
     const buildFilter = useCallback(() => {
         const filter: any = {};
@@ -142,6 +145,9 @@ export default function SubCategories() {
                                     Parent Category
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Brand
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Description
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -204,6 +210,11 @@ export default function SubCategories() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
                                                 {categories.find(c => c._id === subCategory.category_id)?.name || subCategory.category_id || 'N/A'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                {brands.find(b => b._id === subCategory.brand_id)?.name || "N/A"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

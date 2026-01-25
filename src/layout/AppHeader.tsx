@@ -83,17 +83,15 @@ const AppHeader: React.FC = () => {
             {/* Cross Icon */}
           </button>
 
-          <Link to="/" className="lg:hidden">
+          <Link to="/" className="lg:hidden flex items-center gap-2">
             <img
-              className="dark:hidden w-20 h-20"
-              src="./logo.jpeg"
+              className="w-9 h-9 object-contain rounded-lg"
+              src="/logo.jpeg"
               alt="Logo"
             />
-            <img
-              className="hidden dark:block w-20 h-20"
-              src="./logo.jpeg"
-              alt="Logo"
-            />
+            <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">
+              Khana<span className="text-brand-500">Fast</span>
+            </span>
           </Link>
 
           <button

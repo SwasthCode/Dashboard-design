@@ -17,7 +17,7 @@ interface Invoice {
 
 export default function Invoices() {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 7;
+    const itemsPerPage = 6;
 
     const [invoices] = useState<Invoice[]>([
         { id: "INV-001", client: "Acme Corp", email: "contact@acme.com", amount: "$3,400.00", date: "Jan 10, 2024", dueDate: "Feb 10, 2024", status: "Paid", updatedAt: "2024-01-10" },

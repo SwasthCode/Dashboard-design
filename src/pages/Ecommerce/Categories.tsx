@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchCategories, deleteCategory, Category } from "../../store/slices/categorySlice";
 import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
+import { fetchBrands } from "../../store/slices/brandSlice";
 import Pagination from "../../components/common/Pagination";
 import AddCategoryModal from "./AddCategoryModal";
 import EditCategoryModal from "./EditCategoryModal";
@@ -15,6 +16,7 @@ export default function Categories() {
     const dispatch = useDispatch<AppDispatch>();
     const { categories, loading } = useSelector((state: RootState) => state.category);
     const { mainCategories } = useSelector((state: RootState) => state.mainCategory);
+    const { brands } = useSelector((state: RootState) => state.brand);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -22,7 +24,7 @@ export default function Categories() {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 6;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -34,7 +36,10 @@ export default function Categories() {
         if (mainCategories.length === 0) {
             dispatch(fetchMainCategories({}));
         }
-    }, [dispatch, mainCategories.length]);
+        if (brands.length === 0) {
+            dispatch(fetchBrands({}));
+        }
+    }, [dispatch, mainCategories.length, brands.length]);
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
@@ -142,6 +147,9 @@ export default function Categories() {
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Main Category
                                 </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Brand
+                                </th>
 
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Description
@@ -195,6 +203,11 @@ export default function Categories() {
                                                 {mainCategories.find(mc => mc._id === category.main_category_id)?.name || "N/A"}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                {brands.find(b => b._id === category.brand_id)?.name || "N/A"}
+                                            </span>
+                                        </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -203,9 +216,9 @@ export default function Categories() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span
-                                                className={`px - 2 py - 1 text - [10px] font - semibold rounded - full ${(category.status || "inactive").toLowerCase() === "active"
-                                                    ? "bg-green-100 text-green-600"
-                                                    : "bg-gray-100 text-gray-600"
+                                                className={`px-2 py-1 text-[10px] font-semibold rounded-full uppercase tracking-wider ${(category.status || "inactive").toLowerCase() === "active"
+                                                    ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500"
+                                                    : "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500"
                                                     } `}
                                             >
                                                 {category.status || "Inactive"}

@@ -18,7 +18,7 @@ interface Coupon {
 
 export default function Coupons() {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 6;
 
     const [coupons, setCoupons] = useState<Coupon[]>([
         { id: 1, code: "WELCOME20", description: "Welcome Discount", discount: "20%", expiryDiff: "25 days", status: "Active", usage: 154, createdAt: "2024-01-01", updatedAt: "2024-01-01" },

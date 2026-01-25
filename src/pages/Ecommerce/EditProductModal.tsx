@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProduct, Product, ProductImage } from "../../store/slices/productSlice";
+import { fetchBrands } from "../../store/slices/brandSlice";
 import { RootState, AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -16,6 +17,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     const dispatch = useDispatch<AppDispatch>();
     const { categories } = useSelector((state: RootState) => state.category);
     const { subCategories } = useSelector((state: RootState) => state.subCategory);
+    const { brands } = useSelector((state: RootState) => state.brand);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
         name: "",
         category_id: "",
         subcategory_id: "",
+        brand_id: "",
         price: 0,
         mrp: 0,
         unit: "",
@@ -85,6 +88,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                 name: product.name || "",
                 category_id: product.category_id || product.category?._id || "",
                 subcategory_id: product.subcategory_id || product.subcategory?._id || "",
+                brand_id: product.brand_id || "",
                 price: product.price || 0,
                 mrp: product.mrp || 0,
                 unit: product.unit || "",
@@ -110,6 +114,12 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
             );
         }
     }, [product]);
+
+    useEffect(() => {
+        if (isOpen && brands.length === 0) {
+            dispatch(fetchBrands({}));
+        }
+    }, [isOpen, brands.length, dispatch]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value, type } = e.target;
@@ -168,6 +178,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
             data.append("name", formData.name);
             data.append("category_id", formData.category_id);
             data.append("subcategory_id", formData.subcategory_id);
+            data.append("brand_id", formData.brand_id);
             data.append("price", formData.price.toString());
             data.append("mrp", formData.mrp.toString());
             data.append("unit", formData.unit);
@@ -272,6 +283,20 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                         <option value="">Select Subcategory</option>
                                         {filteredSubCategories.map((sub) => (
                                             <option key={sub._id} value={sub._id}>{sub.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="brand_id">Brand</Label>
+                                    <select
+                                        id="brand_id"
+                                        value={formData.brand_id}
+                                        onChange={handleInputChange}
+                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                    >
+                                        <option value="">Select Brand</option>
+                                        {brands.map((brand) => (
+                                            <option key={brand._id} value={brand._id}>{brand.name}</option>
                                         ))}
                                     </select>
                                 </div>

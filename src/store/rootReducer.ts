@@ -11,6 +11,7 @@ import dashboardReducer from './slices/dashboardSlice';
 
 import orderReducer from './slices/orderSlice';
 import roleReducer from './slices/roleSlice';
+import brandReducer from './slices/brandSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
     dashboard: dashboardReducer,
     order: orderReducer,
     role: roleReducer,
+    brand: brandReducer,
 });
 
 export default rootReducer;
