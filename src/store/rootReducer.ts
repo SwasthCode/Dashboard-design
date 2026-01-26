@@ -13,6 +13,7 @@ import orderReducer from './slices/orderSlice';
 import roleReducer from './slices/roleSlice';
 import brandReducer from './slices/brandSlice';
 import invoiceReducer from './slices/invoiceSlice';
+import packerReducer from './slices/packerSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
     role: roleReducer,
     brand: brandReducer,
     invoice: invoiceReducer,
+    packer: packerReducer,
 });
 
 export default rootReducer;

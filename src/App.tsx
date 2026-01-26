@@ -30,6 +30,7 @@ import Addresses from "./pages/Ecommerce/Addresses";
 import Invoices from "./pages/Ecommerce/Invoices";
 import Pay from "./pages/Ecommerce/Pay";
 import MainCategories from "./pages/Ecommerce/MainCategories";
+import Packers from "./pages/Ecommerce/Packers";
 import Brands from "./pages/Ecommerce/Brands";
 import Reviews from "./pages/Ecommerce/Reviews";
 import Coupons from "./pages/Ecommerce/Coupons";
@@ -106,6 +107,7 @@ export default function App() {
             <Route path="/sub-categories" element={<SubCategories />} />
             <Route path="/sub-categories/add" element={<AddSubCategory />} />
             <Route path="/invoices" element={<Invoices />} />
+            <Route path="/packers" element={<Packers />} />
             <Route path="/pay" element={<Pay />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/coupons" element={<Coupons />} />
