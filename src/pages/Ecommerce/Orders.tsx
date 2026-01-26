@@ -428,7 +428,7 @@ export default function Orders() {
                                     currentOrders.map((order: Order, i: number) => (
                                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.slice(- 8)}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{`${order.user?.first_name} ${order.user?.last_name}` || 'Customer'}</span></td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer_name || `${order.user?.first_name} ${order.user?.last_name}` || 'N/A'}</span></td>
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col max-w-xs">
                                                     <span className="text-sm text-gray-800 dark:text-white truncate">

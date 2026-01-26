@@ -141,7 +141,7 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
         try {
             // Transform items to match backend DTO - only send required fields
             const sanitizedItems = orderItems.map(item => ({
-                product_id: item.product_id,
+                product_id: item.product_id || (item as any)._id,
                 name: item.name || item.product_name,
                 image: item.image || 'https://placehold.co/100',
                 price: item.price,
