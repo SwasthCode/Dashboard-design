@@ -461,7 +461,7 @@ export default function Orders() {
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">&#8377;{order.total_amount}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : "-"}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                {order.status === 'delivered' ? (
+                                                {['pending', 'ready', 'ship', 'shipped', 'delivered'].includes(order.status.toLowerCase()) ? (
                                                     <button
                                                         onClick={() => printOrder(order)}
                                                         className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors inline-block"
