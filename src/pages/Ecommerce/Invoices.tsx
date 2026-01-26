@@ -20,6 +20,7 @@ interface Invoice {
     date: string;
     dueDate: string;
     status: "Paid" | "Unpaid" | "Overdue";
+    orderStatus?: string;
     updatedAt?: string;
     originalOrder?: Order; // We might need to fetch this or keep it empty for now if not fully populated
     // Ideally the invoice from backend should contain enough info for printing
@@ -54,6 +55,7 @@ export default function Invoices() {
             year: "numeric",
         }) : "N/A",
         status: inv.status === "paid" ? "Paid" : inv.status === "pending" ? "Unpaid" : "Unpaid", // Map backend status
+        orderStatus: typeof inv.order_id === 'object' ? inv.order_id.status : undefined,
         updatedAt: inv.updatedAt,
         printData: inv, // Passing the whole invoice object for printing
     }));
@@ -275,7 +277,10 @@ export default function Invoices() {
                                     Due Date
                                 </th> */}
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Status
+                                    Invoice Status
+                                </th>
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Order Status
                                 </th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Updated At
@@ -354,9 +359,25 @@ export default function Invoices() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {invoice.updatedAt}
-                                            </span>
+                                            {invoice.orderStatus ? (
+                                                <span
+                                                    className={`px-2 py-1 text-[10px] font-semibold rounded-full ${
+                                                        invoice.orderStatus.toLowerCase() === "pending" ? "bg-orange-100 text-orange-600" :
+                                                        invoice.orderStatus.toLowerCase() === "ready" ? "bg-blue-100 text-blue-600" :
+                                                        invoice.orderStatus.toLowerCase() === "shipped" ? "bg-purple-100 text-purple-600" :
+                                                        invoice.orderStatus.toLowerCase() === "delivered" ? "bg-green-100 text-green-600" :
+                                                        invoice.orderStatus.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600" :
+                                                        "bg-gray-100 text-gray-600"
+                                                    }`}
+                                                >
+                                                    {invoice.orderStatus.charAt(0).toUpperCase() + invoice.orderStatus.slice(1)}
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm text-gray-400 font-medium">N/A</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            {invoice.updatedAt}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
                                             <div className="flex justify-end gap-2">

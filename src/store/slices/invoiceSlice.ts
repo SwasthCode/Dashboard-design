@@ -4,7 +4,7 @@ import { QueryParams, buildQueryString } from '../types';
 
 export interface Invoice {
     _id: string;
-    order_id: string;
+    order_id: string | { _id: string, status: string };
     invoice_number: string;
     user_id: {
         _id: string;
@@ -81,6 +81,32 @@ export const deleteInvoice = createAsyncThunk(
     }
 );
 
+// Create Invoice
+export const createInvoice = createAsyncThunk(
+    'invoice/createInvoice',
+    async (data: { order_id: string; status?: string }, { rejectWithValue }) => {
+        try {
+            const response = await https.post('invoices', data);
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.message || 'Failed to create invoice');
+        }
+    }
+);
+
+// Fetch Invoice by Order ID
+export const fetchInvoiceByOrder = createAsyncThunk(
+    'invoice/fetchInvoiceByOrder',
+    async (orderId: string, { rejectWithValue }) => {
+        try {
+            const response = await https.get(`invoices/order/${orderId}`);
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.message || 'Failed to fetch invoice');
+        }
+    }
+);
+
 const invoiceSlice = createSlice({
     name: 'invoice',
     initialState,
@@ -99,6 +125,14 @@ const invoiceSlice = createSlice({
             .addCase(fetchInvoices.rejected, (state, action: any) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            // Create Invoice
+            .addCase(createInvoice.fulfilled, (state, action: PayloadAction<Invoice>) => {
+                state.invoices.unshift(action.payload);
+            })
+             // Fetch Invoice By Order
+            .addCase(fetchInvoiceByOrder.rejected, (state, action: any) => {
+                 // Just log or handle silently if needed, usually consumed by unwrap()
             })
             // Delete Invoice
             .addCase(deleteInvoice.fulfilled, (state, action: PayloadAction<string>) => {

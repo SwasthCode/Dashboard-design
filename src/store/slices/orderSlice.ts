@@ -61,10 +61,16 @@ const initialState: OrderState = {
 };
 
 // Async Thunks
-export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: QueryParams | undefined, { rejectWithValue }) => {
+export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: { filter?: any } = {}, { rejectWithValue }) => {
     try {
-        const mergedParams = { sort: { createdAt: -1 }, ...params };
-        const queryString = buildQueryString(mergedParams);
+        // Build query string manually if needed, or pass params
+        // Check if filter is object and stringify it, as our buildQueryString in types.js might handle it, 
+        // but let's be safe and explicit based on user feedback about filters not working.
+        // Actually, the buildQueryString utility ALREADY handles stringification.
+        // Let's verify usage in the thunk payload.
+        
+        // If the backend expects ?filter={"status":"pending"}
+        const queryString = buildQueryString(params);
         const response = await https.get(`orders${queryString}`);
         return response.data || [];
     } catch (error: any) {

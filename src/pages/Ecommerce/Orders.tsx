@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders, updateOrderStatus, Order, OrderStatus } from "../../store/slices/orderSlice";
+import { createInvoice } from "../../store/slices/invoiceSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+
 import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
@@ -85,18 +87,36 @@ export default function Orders() {
         }
     };
 
-    const printOrder = (order: Order) => {
+    const handlePrintInvoice = async (order: Order) => {
+        // 1. Generate/Save invoice in backend (Fire and forget or await but don't block UI strictly on success for printing if we already have data)
+        try {
+             dispatch(createInvoice({ order_id: order._id }));
+        } catch (error) {
+            console.error("Background invoice creation failed", error);
+        }
+
+        // 2. Print using the Order object directly (Restoring "like before" design)
+        printOrderData(order);
+    };
+
+    const printOrderData = (order: Order) => {
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
         const date = new Date(order.createdAt).toLocaleDateString();
         const customerName = order.user ? `${order.user.first_name} ${order.user.last_name}` : order.customer_name || 'Customer';
-        const address = order.shipping_address || 'Not available';
-        const phone = order.shipping_phone || 'Not available';
+        // Fallback: Use shipping_address string if available, otherwise try to construct from address object, otherwise 'Not available'
+        const address = order.shipping_address 
+            ? order.shipping_address 
+            : (order.address ? `${order.address.address}, ${order.address.city}, ${order.address.state} ${order.address.pincode}` : 'Not available');
+        const phone = order.shipping_phone || (order.address?.shipping_phone) || 'Not available';
+        
+        // Use _id for invoice number in this view to match "like before"
+        const invoiceId = order._id.slice(-8).toUpperCase();
 
-        const itemsHtml = order.items?.map(item => `
+         const itemsHtml = order.items?.map((item: any) => `
             <tr style="border-bottom: 1px solid #f3f4f6;">
-                <td style="padding: 12px 0; font-size: 14px; color: #1f2937;">${item.product_name || item.name}</td>
+                <td style="padding: 12px 0; font-size: 14px; color: #1f2937;">${item.name || item.product_name}</td>
                 <td style="padding: 12px 0; text-align: center; font-size: 14px; color: #1f2937;">${item.quantity}</td>
                 <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1f2937;">₹${item.price.toLocaleString()}</td>
                 <td style="padding: 12px 0; text-align: right; font-size: 14px; font-weight: 600; color: #111827;">₹${(item.price * item.quantity).toLocaleString()}</td>
@@ -106,7 +126,7 @@ export default function Orders() {
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>Invoice #${order._id.slice(-8)} | Khana Fast</title>
+                    <title>Invoice #${invoiceId} | Khana Fast</title>
                     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
                     <style>
                         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -157,8 +177,8 @@ export default function Orders() {
                                 <div class="text-small">Phone: ${phone}</div>
                             </div>
                             <div>
-                                <div class="section-title">Order Details</div>
-                                <div class="text-small"><span class="text-bold">Order ID:</span> #${order._id}</div>
+                                <div class="section-title">Invoice Details</div>
+                                <div class="text-small"><span class="text-bold">Invoice #:</span> ${invoiceId}</div>
                                 <div class="text-small"><span class="text-bold">Date:</span> ${date}</div>
                                 <div class="text-small"><span class="text-bold">Status:</span> ${order.status.toUpperCase()}</div>
                             </div>
@@ -305,7 +325,20 @@ export default function Orders() {
                 actions = null;
         }
 
-        const isRestricted = ['shipped', 'delivered', 'returned', 'cancelled'].includes(order.status.toLowerCase());
+        const status = order.status.toLowerCase();
+        const isRestricted = ['shipped', 'delivered'].includes(status);
+        const isHidden = ['returned', 'cancelled'].includes(status);
+
+        if (isHidden) {
+            return (
+                <div className="flex items-center justify-end gap-3">
+                    {actions}
+                    <span className="text-xs text-gray-400 italic">Not available</span>
+                    <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
+                    <span className="text-xs text-gray-400 italic">Not available</span>
+                </div>
+            );
+        }
 
         const editButton = (
             <button
@@ -315,7 +348,7 @@ export default function Orders() {
                     setIsEditModalOpen(true);
                 }}
                 className={`p-1.5 transition-colors ${isRestricted
-                    ? 'text-gray-300 cursor-not-allowed'
+                    ? 'text-gray-200 cursor-not-allowed'
                     : 'text-gray-500 hover:text-brand-500'
                     }`}
                 title={isRestricted ? "Cannot edit in current status" : "Edit Order"}
@@ -329,26 +362,19 @@ export default function Orders() {
         if (!actions) {
             return (
                 <div className="flex justify-end gap-2">
-                    {order.status !== 'cancelled' && order.status !== 'returned' && order.status !== 'delivered' && editButton}
+                    {editButton}
                     <span className="text-xs text-gray-400 italic self-center">Not available</span>
                     <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
                     <span className="text-xs text-gray-400 italic self-center">Not available</span>
-
                 </div>
             );
         }
 
         return (
             <div className="flex items-center justify-end gap-3">
-
                 {actions}
                 <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
-
-                {order.status !== 'cancelled' && order.status !== 'returned' && order.status !== 'delivered' && (
-                    <>
-                        {editButton}
-                    </>
-                )}
+                {editButton}
             </div>
         );
     };
@@ -463,7 +489,7 @@ export default function Orders() {
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
                                                 {['pending', 'ready', 'ship', 'shipped', 'delivered'].includes(order.status.toLowerCase()) ? (
                                                     <button
-                                                        onClick={() => printOrder(order)}
+                                                        onClick={() => handlePrintInvoice(order)}
                                                         className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors inline-block"
                                                         title="Print Invoice"
                                                     >

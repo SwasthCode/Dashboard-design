@@ -96,8 +96,27 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    {/* Separate Date Display (Optional mockup) - Keeping inside for now as per requirement complexity, 
-                        Active filters counter is on the button */}
+                    {/* Compact Date Pickers */}
+                    <div className="hidden md:flex items-center gap-2">
+                         <div className="w-32">
+                            <DatePicker
+                                id="filter-start-date"
+                                placeholder="Start Date"
+                                onChange={handleStartDateChange}
+                                defaultDate={startDate}
+                            />
+                        </div>
+                        <span className="text-gray-400">-</span>
+                        <div className="w-32">
+                             <DatePicker
+                                id="filter-end-date"
+                                placeholder="End Date"
+                                onChange={handleEndDateChange}
+                                defaultDate={endDate}
+                            />
+                        </div>
+                    </div>
+
                     <div className="relative">
                         <button
                             type="button"
@@ -109,15 +128,10 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
                         >
                             <FilterIcon className={`w-5 h-5 transition-transform duration-200 ${isFilterOpen ? 'rotate-0' : ''}`} />
                             <span className="text-sm font-semibold hidden sm:inline-block">Filters</span>
-                            {(startDate || endDate) && (
-                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white shadow-sm">
-                                    {(startDate ? 1 : 0) + (endDate ? 1 : 0)}
-                                </span>
-                            )}
                         </button>
 
                         {/* Dropdown Menu */}
-                        <div className={`absolute right-0 top-full mt-2 w-full sm:w-[500px] z-50 transform transition-all duration-200 origin-top-right ${isFilterOpen
+                        <div className={`absolute right-0 top-full mt-2 w-full sm:w-[300px] z-50 transform transition-all duration-200 origin-top-right ${isFilterOpen
                                 ? "scale-100 opacity-100 visible"
                                 : "scale-95 opacity-0 invisible pointer-events-none"
                             }`}>
@@ -137,16 +151,16 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
                                             </button>
                                         )}
                                     </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar p-1">
-                                        {/* Standard Date Filters */}
-                                        <div className="space-y-1.5">
+                                    
+                                    {/* Mobile Date Pickers (visible only on small screens) */}
+                                    <div className="md:hidden space-y-3 mb-4">
+                                         <div className="space-y-1.5">
                                             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">
                                                 Start Date
                                             </label>
                                             <DatePicker
-                                                id="filter-start-date"
-                                                placeholder="Select date"
+                                                id="filter-start-date-mobile"
+                                                placeholder="Start Date"
                                                 onChange={handleStartDateChange}
                                                 defaultDate={startDate}
                                             />
@@ -156,16 +170,15 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
                                                 End Date
                                             </label>
                                             <DatePicker
-                                                id="filter-end-date"
-                                                placeholder="Select date"
+                                                id="filter-end-date-mobile"
+                                                placeholder="End Date"
                                                 onChange={handleEndDateChange}
                                                 defaultDate={endDate}
                                             />
                                         </div>
-
-                                        {/* Custom Children Filters */}
-                                        {children}
                                     </div>
+
+                                    {children}
                                 </div>
                                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">
                                     <button
