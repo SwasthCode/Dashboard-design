@@ -23,6 +23,11 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
     const [selectedProductId, setSelectedProductId] = useState("");
     const [newProductQuantity, setNewProductQuantity] = useState(1);
 
+    // Order Details State
+    const [customerName, setCustomerName] = useState("");
+    const [shippingAddress, setShippingAddress] = useState("");
+    const [shippingPhone, setShippingPhone] = useState("");
+
     useEffect(() => {
         if (isOpen) {
             dispatch(fetchProducts({}));
@@ -40,6 +45,39 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
     useEffect(() => {
         if (currentOrder) {
             setOrderItems(currentOrder.items || []);
+            
+            // Set Customer Name
+            if (currentOrder.customer_name) {
+                setCustomerName(currentOrder.customer_name);
+            } else if (currentOrder.user) {
+                setCustomerName(`${currentOrder.user.first_name} ${currentOrder.user.last_name}`);
+            }
+
+            // Set Shipping Address
+            if (currentOrder.shipping_address) {
+                setShippingAddress(currentOrder.shipping_address);
+            } else if (currentOrder.address) {
+                const addr = currentOrder.address;
+                const parts = [
+                    addr.address, 
+                    addr.locality, 
+                    addr.landmark, 
+                    addr.city, 
+                    addr.state, 
+                    addr.pincode
+                ].filter(Boolean);
+                setShippingAddress(parts.join(', '));
+                
+                // Set Phone if available in address
+                if (!currentOrder.shipping_phone && addr.shipping_phone) {
+                   setShippingPhone(addr.shipping_phone);
+                }
+            }
+
+             // Set Phone (Assuming it might be on order or address?? Schema said shipping_phone on order)
+            if (currentOrder.shipping_phone) {
+                setShippingPhone(currentOrder.shipping_phone);
+            }
         }
     }, [currentOrder]);
 
@@ -115,7 +153,10 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
                 id: currentOrder._id,
                 data: {
                     items: sanitizedItems,
-                    total_amount: calculateTotal()
+                    total_amount: calculateTotal(),
+                    customer_name: customerName,
+                    shipping_address: shippingAddress,
+                    shipping_phone: shippingPhone
                 }
             })).unwrap();
             onClose();
@@ -146,6 +187,42 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
                             {error}
                         </div>
                     )}
+
+                    {/* Customer & Shipping Details */}
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700 space-y-4">
+                        <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300">Customer & Shipping Details</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Customer Name</label>
+                                <input
+                                    type="text"
+                                    value={customerName}
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-brand-500 outline-none text-sm dark:text-white"
+                                    placeholder="Customer Name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Phone Number</label>
+                                <input
+                                    type="text"
+                                    value={shippingPhone}
+                                    onChange={(e) => setShippingPhone(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-brand-500 outline-none text-sm dark:text-white"
+                                    placeholder="Phone Number"
+                                />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Shipping Address</label>
+                                <textarea
+                                    value={shippingAddress}
+                                    onChange={(e) => setShippingAddress(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-brand-500 outline-none text-sm dark:text-white min-h-[60px]"
+                                    placeholder="Full Shipping Address"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Add Product Section */}
                     <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">

@@ -21,6 +21,19 @@ export interface Order {
         first_name: string;
         last_name: string;
     };
+    address?: {
+        name?: string;
+        shipping_phone?: string;
+        pincode?: string;
+        locality?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        landmark?: string;
+        alternate_phone?: string;
+        type?: string;
+        formatted_address?: string; 
+    };
     customer_name?: string;
     total_amount: number;
     status: OrderStatus;

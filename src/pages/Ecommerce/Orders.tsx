@@ -305,15 +305,20 @@ export default function Orders() {
                 actions = null;
         }
 
+        const isRestricted = ['shipped', 'delivered', 'returned', 'cancelled'].includes(order.status.toLowerCase());
+
         const editButton = (
             <button
-                disabled={updating}
+                disabled={updating || isRestricted}
                 onClick={() => {
                     setSelectedOrderForEdit(order);
                     setIsEditModalOpen(true);
                 }}
-                className="p-1.5 text-gray-500 hover:text-brand-500 transition-colors"
-                title="Edit Order"
+                className={`p-1.5 transition-colors ${isRestricted
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-500 hover:text-brand-500'
+                    }`}
+                title={isRestricted ? "Cannot edit in current status" : "Edit Order"}
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -399,6 +404,7 @@ export default function Orders() {
                                 <tr className="bg-gray-50 dark:bg-gray-800/50">
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Address</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Products</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
@@ -423,6 +429,18 @@ export default function Orders() {
                                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.slice(- 8)}</span></td>
                                             <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{`${order.user?.first_name} ${order.user?.last_name}` || 'Customer'}</span></td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col max-w-xs">
+                                                    <span className="text-sm text-gray-800 dark:text-white truncate">
+                                                        {order.shipping_address || (order.address ? `${order.address.address}, ${order.address.city}, ${order.address.state} ${order.address.pincode}` : 'N/A')}
+                                                    </span>
+                                                    {order.address?.shipping_phone && (
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {order.address.shipping_phone}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col gap-1">
                                                     {order.items?.map((item, idx) => (
