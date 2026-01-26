@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store";
-import { updateOrder, Order, OrderItem } from "../../store/slices/orderSlice";
+import { updateOrder, fetchOrderById, Order, OrderItem } from "../../store/slices/orderSlice";
 import { fetchProducts } from "../../store/slices/productSlice";
 import DotLoading from "../../components/common/DotLoading";
 
@@ -26,14 +26,22 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
     useEffect(() => {
         if (isOpen) {
             dispatch(fetchProducts({}));
+            // Fetch full order details when modal opens
+            if (order?._id) {
+                dispatch(fetchOrderById(order._id));
+            }
         }
-    }, [isOpen, dispatch]);
+    }, [isOpen, dispatch, order?._id]);
+
+    // Use selectedOrder from Redux state if available, otherwise use the passed order prop
+    const { selectedOrder } = useSelector((state: RootState) => state.order);
+    const currentOrder = selectedOrder || order;
 
     useEffect(() => {
-        if (order) {
-            setOrderItems(order.items || []);
+        if (currentOrder) {
+            setOrderItems(currentOrder.items || []);
         }
-    }, [order]);
+    }, [currentOrder]);
 
     const handleQuantityChange = (index: number, quantity: number) => {
         const newItems = [...orderItems];
@@ -67,7 +75,7 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
                     product_name: product.name,
                     quantity: newProductQuantity,
                     price: product.price,
-                    image: product.images?.[0]?.url,
+                    image: product.images?.[0]?.url || 'https://placehold.co/100',
                     brand_name: typeof product.brand_id === 'object' ? (product.brand_id as any).name : undefined // simplistic check
                 };
                 setOrderItems([...orderItems, newItem]);
@@ -85,7 +93,7 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
         e.preventDefault();
         setError("");
 
-        if (!order?._id) return;
+        if (!currentOrder?._id) return;
         if (orderItems.length === 0) {
             setError("Order must have at least one product");
             return;
@@ -93,10 +101,20 @@ export default function EditOrderModal({ isOpen, onClose, order }: EditOrderModa
 
         setLoading(true);
         try {
+            // Transform items to match backend DTO - only send required fields
+            const sanitizedItems = orderItems.map(item => ({
+                product_id: item.product_id,
+                name: item.name || item.product_name,
+                image: item.image || 'https://placehold.co/100',
+                price: item.price,
+                quantity: item.quantity,
+                brand_name: item.brand_name
+            }));
+
             await dispatch(updateOrder({
-                id: order._id,
+                id: currentOrder._id,
                 data: {
-                    items: orderItems,
+                    items: sanitizedItems,
                     total_amount: calculateTotal()
                 }
             })).unwrap();
