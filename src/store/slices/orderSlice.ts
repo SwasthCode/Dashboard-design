@@ -83,7 +83,7 @@ export const fetchOrderById = createAsyncThunk('order/fetchOrderById', async (id
 
 export const updateOrderStatus = createAsyncThunk('order/updateOrderStatus', async ({ id, status }: { id: string; status: OrderStatus }, { rejectWithValue }) => {
     try {
-        const response = await https.put(`orders/${id}/status`, { status });
+        const response = await https.put(`orders/${id}`, { status });
         return response.data;
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to update order status');
