@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import https from '../../utils/https';
-import { QueryParams, buildQueryString } from '../types';
+import { buildQueryString } from '../types';
 
 export type OrderStatus = "pending" | "hold" | "ready" | "shipped" | "delivered" | "cancelled" | "returned";
 

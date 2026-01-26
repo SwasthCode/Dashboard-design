@@ -9,6 +9,8 @@ export interface Category {
     description: string;
     main_category_id?: string;
     brand_id?: string;
+    mainCategory?: { _id: string; name: string };
+    brand?: { _id: string; name: string };
     status?: string;
     image: string;
     createdAt?: string;

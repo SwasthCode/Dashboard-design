@@ -131,7 +131,7 @@ const invoiceSlice = createSlice({
                 state.invoices.unshift(action.payload);
             })
              // Fetch Invoice By Order
-            .addCase(fetchInvoiceByOrder.rejected, (state, action: any) => {
+            .addCase(fetchInvoiceByOrder.rejected, () => {
                  // Just log or handle silently if needed, usually consumed by unwrap()
             })
             // Delete Invoice
