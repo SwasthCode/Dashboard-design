@@ -204,17 +204,17 @@ export default function SubCategories() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {categories.find(c => c._id === subCategory.category_id)?.name || subCategory.category_id || 'N/A'}
+                                                {subCategory.category?.name || categories.find(c => c._id === subCategory.category_id)?.name || subCategory.category_id || 'N/A'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {brands.find(b => b._id === subCategory.brand_id)?.name || "N/A"}
+                                                {subCategory.brand?.name || brands.find(b => b._id === subCategory.brand_id)?.name || "N/A"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate block">
-                                                {subCategory.description}
+                                                {subCategory.description || "No description"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

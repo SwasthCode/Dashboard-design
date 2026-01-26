@@ -37,6 +37,15 @@ export interface Product {
     variants?: Variant[];
     category?: { _id: string; name: string };
     subcategory?: { _id: string; name: string };
+    brand?: {
+        _id: string;
+        name: string;
+        main_category_id?: string;
+        status?: string;
+        createdAt?: string;
+        updatedAt?: string;
+        __v?: number;
+    };
     createdAt?: string;
     updatedAt?: string;
 }
@@ -48,7 +57,42 @@ interface ProductState {
 }
 
 const initialState: ProductState = {
-    products: [],
+    products: [
+        {
+            "_id": "69765bf50c38729f944e1fc5",
+            "name": "INV Product 1769364468503",
+            "price": 100,
+            "mrp": 120,
+            "unit": "1 pc",
+            "images": [],
+            "variants": [],
+            "stock": 0,
+            "isAvailable": true,
+            "description": "Mock Data Product",
+            "category_id": "69765bf50c38729f944e1fbb",
+            "subcategory_id": "69765bf50c38729f944e1fc0",
+            "brand_id": "69765bf40c38729f944e1fb8",
+            "createdAt": "2026-01-25T18:07:49.641Z",
+            "updatedAt": "2026-01-25T18:07:49.641Z",
+            "category": {
+                "_id": "69765bf50c38729f944e1fbb",
+                "name": "INV Cat 1769364468503"
+            },
+            "subcategory": {
+                "_id": "69765bf50c38729f944e1fc0",
+                "name": "INV Sub 1769364468503"
+            },
+            "brand": {
+                "_id": "69765bf40c38729f944e1fb8",
+                "name": "INV Brand 1769364468503",
+                "main_category_id": "69765bf40c38729f944e1fb6",
+                "status": "active",
+                "createdAt": "2026-01-25T18:07:48.935Z",
+                "updatedAt": "2026-01-25T18:07:48.935Z",
+                "__v": 0
+            }
+        }
+    ],
     loading: false,
     error: null,
 };

@@ -202,18 +202,18 @@ export default function Categories() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {mainCategories.find(mc => mc._id === category.main_category_id)?.name || "N/A"}
+                                                {category.mainCategory?.name || mainCategories.find(mc => mc._id === category.main_category_id)?.name || "N/A"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {brands.find(b => b._id === category.brand_id)?.name || "N/A"}
+                                                {category.brand?.name || brands.find(b => b._id === category.brand_id)?.name || "N/A"}
                                             </span>
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {category.description}
+                                                {category.description || "Not description"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

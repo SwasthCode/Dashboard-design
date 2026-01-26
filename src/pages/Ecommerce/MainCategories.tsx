@@ -186,7 +186,7 @@ export default function MainCategories() {
 
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {category.description}
+                                                {category.description || "Not description"}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

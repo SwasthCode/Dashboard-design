@@ -7,6 +7,19 @@ export interface SubCategory {
     name: string;
     category_id: string;
     brand_id?: string;
+    category?: {
+        _id: string;
+        name: string;
+    };
+    brand?: {
+        _id: string;
+        name: string;
+        main_category_id?: string;
+        status?: string;
+        createdAt?: string;
+        updatedAt?: string;
+        __v?: number;
+    };
     description: string;
     image?: string;
     status?: string;
@@ -21,7 +34,31 @@ interface SubCategoryState {
 }
 
 const initialState: SubCategoryState = {
-    subCategories: [],
+    subCategories: [
+        {
+            "_id": "69765d58d5a17c169c710b2e",
+            "name": "S 1769364823232",
+            "status": "active",
+            "category_id": "69765d57d5a17c169c710b29", // Extracted from nested category object for backward compatibility
+            "brand_id": "69765d57d5a17c169c710b26", // Extracted from nested brand object for backward compatibility
+            "description": "Mock Data SubCategory",
+            "createdAt": "2026-01-25T18:13:44.208Z",
+            "updatedAt": "2026-01-25T18:13:44.208Z",
+            "category": {
+                "_id": "69765d57d5a17c169c710b29",
+                "name": "C 1769364823232"
+            },
+            "brand": {
+                "_id": "69765d57d5a17c169c710b26",
+                "name": "B 1769364823232",
+                "main_category_id": "69765d57d5a17c169c710b24",
+                "status": "active",
+                "createdAt": "2026-01-25T18:13:43.835Z",
+                "updatedAt": "2026-01-25T18:13:43.835Z",
+                "__v": 0
+            }
+        }
+    ],
     loading: false,
     error: null,
 };
