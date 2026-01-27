@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers, deleteUser, User, fetchRoles } from "../../store/slices/userSlice";
 import { RootState, AppDispatch } from "../../store";
@@ -19,6 +20,7 @@ const sanitizeUrl = (url: string | undefined): string => {
 };
 
 export default function Customers() {
+    const { roleId } = useParams();
     const dispatch = useDispatch<AppDispatch>();
     const { users, roles, loading } = useSelector((state: RootState) => state.user);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -49,7 +51,11 @@ export default function Customers() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
-        // Global search (if used alongside granular, typically OR logic or ignored if granular is active)
+        // REMOVED: Role Filter sent to API. 
+        // We will fetch all (or searchable) users and filter by Role client-side 
+        // to ensure consistency with the client-side counting logic.
+
+        // Global search
         if (searchQuery) {
             filter.$or = [
                 { first_name: { $regex: searchQuery, $options: 'i' } },
@@ -59,7 +65,7 @@ export default function Customers() {
             ];
         }
 
-        // Granular filters (AND logic with each other)
+        // Granular filters
         if (firstName) filter.first_name = { $regex: firstName, $options: 'i' };
         if (lastName) filter.last_name = { $regex: lastName, $options: 'i' };
         if (email) filter.email = { $regex: email, $options: 'i' };
@@ -71,7 +77,7 @@ export default function Customers() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
         return filter;
-    }, [searchQuery, startDate, endDate, firstName, lastName, email, phone]);
+    }, [searchQuery, startDate, endDate, firstName, lastName, email, phone]); // Removed roleId dependency
 
     // Debounced Fetch
     useEffect(() => {
@@ -90,11 +96,22 @@ export default function Customers() {
         setCurrentPage(1);
     };
 
+    // Client-Side Role Filtering
+    const filteredUsers = useMemo(() => {
+        if (!roleId) return users;
+        return users.filter(user => {
+            const roleData = user.role?.[0];
+            // Handle populated object or string ID
+            const rId = typeof roleData === 'object' ? roleData._id : String(roleData);
+            return rId === roleId;
+        });
+    }, [users, roleId]);
+
     // Calculate pagination
-    const totalPages = Math.ceil(users.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+    const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -124,13 +141,17 @@ export default function Customers() {
         }
     };
 
+    // Get Role Name for Display
+    const currentRole = roles.find(r => r._id === roleId);
+    const pageTitle = currentRole ? `${currentRole.name}s` : "Customers";
+
     return (
         <div>
             <PageMeta
-                title="Customers | TailAdmin - React.js Admin Dashboard"
-                description="Customers page for TailAdmin"
+                title={`${pageTitle} | TailAdmin - React.js Admin Dashboard`}
+                description="Customers page"
             />
-            <PageBreadcrumb pageTitle="Customers" />
+            <PageBreadcrumb pageTitle={pageTitle} />
 
             <div className="flex flex-col gap-4 mb-6">
                 <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">

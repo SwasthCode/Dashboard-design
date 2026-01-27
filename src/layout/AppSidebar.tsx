@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
@@ -32,22 +32,11 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
+const staticNavItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
     path: "/"
-    // subItems: [
-    //   { name: "Main", path: "/dashboard", pro: false },
-    //   { name: "Analytics", path: "/analytics", pro: false },
-    //   { name: "Fintech", path: "/fintech", pro: false },
-    // ],s
-  },
-
-  {
-    icon: <GroupIcon />,
-    name: "Customers",
-    path: "/users",
   },
   {
     icon: <FolderIcon />,
@@ -86,11 +75,6 @@ const navItems: NavItem[] = [
     path: "/orders",
   },
   {
-    icon: <GroupIcon />,
-    name: "Packers",
-    path: "/packers",
-  },
-  {
     icon: <DocsIcon />,
     name: "Invoices",
     path: "/invoices",
@@ -101,76 +85,6 @@ const navItems: NavItem[] = [
     name: "Reviews",
     path: "/reviews",
   },
-  // {
-  //   icon: <BoxCubeIcon />,
-  //   name: "E-Commerce",
-  //   subItems: [
-  //     { name: "Customers", path: "/customers", pro: false },
-  //     { name: "Categories", path: "/categories", pro: false },
-  //     { name: "Sub-Categories", path: "/sub-categories", pro: false },
-  //     { name: "Products", path: "/products", pro: false },
-  //     { name: "Orders", path: "/orders", pro: false },
-  //     // { name: "Invoices", path: "/invoices", pro: false },
-  //     // { name: "Coupons", path: "/coupons", pro: false },
-  //     { name: "Addresses", path: "/addresses", pro: false },
-  //     { name: "Reviews", path: "/reviews", pro: false },
-  //     // { name: "Pay", path: "/pay", pro: false },
-  //   ],
-  // },
-  // {
-  //   icon: <GroupIcon />,
-  //   name: "Community",
-  //   subItems: [
-  //     { name: "Feed", path: "/community/feed", pro: false },
-  //     { name: "Profile", path: "/community/profile", pro: false },
-  //     { name: "Members", path: "/community/members", pro: false },
-  //   ],
-  // },
-  // {
-  //   icon: <DollarLineIcon />,
-  //   name: "Finance",
-  //   subItems: [
-  //     { name: "Transactions", path: "/finance/transactions", pro: false },
-  //     { name: "Cards", path: "/finance/cards", pro: false },
-  //   ],
-  // },
-  // {
-  //   icon: <DocsIcon />,
-  //   name: "Job Board",
-  //   subItems: [
-  //     { name: "Listing", path: "/job-board/listing", pro: false },
-  //     { name: "Post Job", path: "/job-board/post", pro: false },
-  //   ],
-  // },
-  // {
-  //   icon: <TaskIcon />,
-  //   name: "Tasks",
-  //   subItems: [
-  //     { name: "List", path: "/tasks/list", pro: false },
-  //     { name: "Board", path: "/tasks/board", pro: false },
-  //   ],
-  // },
-  // {
-  //   icon: <ChatIcon />,
-  //   name: "Messages",
-  //   path: "/messages",
-  //   badge: "4",
-  // },
-  // {
-  //   icon: <EnvelopeIcon />,
-  //   name: "Inbox",
-  //   path: "/inbox",
-  // },
-  // {
-  //   icon: <CalenderIcon />,
-  //   name: "Calendar",
-  //   path: "/calendar",
-  // },
-  // {
-  //   icon: <ShootingStarIcon />,
-  //   name: "Campaigns",
-  //   path: "/campaigns",
-  // },
   {
     icon: <LockIcon />,
     name: "ACL",
@@ -187,15 +101,6 @@ const navItems: NavItem[] = [
       { name: "Notifications", path: "/settings/notifications", pro: false },
     ],
   },
-  // {
-  //   icon: <GridIcon />,
-  //   name: "Utility",
-  //   subItems: [
-  //     { name: "Changelog", path: "/utility/changelog", pro: false },
-  //     { name: "Support", path: "/utility/support", pro: false },
-  //     { name: "FAQ", path: "/utility/faq", pro: false },
-  //   ],
-  // },
 ];
 
 const othersItems: NavItem[] = [
@@ -228,9 +133,42 @@ const othersItems: NavItem[] = [
   },
 ];
 
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../store";
+import { fetchRoles, fetchUserRoleCounts } from "../store/slices/userSlice";
+
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
+  const { roles, roleCounts } = useSelector((state: RootState) => state.user);
+
+  useEffect(() => {
+    dispatch(fetchRoles({}));
+    dispatch(fetchUserRoleCounts());
+  }, [dispatch]);
+
+  const navItems = useMemo(() => {
+    const roleItems = roles.map(role => ({
+      name: `${role.name} (${roleCounts?.[role._id!] || 0})`,
+      path: `/users/role/${role._id}`,
+      pro: false
+    }));
+
+    const customersItem: NavItem = {
+      icon: <GroupIcon />,
+      name: "Users",
+      subItems: [
+        { name: "All Users", path: "/users", pro: false },
+        ...roleItems
+      ]
+    };
+
+    // Insert Customers item after Dashboard (index 0)
+    const newItems = [...staticNavItems];
+    newItems.splice(1, 0, customersItem);
+    return newItems;
+  }, [roles, roleCounts]);
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";

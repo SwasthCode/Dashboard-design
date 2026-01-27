@@ -53,6 +53,7 @@ interface UserState {
     selectedUser: User | null;
     loading: boolean;
     error: string | null;
+    roleCounts: Record<string, number>;
 }
 
 const initialState: UserState = {
@@ -61,6 +62,7 @@ const initialState: UserState = {
     selectedUser: null,
     loading: false,
     error: null,
+    roleCounts: {},
 };
 
 // Async Thunks
@@ -82,7 +84,33 @@ export const fetchRoles = createAsyncThunk('user/fetchRoles', async (params: Que
         const response = await https.get(`roles${queryString}`);
         return response.data || [];
     } catch (error: any) {
-        return rejectWithValue(error.message || 'Failed to fetch roles');
+    }
+});
+
+export const fetchUserRoleCounts = createAsyncThunk('user/fetchUserRoleCounts', async (_, { rejectWithValue }) => {
+    try {
+        // Fetch all users to calculate counts client-side
+        const response = await https.get('users');
+        const allUsers: User[] = response.data || [];
+
+        const counts: Record<string, number> = {};
+
+        allUsers.forEach(user => {
+            if (user.role && user.role.length > 0) {
+                // Handle both populated role objects and raw ID strings
+                const roleData = user.role[0];
+                const roleId = typeof roleData === 'object' ? roleData._id : String(roleData);
+
+                if (roleId) {
+                    counts[roleId] = (counts[roleId] || 0) + 1;
+                }
+            }
+        });
+
+        return counts;
+    } catch (error: any) {
+        console.error("Failed to fetch users for counting:", error);
+        return {};
     }
 });
 
@@ -142,6 +170,11 @@ const userSlice = createSlice({
         };
 
         builder
+            .addCase(fetchUserRoleCounts.fulfilled, (state, action: PayloadAction<Record<string, number>>) => {
+                state.roleCounts = action.payload;
+            })
+            // No loading state needed strictly for counts as it's secondary info
+
             .addCase(fetchUsers.pending, handlePending)
             .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<User[]>) => {
                 state.loading = false;
