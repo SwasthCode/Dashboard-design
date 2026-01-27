@@ -36,6 +36,16 @@ export const fetchBrands = createAsyncThunk('brand/fetchBrands', async (params: 
     }
 });
 
+export const fetchBrandsSelect = createAsyncThunk('brand/fetchBrandsSelect', async (params: QueryParams | undefined, { rejectWithValue }) => {
+    try {
+        const queryString = buildQueryString(params || {});
+        const response = await https.get(`brands/select${queryString}`);
+        return response.data || [];
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch brands');
+    }
+});
+
 export const addBrand = createAsyncThunk('brand/addBrand', async (brand: FormData, { rejectWithValue }) => {
     try {
         const response = await https.post('brands', brand);
@@ -75,6 +85,9 @@ const brandSlice = createSlice({
             })
             .addCase(fetchBrands.fulfilled, (state, action: PayloadAction<Brand[]>) => {
                 state.loading = false;
+                state.brands = action.payload;
+            })
+            .addCase(fetchBrandsSelect.fulfilled, (state, action: PayloadAction<Brand[]>) => {
                 state.brands = action.payload;
             })
             .addCase(fetchBrands.rejected, (state, action) => {

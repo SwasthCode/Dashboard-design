@@ -40,6 +40,16 @@ export const fetchCategories = createAsyncThunk('category/fetchCategories', asyn
     }
 });
 
+export const fetchCategoriesSelect = createAsyncThunk('category/fetchCategoriesSelect', async (params: QueryParams | undefined, { rejectWithValue }) => {
+    try {
+        const queryString = buildQueryString(params || {});
+        const response = await https.get(`categories/select${queryString}`);
+        return response.data || [];
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch categories');
+    }
+});
+
 export const fetchCategoryById = createAsyncThunk('category/fetchCategoryById', async (id: string, { rejectWithValue }) => {
     try {
         const response = await https.get(`categories/${id}`);
@@ -89,6 +99,9 @@ const categorySlice = createSlice({
             })
             .addCase(fetchCategories.fulfilled, (state, action: PayloadAction<Category[]>) => {
                 state.loading = false;
+                state.categories = action.payload;
+            })
+            .addCase(fetchCategoriesSelect.fulfilled, (state, action: PayloadAction<Category[]>) => {
                 state.categories = action.payload;
             })
             .addCase(fetchCategories.rejected, (state, action) => {

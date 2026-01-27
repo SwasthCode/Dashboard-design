@@ -126,12 +126,12 @@ export default function Reviews() {
     };
 
     const getProductName = (id: string) => {
-        return getProduct(id)?.name || "Unknown Product";
+        return getProduct(id)?.name || "Not Available";
     };
 
     const getUserName = (id: string) => {
         const user = users.find(u => (u.id || u._id) === id);
-        return user ? `${user.first_name} ${user.last_name}` : "Unknown Customer";
+        return user ? `${user.first_name} ${user.last_name}` : "Not Available";
     };
 
     return (

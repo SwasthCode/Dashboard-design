@@ -5,8 +5,8 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import { useDispatch, useSelector } from "react-redux";
 import { addProduct } from "../../store/slices/productSlice";
-import { fetchCategories } from "../../store/slices/categorySlice";
-import { fetchSubCategories } from "../../store/slices/subCategorySlice";
+import { fetchCategoriesSelect } from "../../store/slices/categorySlice";
+import { fetchSubCategoriesSelect } from "../../store/slices/subCategorySlice";
 import { useNavigate } from "react-router";
 import { RootState, AppDispatch } from "../../store";
 
@@ -33,8 +33,8 @@ export default function AddProduct() {
     });
 
     useEffect(() => {
-        if (categories.length === 0) dispatch(fetchCategories());
-        if (subCategories.length === 0) dispatch(fetchSubCategories());
+        if (categories.length === 0) dispatch(fetchCategoriesSelect());
+        if (subCategories.length === 0) dispatch(fetchSubCategoriesSelect());
     }, [dispatch, categories.length, subCategories.length]);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -109,6 +109,16 @@ export const fetchProducts = createAsyncThunk('product/fetchProducts', async (pa
     }
 });
 
+export const fetchProductsSelect = createAsyncThunk('product/fetchProductsSelect', async (params: QueryParams | undefined, { rejectWithValue }) => {
+    try {
+        const queryString = buildQueryString(params || {});
+        const response = await https.get(`products/select${queryString}`);
+        return response.data || [];
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch products');
+    }
+});
+
 export const addProduct = createAsyncThunk('product/addProduct', async (product: FormData | Product, { rejectWithValue }) => {
     try {
         const isFormData = product instanceof FormData;
@@ -151,6 +161,9 @@ const productSlice = createSlice({
             })
             .addCase(fetchProducts.fulfilled, (state, action: PayloadAction<Product[]>) => {
                 state.loading = false;
+                state.products = action.payload;
+            })
+            .addCase(fetchProductsSelect.fulfilled, (state, action: PayloadAction<Product[]>) => {
                 state.products = action.payload;
             })
             .addCase(fetchProducts.rejected, (state, action) => {

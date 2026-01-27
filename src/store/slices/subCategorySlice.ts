@@ -75,6 +75,16 @@ export const fetchSubCategories = createAsyncThunk('subCategory/fetchSubCategori
     }
 });
 
+export const fetchSubCategoriesSelect = createAsyncThunk('subCategory/fetchSubCategoriesSelect', async (params: QueryParams | undefined, { rejectWithValue }) => {
+    try {
+        const queryString = buildQueryString(params || {});
+        const response = await https.get(`subcategories/select${queryString}`);
+        return response.data || [];
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch sub-categories');
+    }
+});
+
 export const addSubCategory = createAsyncThunk('subCategory/addSubCategory', async (subCategory: FormData, { rejectWithValue }) => {
     try {
         const response = await https.post('subcategories', subCategory);
@@ -116,6 +126,9 @@ const subCategorySlice = createSlice({
             })
             .addCase(fetchSubCategories.fulfilled, (state, action: PayloadAction<SubCategory[]>) => {
                 state.loading = false;
+                state.subCategories = action.payload;
+            })
+            .addCase(fetchSubCategoriesSelect.fulfilled, (state, action: PayloadAction<SubCategory[]>) => {
                 state.subCategories = action.payload;
             })
             .addCase(fetchSubCategories.rejected, (state, action) => {

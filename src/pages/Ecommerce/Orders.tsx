@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders, updateOrderStatus, Order, OrderStatus } from "../../store/slices/orderSlice";
 import { createInvoice } from "../../store/slices/invoiceSlice";
@@ -10,9 +11,10 @@ import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
 
-import EditOrderModal from './EditOrderModal';
 export default function Orders() {
+    const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
+
     const { orders, loading, updating } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -24,9 +26,7 @@ export default function Orders() {
     const [endDate, setEndDate] = useState("");
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
-    // Edit Modal State
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedOrderForEdit, setSelectedOrderForEdit] = useState<Order | null>(null);
+
 
 
     const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
@@ -90,7 +90,7 @@ export default function Orders() {
     const handlePrintInvoice = async (order: Order) => {
         // 1. Generate/Save invoice in backend (Fire and forget or await but don't block UI strictly on success for printing if we already have data)
         try {
-             dispatch(createInvoice({ order_id: order._id }));
+            dispatch(createInvoice({ order_id: order._id }));
         } catch (error) {
             console.error("Background invoice creation failed", error);
         }
@@ -106,15 +106,15 @@ export default function Orders() {
         const date = new Date(order.createdAt).toLocaleDateString();
         const customerName = order.user ? `${order.user.first_name} ${order.user.last_name}` : order.customer_name || 'Customer';
         // Fallback: Use shipping_address string if available, otherwise try to construct from address object, otherwise 'Not available'
-        const address = order.shipping_address 
-            ? order.shipping_address 
+        const address = order.shipping_address
+            ? order.shipping_address
             : (order.address ? `${order.address.address}, ${order.address.city}, ${order.address.state} ${order.address.pincode}` : 'Not available');
         const phone = order.shipping_phone || (order.address?.shipping_phone) || 'Not available';
-        
+
         // Use _id for invoice number in this view to match "like before"
         const invoiceId = order._id.slice(-8).toUpperCase();
 
-         const itemsHtml = order.items?.map((item: any) => `
+        const itemsHtml = order.items?.map((item: any) => `
             <tr style="border-bottom: 1px solid #f3f4f6;">
                 <td style="padding: 12px 0; font-size: 14px; color: #1f2937;">${item.name || item.product_name}</td>
                 <td style="padding: 12px 0; text-align: center; font-size: 14px; color: #1f2937;">${item.quantity}</td>
@@ -344,8 +344,7 @@ export default function Orders() {
             <button
                 disabled={updating || isRestricted}
                 onClick={() => {
-                    setSelectedOrderForEdit(order);
-                    setIsEditModalOpen(true);
+                    navigate(`/orders/edit/${order._id}`);
                 }}
                 className={`p-1.5 transition-colors ${isRestricted
                     ? 'text-gray-200 cursor-not-allowed'
@@ -526,11 +525,7 @@ export default function Orders() {
                 </div>
             </div>
 
-            <EditOrderModal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                order={selectedOrderForEdit}
-            />
+
         </div>
     );
 }

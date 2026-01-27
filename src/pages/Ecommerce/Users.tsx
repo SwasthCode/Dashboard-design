@@ -5,8 +5,8 @@ import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
-import AddCustomerModal from "./AddCustomerModal";
-import EditCustomerModal from "./EditCustomerModal";
+import AddUserModal from "./AddUserModal";
+import EditUserModal from "./EditUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import Input from "../../components/form/input/InputField";
@@ -203,7 +203,7 @@ export default function Customers() {
                         <thead>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-                                {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th> */}
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
@@ -248,11 +248,13 @@ export default function Customers() {
                                                     <div className="text-sm font-medium text-gray-800 dark:text-white">
                                                         {user.first_name} {user.last_name}
                                                     </div>
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        {user.email}
-                                                    </div>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                {user.email}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -332,8 +334,8 @@ export default function Customers() {
                     totalResults={users.length}
                 />
             </div>
-            <AddCustomerModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-            <EditCustomerModal
+            <AddUserModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+            <EditUserModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 user={selectedUser}
@@ -342,7 +344,7 @@ export default function Customers() {
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Delete Customer"
+                title="Delete User"
                 message={`Are you sure you want to delete "${selectedUser?.first_name} ${selectedUser?.last_name}"? This action cannot be undone.`}
                 loading={isDeleting}
             />

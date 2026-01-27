@@ -18,8 +18,10 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
-import Customers from "./pages/Ecommerce/Customers";
+import Users from "./pages/Ecommerce/Users";
 import Orders from "./pages/Ecommerce/Orders";
+// import CreateOrder from "./pages/Ecommerce/CreateOrder";
+// import EditOrder from "./pages/Ecommerce/EditOrder";
 import Products from "./pages/Ecommerce/Products";
 import AddProduct from "./pages/Ecommerce/AddProduct";
 import Categories from "./pages/Ecommerce/Categories";
@@ -63,6 +65,8 @@ import ResetPassword from "./pages/Authpages/ResetPassword";
 import Roles from "./pages/Acl/Roles";
 
 import { useSelector } from 'react-redux';
+import CreateOrder from "./pages/Ecommerce/CreateOrder";
+import EditOrder from "./pages/Ecommerce/EditOrder";
 
 const RootAuthGuard = () => {
   const token = useSelector((state: any) => state.auth.token) || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
@@ -96,8 +100,10 @@ export default function App() {
 
             {/* E-Commerce */}
             <Route path="/addresses" element={<Addresses />} />
-            <Route path="/customers" element={<Customers />} />
+            <Route path="/users" element={<Users />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/create" element={<CreateOrder />} />
+            <Route path="/orders/edit/:id" element={<EditOrder />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/add" element={<AddProduct />} />
             <Route path="/main-categories" element={<MainCategories />} />

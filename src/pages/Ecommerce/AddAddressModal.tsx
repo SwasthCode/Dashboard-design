@@ -11,9 +11,10 @@ import DotLoading from "../../components/common/DotLoading";
 interface AddAddressModalProps {
     isOpen: boolean;
     onClose: () => void;
+    userId?: string;
 }
 
-export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProps) {
+export default function AddAddressModal({ isOpen, onClose, userId }: AddAddressModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((state: RootState) => state.auth);
     const { users } = useSelector((state: RootState) => state.user);
@@ -40,6 +41,19 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
         isDefault: false,
         selectedUserId: ""
     });
+
+    React.useEffect(() => {
+        if (userId && users.length > 0) {
+            const selectedCustomer = users.find(u => (u.id || u._id) === userId);
+            if (selectedCustomer) {
+                setFormData(prev => ({
+                    ...prev,
+                    selectedUserId: userId,
+                    name: `${selectedCustomer.first_name} ${selectedCustomer.last_name}`
+                }));
+            }
+        }
+    }, [userId, users]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value, type } = e.target;
@@ -125,7 +139,8 @@ export default function AddAddressModal({ isOpen, onClose }: AddAddressModalProp
                             value={formData.selectedUserId}
                             onChange={handleInputChange}
                             required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white dark:bg-gray-900"
+                            disabled={!!userId}
+                            className={`w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white dark:bg-gray-900 ${userId ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                             <option value="">Select Customer</option>
                             {users.map((customer) => (

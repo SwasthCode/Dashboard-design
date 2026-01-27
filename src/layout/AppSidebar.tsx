@@ -43,11 +43,11 @@ const navItems: NavItem[] = [
     //   { name: "Fintech", path: "/fintech", pro: false },
     // ],s
   },
- 
+
   {
     icon: <GroupIcon />,
     name: "Customers",
-    path: "/customers",
+    path: "/users",
   },
   {
     icon: <FolderIcon />,
@@ -171,7 +171,7 @@ const navItems: NavItem[] = [
   //   name: "Campaigns",
   //   path: "/campaigns",
   // },
- {
+  {
     icon: <LockIcon />,
     name: "ACL",
     subItems: [
