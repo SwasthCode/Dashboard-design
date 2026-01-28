@@ -4,10 +4,10 @@ import { useParams, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store";
 import { fetchOrderById, updateOrder, OrderItem } from "../../store/slices/orderSlice";
-import { fetchProductsSelect } from "../../store/slices/productSlice";
-import { fetchCategoriesSelect } from "../../store/slices/categorySlice";
-import { fetchSubCategoriesSelect } from "../../store/slices/subCategorySlice";
-import { fetchBrandsSelect } from "../../store/slices/brandSlice";
+import { fetchProducts } from "../../store/slices/productSlice";
+import { fetchCategories } from "../../store/slices/categorySlice";
+import { fetchSubCategories } from "../../store/slices/subCategorySlice";
+import { fetchBrands } from "../../store/slices/brandSlice";
 import { fetchAddresses } from "../../store/slices/addressSlice";
 import AddAddressModal from "./AddAddressModal";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -58,10 +58,10 @@ export default function EditOrder() {
         if (id) {
             dispatch(fetchOrderById(id));
         }
-        dispatch(fetchProductsSelect({}));
-        dispatch(fetchCategoriesSelect({}));
-        dispatch(fetchSubCategoriesSelect({}));
-        dispatch(fetchBrandsSelect({}));
+        dispatch(fetchProducts({}));
+        dispatch(fetchCategories({}));
+        dispatch(fetchSubCategories({}));
+        dispatch(fetchBrands({}));
     }, [dispatch, id]);
 
     // Populate Data
@@ -165,7 +165,7 @@ export default function EditOrder() {
             const sanitizedItems = orderItems.map(item => ({
                 product_id: item.product_id || (item as any)._id,
                 name: item.name || item.product_name,
-                image: item.image,
+                image: item.image || 'https://placehold.co/100', // Fallback for backend validation
                 price: item.price,
                 quantity: item.quantity,
                 brand_name: item.brand_name
@@ -178,7 +178,7 @@ export default function EditOrder() {
                     customer_name: formData.customer_name,
                     shipping_address: formData.shipping_address,
                     shipping_phone: formData.shipping_phone,
-                    createdAt: formData.createdAt ? new Date(formData.createdAt).toISOString() : undefined,
+                    // createdAt removed - not allowed in backend DTO
                     items: sanitizedItems,
                     total_amount: calculatedTotal // Using calculated total
                 }
@@ -237,7 +237,7 @@ export default function EditOrder() {
                                 <select
                                     id="address_select"
                                     onChange={handleAddressSelect}
-                                    className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                                    className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
                                 >
                                     <option value="">Select an address to auto-fill...</option>
                                     {addresses.map(a => (
@@ -269,7 +269,7 @@ export default function EditOrder() {
                                 id="status"
                                 value={formData.status}
                                 onChange={handleInputChange}
-                                className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                                className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
                             >
                                 <option value="pending">Pending</option>
                                 <option value="hold">Hold</option>
@@ -294,7 +294,7 @@ export default function EditOrder() {
                             <select
                                 value={selectedCategory}
                                 onChange={(e) => { setSelectedCategory(e.target.value); setSelectedSubCategory(""); }}
-                                className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white"
+                                className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white text-gray-900"
                             >
                                 <option value="">All Categories</option>
                                 {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
@@ -302,7 +302,7 @@ export default function EditOrder() {
                             <select
                                 value={selectedSubCategory}
                                 onChange={(e) => setSelectedSubCategory(e.target.value)}
-                                className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white"
+                                className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white text-gray-900"
                             >
                                 <option value="">All Sub-Categories</option>
                                 {subCategories
@@ -312,7 +312,7 @@ export default function EditOrder() {
                             <select
                                 value={selectedBrand}
                                 onChange={(e) => setSelectedBrand(e.target.value)}
-                                className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white"
+                                className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white text-gray-900"
                             >
                                 <option value="">All Brands</option>
                                 {brands.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
@@ -322,7 +322,7 @@ export default function EditOrder() {
                             <select
                                 value={selectedProductToAdd}
                                 onChange={(e) => setSelectedProductToAdd(e.target.value)}
-                                className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white"
+                                className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 dark:text-white text-gray-900"
                             >
                                 <option value="">Select Product...</option>
                                 {filteredProducts.map(p => (
