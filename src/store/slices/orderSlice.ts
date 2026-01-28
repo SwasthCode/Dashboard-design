@@ -32,7 +32,7 @@ export interface Order {
         landmark?: string;
         alternate_phone?: string;
         type?: string;
-        formatted_address?: string; 
+        formatted_address?: string;
     };
     customer_name?: string;
     total_amount: number;
@@ -47,6 +47,7 @@ export interface Order {
 interface OrderState {
     orders: Order[];
     selectedOrder: Order | null;
+    statuses: string[]; // Dynamic statuses
     loading: boolean;
     updating: boolean;
     error: string | null;
@@ -55,6 +56,7 @@ interface OrderState {
 const initialState: OrderState = {
     orders: [],
     selectedOrder: null,
+    statuses: [],
     loading: false,
     updating: false,
     error: null,
@@ -68,7 +70,7 @@ export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: 
         // but let's be safe and explicit based on user feedback about filters not working.
         // Actually, the buildQueryString utility ALREADY handles stringification.
         // Let's verify usage in the thunk payload.
-        
+
         // If the backend expects ?filter={"status":"pending"}
         const queryString = buildQueryString(params);
         const response = await https.get(`orders${queryString}`);
@@ -105,6 +107,16 @@ export const updateOrder = createAsyncThunk('order/updateOrder', async ({ id, da
     }
 });
 
+export const fetchOrderStatuses = createAsyncThunk('order/fetchOrderStatuses', async (_, { rejectWithValue }) => {
+    try {
+        const response = await https.get(`orders/statuses`);
+        // Assuming API returns { data: ["pending", "shipped", ...] } or just ["..."]
+        return response.data;
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch order statuses');
+    }
+});
+
 const orderSlice = createSlice({
     name: 'order',
     initialState,
@@ -137,6 +149,11 @@ const orderSlice = createSlice({
                 state.selectedOrder = action.payload;
             })
             .addCase(fetchOrderById.rejected, handleRejected)
+
+            // Fetch Statuses
+            .addCase(fetchOrderStatuses.fulfilled, (state, action: PayloadAction<string[]>) => {
+                state.statuses = action.payload;
+            })
 
             .addCase(updateOrderStatus.pending, (state) => {
                 state.updating = true;

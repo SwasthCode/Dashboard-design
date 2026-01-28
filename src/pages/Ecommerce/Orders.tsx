@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders, updateOrderStatus, Order, OrderStatus } from "../../store/slices/orderSlice";
+import { fetchOrders, updateOrderStatus, fetchOrderStatuses, Order, OrderStatus } from "../../store/slices/orderSlice";
 import { createInvoice } from "../../store/slices/invoiceSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -15,7 +15,7 @@ export default function Orders() {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
-    const { orders, loading, updating } = useSelector((state: RootState) => state.order);
+    const { orders, loading, updating, statuses } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
@@ -26,10 +26,14 @@ export default function Orders() {
     const [endDate, setEndDate] = useState("");
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
+    // Fetch dynamic statuses on mount
+    useEffect(() => {
+        dispatch(fetchOrderStatuses());
+    }, [dispatch]);
 
+    const statusOptions = statuses.length > 0 ? statuses : ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
-
-    const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
+    // ... rest of the component code (buildFilter etc.)
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
