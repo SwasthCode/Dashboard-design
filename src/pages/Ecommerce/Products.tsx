@@ -7,6 +7,7 @@ import { fetchProducts, deleteProduct, Product } from "../../store/slices/produc
 import { fetchCategories, Category } from "../../store/slices/categorySlice";
 import { fetchSubCategories, SubCategory } from "../../store/slices/subCategorySlice";
 import { fetchBrands } from "../../store/slices/brandSlice";
+import { fetchMainCategories } from "../../store/slices/mainCategorySlice";
 import Pagination from "../../components/common/Pagination";
 import AddProductModal from "./AddProductModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -21,6 +22,7 @@ export default function Products() {
     const { categories } = useSelector((state: RootState) => state.category);
     const { subCategories } = useSelector((state: RootState) => state.subCategory);
     const { brands } = useSelector((state: RootState) => state.brand);
+    const { mainCategories } = useSelector((state: RootState) => state.mainCategory);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -29,7 +31,7 @@ export default function Products() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-    const itemsPerPage = 6;
+    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -51,14 +53,52 @@ export default function Products() {
         if (categories.length === 0) dispatch(fetchCategories());
         if (subCategories.length === 0) dispatch(fetchSubCategories());
         if (brands.length === 0) dispatch(fetchBrands({}));
-    }, [dispatch, categories.length, subCategories.length, brands.length]);
+        if (mainCategories.length === 0) dispatch(fetchMainCategories({}));
+    }, [dispatch, categories.length, subCategories.length, brands.length, mainCategories.length]);
 
-    // Construct filter for backend
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
         if (searchQuery) {
-            filter.name = { $regex: searchQuery, $options: 'i' };
+            const lowerQuery = searchQuery.toLowerCase();
+
+            // Find IDs of associations matching the query
+            const matchingMainCatIds = mainCategories
+                .filter(mc => mc.name.toLowerCase().includes(lowerQuery))
+                .map(mc => mc._id);
+
+            const matchingCatIds = categories
+                .filter(c =>
+                    c.name.toLowerCase().includes(lowerQuery) ||
+                    (c.main_category_id && matchingMainCatIds.includes(c.main_category_id))
+                )
+                .map(c => c._id);
+
+            const matchingSubCatIds = subCategories
+                .filter(s => s.name.toLowerCase().includes(lowerQuery))
+                .map(s => s._id);
+
+            const matchingBrandIds = brands
+                .filter(b => b.name.toLowerCase().includes(lowerQuery))
+                .map(b => b._id);
+
+            filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { description: { $regex: searchQuery, $options: 'i' } },
+                { unit: { $regex: searchQuery, $options: 'i' } },
+            ];
+
+            // Add ID-based filters for associations
+            if (matchingCatIds.length > 0) {
+                filter.$or.push({ category_id: { $in: matchingCatIds } });
+            }
+            if (matchingSubCatIds.length > 0) {
+                filter.$or.push({ subcategory_id: { $in: matchingSubCatIds } });
+            }
+            if (matchingBrandIds.length > 0) {
+                filter.$or.push({ brand_id: { $in: matchingBrandIds } });
+            }
         }
         if (startDate || endDate) {
             filter.createdAt = {};
@@ -66,7 +106,7 @@ export default function Products() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, categories, subCategories, brands, mainCategories]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -127,7 +167,7 @@ export default function Products() {
 
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-white uppercase tracking-wide">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white  tracking-wide">
                         Product List
                     </h3>
 

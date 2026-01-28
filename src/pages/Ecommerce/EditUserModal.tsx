@@ -246,7 +246,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                                 <DotLoading size="md" className="text-white" />
                                 <span>Saving...</span>
                             </>
-                        ) : "Save Changes"}
+                        ) : "Update"}
                     </button>
                 </div>
             </form>

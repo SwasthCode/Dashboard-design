@@ -25,7 +25,7 @@ export default function Brands() {
     const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -43,7 +43,12 @@ export default function Brands() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
         if (searchQuery) {
-            filter.name = { $regex: searchQuery, $options: 'i' };
+            filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { description: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } },
+            ];
         }
         if (startDate || endDate) {
             filter.createdAt = {};

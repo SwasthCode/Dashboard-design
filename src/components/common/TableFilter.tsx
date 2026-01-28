@@ -172,10 +172,10 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
                                     <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">
                                         <button
                                             type="button"
-                                            onClick={clearAllFilters}
+                                            onClick={() => setIsFilterOpen(false)}
                                             className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
                                         >
-                                            Clear
+                                            Cancel
                                         </button>
                                         <button
                                             type="button"

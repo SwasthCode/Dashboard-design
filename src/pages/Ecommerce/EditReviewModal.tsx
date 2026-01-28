@@ -209,7 +209,7 @@ export default function EditReviewModal({ isOpen, onClose, review }: EditReviewM
                                 <DotLoading size="md" className="text-white" />
                                 <span>Saving...</span>
                             </>
-                        ) : "Save Changes"}
+                        ) : "Update"}
                     </button>
                 </div>
             </form>

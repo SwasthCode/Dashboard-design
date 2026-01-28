@@ -90,7 +90,7 @@ export default function AddRoleModal({ isOpen, onClose }: AddRoleModalProps) {
 
                     <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
+                            {/* <div className="md:col-span-2">
                                 <Label htmlFor="name" className="text-xs uppercase font-bold tracking-wider text-gray-400">Role Name</Label>
                                 <Input
                                     id="name"
@@ -100,7 +100,7 @@ export default function AddRoleModal({ isOpen, onClose }: AddRoleModalProps) {
                                     className="h-11 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
                                     required
                                 />
-                            </div>
+                            </div> */}
                             <div>
                                 <Label htmlFor="key" className="text-xs uppercase font-bold tracking-wider text-gray-400">Role Key (Auto)</Label>
                                 <Input

@@ -207,7 +207,7 @@ export default function EditMainCategoryModal({ isOpen, onClose, category }: Edi
                                 <DotLoading size="md" className="text-white" />
                                 <span>Saving...</span>
                             </>
-                        ) : "Save Changes"}
+                        ) : "Update"}
                     </button>
                 </div>
             </form>

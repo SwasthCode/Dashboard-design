@@ -291,7 +291,7 @@ export default function UserMetaCard() {
                 Close
               </Button>
               <Button size="sm" onClick={handleSave}>
-                Save Changes
+                Update
               </Button>
             </div>
           </form>

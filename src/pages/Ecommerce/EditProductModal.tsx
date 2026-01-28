@@ -583,7 +583,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                                 <DotLoading size="md" className="text-white" />
                                 <span>Saving...</span>
                             </>
-                        ) : "Save Changes"}
+                        ) : "Update"}
                     </button>
                 </div>
             </form>

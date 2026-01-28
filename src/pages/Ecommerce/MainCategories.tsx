@@ -21,7 +21,7 @@ export default function MainCategories() {
     const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -32,7 +32,12 @@ export default function MainCategories() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
         if (searchQuery) {
-            filter.name = { $regex: searchQuery, $options: 'i' };
+            filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { description: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } },
+            ];
         }
         if (startDate || endDate) {
             filter.createdAt = {};

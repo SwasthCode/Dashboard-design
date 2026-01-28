@@ -32,6 +32,8 @@ export default function Categories() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedMainCategories, setSelectedMainCategories] = useState<string[]>([]);
+    const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
 
     useEffect(() => {
         dispatch(fetchCategories({}));
@@ -47,15 +49,45 @@ export default function Categories() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
         if (searchQuery) {
-            filter.name = { $regex: searchQuery, $options: 'i' };
+            // Find IDs of main categories and brands that match the search query
+            const matchingMainCatIds = mainCategories
+                .filter(mc => mc.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(mc => mc._id);
+
+            const matchingBrandIds = brands
+                .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(b => b._id);
+
+            filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { description: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } },
+            ];
+
+            // Add ID-based filters for associations
+            if (matchingMainCatIds.length > 0) {
+                filter.$or.push({ main_category_id: { $in: matchingMainCatIds } });
+            }
+            if (matchingBrandIds.length > 0) {
+                filter.$or.push({ brand_id: { $in: matchingBrandIds } });
+            }
         }
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;
             if (endDate) filter.createdAt.$lte = endDate;
         }
+
+        if (selectedMainCategories.length > 0) {
+            filter.main_category_id = { $in: selectedMainCategories };
+        }
+        if (selectedBrands.length > 0) {
+            filter.brand_id = { $in: selectedBrands };
+        }
+
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, mainCategories, brands, selectedMainCategories, selectedBrands]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -125,7 +157,55 @@ export default function Categories() {
                                 placeholder="Search Categories..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
-                            />
+                            >
+                                <div className="space-y-6">
+                                    {/* Main Category Filter */}
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Main Category</h4>
+                                        <div className="max-h-40 overflow-y-auto custom-scrollbar pr-2 space-y-1">
+                                            {mainCategories.map((mc: any) => (
+                                                <label key={mc._id} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                                        checked={selectedMainCategories.includes(mc._id)}
+                                                        onChange={() => {
+                                                            const newSelection = selectedMainCategories.includes(mc._id)
+                                                                ? selectedMainCategories.filter(id => id !== mc._id)
+                                                                : [...selectedMainCategories, mc._id];
+                                                            setSelectedMainCategories(newSelection);
+                                                        }}
+                                                    />
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300">{mc.name}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Brand Filter */}
+                                    <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-4">
+                                        <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Brand</h4>
+                                        <div className="max-h-40 overflow-y-auto custom-scrollbar pr-2 space-y-1">
+                                            {brands.map((b: any) => (
+                                                <label key={b._id} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                                        checked={selectedBrands.includes(b._id)}
+                                                        onChange={() => {
+                                                            const newSelection = selectedBrands.includes(b._id)
+                                                                ? selectedBrands.filter(id => id !== b._id)
+                                                                : [...selectedBrands, b._id];
+                                                            setSelectedBrands(newSelection);
+                                                        }}
+                                                    />
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300">{b.name}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableFilter>
                         </div>
                         <button
                             onClick={() => setIsAddModalOpen(true)}

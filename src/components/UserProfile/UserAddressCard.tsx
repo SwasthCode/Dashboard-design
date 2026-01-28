@@ -121,7 +121,7 @@ export default function UserAddressCard() {
                 Close
               </Button>
               <Button size="sm" onClick={handleSave}>
-                Save Changes
+                Update
               </Button>
             </div>
           </form>

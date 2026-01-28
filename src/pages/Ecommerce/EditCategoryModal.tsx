@@ -263,7 +263,7 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
                                 <DotLoading size="md" className="text-white" />
                                 <span>Saving...</span>
                             </>
-                        ) : "Save Changes"}
+                        ) : "Update"}
                     </button>
                 </div>
             </form>

@@ -23,7 +23,7 @@ export default function Addresses() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -39,11 +39,17 @@ export default function Addresses() {
         const filter: any = {};
         if (searchQuery) {
             filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
                 { name: { $regex: searchQuery, $options: 'i' } },
                 { shipping_phone: { $regex: searchQuery, $options: 'i' } },
+                { alternate_phone: { $regex: searchQuery, $options: 'i' } },
+                { address: { $regex: searchQuery, $options: 'i' } },
+                { locality: { $regex: searchQuery, $options: 'i' } },
                 { city: { $regex: searchQuery, $options: 'i' } },
                 { state: { $regex: searchQuery, $options: 'i' } },
-                { pincode: { $regex: searchQuery, $options: 'i' } }
+                { pincode: { $regex: searchQuery, $options: 'i' } },
+                { landmark: { $regex: searchQuery, $options: 'i' } },
+                { type: { $regex: searchQuery, $options: 'i' } }
             ];
         }
         if (startDate || endDate) {
@@ -113,7 +119,7 @@ export default function Addresses() {
 
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-white uppercase tracking-wide">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white  tracking-wide">
                         Address List
                     </h3>
 

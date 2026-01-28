@@ -247,7 +247,7 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
                                 <DotLoading size="md" className="text-white" />
                                 <span>Saving...</span>
                             </>
-                        ) : "Save Changes"}
+                        ) : "Update"}
                     </button>
                 </div>
             </form>

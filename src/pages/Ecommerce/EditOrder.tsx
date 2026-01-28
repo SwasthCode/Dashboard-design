@@ -9,6 +9,7 @@ import { fetchCategories } from "../../store/slices/categorySlice";
 import { fetchSubCategories } from "../../store/slices/subCategorySlice";
 import { fetchBrands } from "../../store/slices/brandSlice";
 import { fetchAddresses } from "../../store/slices/addressSlice";
+import { fetchRoles, fetchUsers } from "../../store/slices/userSlice";
 import AddAddressModal from "./AddAddressModal";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -28,6 +29,7 @@ export default function EditOrder() {
     const { subCategories } = useSelector((state: RootState) => state.subCategory);
     const { brands } = useSelector((state: RootState) => state.brand);
     const { addresses } = useSelector((state: RootState) => state.address);
+    const { users, roles } = useSelector((state: RootState) => state.user);
 
     // Local State
     const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +42,7 @@ export default function EditOrder() {
         shipping_address: "",
         shipping_phone: "",
         status: "",
+        packer_id: "",
         createdAt: "",
         total_amount: 0
     });
@@ -62,7 +65,23 @@ export default function EditOrder() {
         dispatch(fetchCategories({}));
         dispatch(fetchSubCategories({}));
         dispatch(fetchBrands({}));
+        // Fetch All Roles to find 'Packer'
+        dispatch(fetchRoles({})).then(() => {
+            // Logic to find packer role ID will be in separate effect or here if response available
+            // But fetchRoles updates store.
+        });
     }, [dispatch, id]);
+
+    // Fetch Packers when roles are loaded
+    useEffect(() => {
+        if (roles.length > 0) {
+            const packerRole = roles.find(r => r.name.toLowerCase() === 'packer');
+            if (packerRole) {
+                // Fetch users with this role_id
+                dispatch(fetchUsers({ filter: { role_id: packerRole._id } }));
+            }
+        }
+    }, [roles, dispatch]);
 
     // Populate Data
     useEffect(() => {
@@ -72,6 +91,7 @@ export default function EditOrder() {
                 shipping_address: selectedOrder.shipping_address || (selectedOrder.address ? selectedOrder.address.address : "") || "",
                 shipping_phone: selectedOrder.shipping_phone || (selectedOrder.address ? selectedOrder.address.shipping_phone : "") || "",
                 status: selectedOrder.status,
+                packer_id: typeof selectedOrder.packer_id === 'object' && selectedOrder.packer_id ? selectedOrder.packer_id._id : (selectedOrder.packer_id || ""),
                 createdAt: selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toISOString().split('T')[0] : "",
                 total_amount: selectedOrder.total_amount
             });
@@ -178,6 +198,7 @@ export default function EditOrder() {
                     customer_name: formData.customer_name,
                     shipping_address: formData.shipping_address,
                     shipping_phone: formData.shipping_phone,
+                    packer_id: formData.packer_id,
                     // createdAt removed - not allowed in backend DTO
                     items: sanitizedItems,
                     total_amount: calculatedTotal // Using calculated total
@@ -243,13 +264,13 @@ export default function EditOrder() {
                                         + Add New Address
                                     </button>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <select
                                         id="address_select"
                                         onChange={handleAddressSelect}
                                         className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
                                     >
-                                        <option value="">Select an address to auto-fill...</option>
+                                        <option value="">Select for auto-fill...</option>
                                         {addresses.map(a => (
                                             <option key={a._id} value={a._id}>
                                                 {a.type}: {a.address}, {a.city} {a.pincode}
@@ -260,35 +281,53 @@ export default function EditOrder() {
                                         id="shipping_address"
                                         value={formData.shipping_address}
                                         onChange={handleInputChange}
-                                        placeholder="Or type full address here"
+                                        placeholder="Full address (auto-filled or manual)"
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <Label htmlFor="createdAt">Date (YYYY-MM-DD)</Label>
-                                <Input
-                                    id="createdAt"
-                                    type="date"
-                                    value={formData.createdAt}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="status">Status</Label>
-                                <select
-                                    id="status"
-                                    value={formData.status}
-                                    onChange={handleInputChange}
-                                    className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="hold">Hold</option>
-                                    <option value="ready">Ready</option>
-                                    <option value="shipped">Shipped</option>
-                                    <option value="delivered">Delivered</option>
-                                    <option value="cancelled">Cancelled</option>
-                                    <option value="returned">Returned</option>
-                                </select>
+                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                <div>
+                                    <Label htmlFor="createdAt">Date (YYYY-MM-DD)</Label>
+                                    <Input
+                                        id="createdAt"
+                                        type="date"
+                                        value={formData.createdAt}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="status">Status</Label>
+                                    <select
+                                        id="status"
+                                        value={formData.status}
+                                        onChange={handleInputChange}
+                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
+                                    >
+                                        <option value="pending">Pending</option>
+                                        <option value="hold">Hold</option>
+                                        <option value="ready">Ready</option>
+                                        <option value="shipped">Shipped</option>
+                                        <option value="delivered">Delivered</option>
+                                        <option value="cancelled">Cancelled</option>
+                                        <option value="returned">Returned</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="packer_id">Select Your Packer</Label>
+                                    <select
+                                        id="packer_id"
+                                        value={formData.packer_id || ""}
+                                        onChange={handleInputChange}
+                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
+                                    >
+                                        <option value="">Select a packer...</option>
+                                        {users.map(u => (
+                                            <option key={u._id} value={u._id}>
+                                                {u.first_name} {u.last_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -425,7 +464,7 @@ export default function EditOrder() {
                             disabled={isSaving || orderItems.length === 0}
                             className="px-6 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 shadow-lg shadow-brand-500/20 disabled:opacity-50"
                         >
-                            {isSaving ? "Saving..." : "Save Changes"}
+                            {isSaving ? "Saving..." : "Update"}
                         </button>
                     </div>
                 </form>

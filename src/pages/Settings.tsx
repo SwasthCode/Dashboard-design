@@ -39,7 +39,7 @@ export default function Settings() {
 
                         <div className="flex justify-end pt-6">
                             <button className="bg-brand-500 text-white px-10 py-4 rounded-2xl font-bold hover:scale-[1.02] active:scale-100 shadow-xl shadow-brand-500/20 transition-all">
-                                Save Changes
+                                Update
                             </button>
                         </div>
                     </form>

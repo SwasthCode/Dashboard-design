@@ -18,13 +18,14 @@ export default function Orders() {
     const { orders, loading, updating, error } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 7;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([]);
 
     useEffect(() => {
         console.log("Orders Page State:", { ordersLength: orders.length, loading, error, orders });
@@ -42,6 +43,11 @@ export default function Orders() {
             filter.$or = [
                 { _id: { $regex: searchQuery, $options: 'i' } },
                 { customer_name: { $regex: searchQuery, $options: 'i' } },
+                { shipping_phone: { $regex: searchQuery, $options: 'i' } },
+                { shipping_address: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } },
+                { payment_status: { $regex: searchQuery, $options: 'i' } },
+                { payment_method: { $regex: searchQuery, $options: 'i' } },
             ];
         }
         if (startDate || endDate) {
@@ -52,8 +58,11 @@ export default function Orders() {
         if (selectedStatuses.length > 0) {
             filter.status = { $in: selectedStatuses.map(s => s.toLowerCase()) };
         }
+        if (selectedPaymentMethods.length > 0) {
+            filter.payment_method = { $in: selectedPaymentMethods };
+        }
         return filter;
-    }, [searchQuery, startDate, endDate, selectedStatuses]);
+    }, [searchQuery, startDate, endDate, selectedStatuses, selectedPaymentMethods]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -405,25 +414,51 @@ export default function Orders() {
                             }}
                             className="mb-0"
                         >
-                            <div className="space-y-2">
-                                <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Filter by Status</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {statusOptions.map((status) => (
-                                        <label key={status} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                            <input
-                                                type="checkbox"
-                                                className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
-                                                checked={selectedStatuses.includes(status)}
-                                                onChange={() => {
-                                                    const newStatuses = selectedStatuses.includes(status)
-                                                        ? selectedStatuses.filter(s => s !== status)
-                                                        : [...selectedStatuses, status];
-                                                    setSelectedStatuses(newStatuses);
-                                                }}
-                                            />
-                                            <span className="text-sm text-gray-700 dark:text-gray-300">{status}</span>
-                                        </label>
-                                    ))}
+                            <div className="space-y-6">
+                                {/* Status Filter */}
+                                <div className="space-y-2">
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Filter by Status</h4>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {statusOptions.map((status) => (
+                                            <label key={status} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                                    checked={selectedStatuses.includes(status)}
+                                                    onChange={() => {
+                                                        const newStatuses = selectedStatuses.includes(status)
+                                                            ? selectedStatuses.filter(s => s !== status)
+                                                            : [...selectedStatuses, status];
+                                                        setSelectedStatuses(newStatuses);
+                                                    }}
+                                                />
+                                                <span className="text-sm text-gray-700 dark:text-gray-300">{status}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Payment Method Filter */}
+                                <div className="space-y-2">
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Payment Method</h4>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {["Online", "COD"].map((method) => (
+                                            <label key={method} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                                    checked={selectedPaymentMethods.includes(method)}
+                                                    onChange={() => {
+                                                        const newMethods = selectedPaymentMethods.includes(method)
+                                                            ? selectedPaymentMethods.filter(m => m !== method)
+                                                            : [...selectedPaymentMethods, method];
+                                                        setSelectedPaymentMethods(newMethods);
+                                                    }}
+                                                />
+                                                <span className="text-sm text-gray-700 dark:text-gray-300">{method}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </TableFilter>
@@ -438,7 +473,9 @@ export default function Orders() {
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Address</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Products</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Payment</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Price</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Packer</th>
                                 {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Updated At</th> */}
                                 <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">INVOICE</th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">STATUS</th>
@@ -448,7 +485,7 @@ export default function Orders() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={11} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <DotLoading />
                                             <span>Loading orders...</span>
@@ -457,7 +494,7 @@ export default function Orders() {
                                 </tr>
                             ) : orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={11} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -510,7 +547,22 @@ export default function Orders() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_method?.toLowerCase() === 'online'
+                                                ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                                : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                }`}>
+                                                {order.payment_method || 'N/A'}
+                                            </span>
+                                        </td>
                                         <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">&#8377;{order.total_amount}</span></td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className="text-sm text-gray-800 dark:text-white">
+                                                {typeof order.packer_id === 'object' && order.packer_id
+                                                    ? `${order.packer_id.first_name || ''} ${order.packer_id.last_name || ''}`
+                                                    : 'N/A'}
+                                            </span>
+                                        </td>
                                         {/* <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">{order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : "-"}</span></td> */}
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             {['pending', 'ready', 'ship', 'shipped', 'delivered'].includes(order.status.toLowerCase()) ? (
@@ -549,7 +601,7 @@ export default function Orders() {
                     endIndex={indexOfLastItem}
                     totalResults={orders.length}
                 />
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

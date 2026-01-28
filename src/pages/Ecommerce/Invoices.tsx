@@ -7,7 +7,7 @@ import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
-import { EyeIcon, TrashBinIcon } from "../../icons";
+import { TrashBinIcon } from "../../icons";
 import { Order } from "../../store/slices/orderSlice";
 
 interface Invoice {
@@ -30,7 +30,7 @@ export default function Invoices() {
     const dispatch = useDispatch<AppDispatch>();
     const { invoices: backendInvoices, loading } = useSelector((state: RootState) => state.invoice);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -42,10 +42,13 @@ export default function Invoices() {
         const filter: any = {};
         if (searchQuery) {
             filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
                 { invoice_number: { $regex: searchQuery, $options: 'i' } },
-                { 'user_id.first_name': { $regex: searchQuery, $options: 'i' } },
-                { 'user_id.last_name': { $regex: searchQuery, $options: 'i' } },
-                { 'user_id.email': { $regex: searchQuery, $options: 'i' } }
+                { 'billing_address.name': { $regex: searchQuery, $options: 'i' } },
+                { 'billing_address.shipping_phone': { $regex: searchQuery, $options: 'i' } },
+                { 'billing_address.address': { $regex: searchQuery, $options: 'i' } },
+                { payment_method: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } }
             ];
         }
         if (startDate || endDate) {
@@ -244,7 +247,7 @@ export default function Invoices() {
 
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-white uppercase tracking-wide">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white  tracking-wide">
                         Invoice List
                     </h3>
 
@@ -367,11 +370,11 @@ export default function Invoices() {
                                             {invoice.orderStatus ? (
                                                 <span
                                                     className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border border-transparent ${invoice.orderStatus.toLowerCase() === "pending" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-500" :
-                                                            invoice.orderStatus.toLowerCase() === "ready" ? "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500" :
-                                                                invoice.orderStatus.toLowerCase() === "shipped" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-500" :
-                                                                    invoice.orderStatus.toLowerCase() === "delivered" ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500" :
-                                                                        invoice.orderStatus.toLowerCase() === "cancelled" ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500" :
-                                                                            "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                                                        invoice.orderStatus.toLowerCase() === "ready" ? "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500" :
+                                                            invoice.orderStatus.toLowerCase() === "shipped" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-500" :
+                                                                invoice.orderStatus.toLowerCase() === "delivered" ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500" :
+                                                                    invoice.orderStatus.toLowerCase() === "cancelled" ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500" :
+                                                                        "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                                                         }`}
                                                 >
                                                     {invoice.orderStatus.charAt(0).toUpperCase() + invoice.orderStatus.slice(1)}
@@ -391,7 +394,9 @@ export default function Invoices() {
                                                         className="p-1.5 text-gray-500 hover:text-brand-500 bg-white border border-gray-200 rounded-lg hover:border-brand-200 transition-all shadow-sm"
                                                         title="View/Print Invoice"
                                                     >
-                                                        <EyeIcon className="w-4 h-4" />
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                                                        </svg>
                                                     </button>
                                                 )}
                                                 <button

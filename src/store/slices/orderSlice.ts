@@ -47,6 +47,13 @@ export interface Order {
     items?: OrderItem[];
     shipping_address?: string;
     shipping_phone?: string;
+    packer_id?: string | {
+        _id: string;
+        first_name: string;
+        last_name: string;
+    };
+    payment_method?: string;
+    payment_status?: string;
     createdAt: string;
     updatedAt: string;
 }

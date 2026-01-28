@@ -10,8 +10,6 @@ import AddUserModal from "./AddUserModal";
 import EditUserModal from "./EditUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
-import Input from "../../components/form/input/InputField";
-import Select from "../../components/form/Select";
 import DotLoading from "../../components/common/DotLoading";
 
 
@@ -35,15 +33,8 @@ export default function Customers() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    // Granular Filters
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
-    const [roleFilter, setRoleFilter] = useState("");
-
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 9;
 
     useEffect(() => {
         if (roles.length === 0) dispatch(fetchRoles({}));
@@ -57,25 +48,19 @@ export default function Customers() {
         if (roleId) {
             // Filter by role_id as requested
             filter.role_id = roleId;
-        } else if (roleFilter) {
-            filter.role_id = roleFilter;
         }
 
         // Global search
         if (searchQuery) {
             filter.$or = [
+                { _id: { $regex: searchQuery, $options: 'i' } },
                 { first_name: { $regex: searchQuery, $options: 'i' } },
                 { last_name: { $regex: searchQuery, $options: 'i' } },
                 { email: { $regex: searchQuery, $options: 'i' } },
-                { phone_number: { $regex: searchQuery, $options: 'i' } }
+                { phone_number: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } }
             ];
         }
-
-        // Granular filters
-        if (firstName) filter.first_name = { $regex: firstName, $options: 'i' };
-        if (lastName) filter.last_name = { $regex: lastName, $options: 'i' };
-        if (email) filter.email = { $regex: email, $options: 'i' };
-        if (phone) filter.phone_number = { $regex: phone, $options: 'i' };
 
         if (startDate || endDate) {
             filter.createdAt = {};
@@ -83,7 +68,7 @@ export default function Customers() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
         return filter;
-    }, [searchQuery, startDate, endDate, firstName, lastName, email, phone, roleId, roleFilter]);
+    }, [searchQuery, startDate, endDate, roleId]);
 
     // Debounced Fetch
     useEffect(() => {
@@ -163,7 +148,7 @@ export default function Customers() {
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
                             >
-                                <div className="space-y-3">
+                                {/* <div className="space-y-3">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Advanced Filters</h4>
                                     <div className="space-y-3">
                                         <div>
@@ -227,7 +212,7 @@ export default function Customers() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
                             </TableFilter>
                         </div>
                         <button

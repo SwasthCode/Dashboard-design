@@ -248,7 +248,7 @@ export default function EditAddressModal({ isOpen, onClose, address }: EditAddre
                                 <DotLoading size="md" className="text-white" />
                                 <span>Saving...</span>
                             </>
-                        ) : "Save Changes"}
+                        ) : "Update"}
                     </button>
                 </div>
             </form>
