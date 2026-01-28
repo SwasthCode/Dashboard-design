@@ -146,7 +146,7 @@ export default function Customers() {
         <div>
             <PageMeta
                 title={`${pageTitle} | TailAdmin - React.js Admin Dashboard`}
-                description="Customers page"
+                description={`${pageTitle} page`}
             />
             <PageBreadcrumb pageTitle={pageTitle} />
 
@@ -237,7 +237,7 @@ export default function Customers() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Add Customer
+                            Add {currentRole ? currentRole.name : "Customer"}
                         </button>
                     </div>
                 </div>
@@ -258,17 +258,23 @@ export default function Customers() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500">
-                                        <div className="flex flex-col items-center gap-2">
+                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                        <div className="flex flex-col items-center justify-center gap-2">
                                             <DotLoading />
-                                            <span>Loading customers...</span>
+                                            <span>Loading {pageTitle.toLowerCase()}...</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500">
-                                        No customers found.
+                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            </svg>
+                                            <p className="text-lg font-medium text-gray-600 dark:text-gray-400">No {pageTitle.toLowerCase()} found</p>
+                                            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (

@@ -189,8 +189,8 @@ export default function Products() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500">
-                                        <div className="flex flex-col items-center gap-2">
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                        <div className="flex flex-col items-center justify-center gap-2">
                                             <DotLoading />
                                             <span>Loading products...</span>
                                         </div>
@@ -198,8 +198,14 @@ export default function Products() {
                                 </tr>
                             ) : currentProducts.length === 0 ? (
                                 <tr className="animate-fadeIn">
-                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500">
-                                        No products found.
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                            </svg>
+                                            <p className="text-lg font-medium text-gray-600 dark:text-gray-400">No products found</p>
+                                            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : null}
