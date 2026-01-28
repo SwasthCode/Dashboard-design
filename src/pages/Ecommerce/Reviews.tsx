@@ -43,15 +43,7 @@ export default function Reviews() {
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
-        if (searchQuery) {
-            filter.$or = [
-                { _id: { $regex: searchQuery, $options: 'i' } },
-                { comment: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } }
-            ];
-            // Note: Searching by product name or user name would require backend support to filter on populated fields or aggregations.
-            // For now, we search on fields directly on the review model + status.
-        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;

@@ -59,47 +59,7 @@ export default function Products() {
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
-        if (searchQuery) {
-            const lowerQuery = searchQuery.toLowerCase();
 
-            // Find IDs of associations matching the query
-            const matchingMainCatIds = mainCategories
-                .filter(mc => mc.name.toLowerCase().includes(lowerQuery))
-                .map(mc => mc._id);
-
-            const matchingCatIds = categories
-                .filter(c =>
-                    c.name.toLowerCase().includes(lowerQuery) ||
-                    (c.main_category_id && matchingMainCatIds.includes(c.main_category_id))
-                )
-                .map(c => c._id);
-
-            const matchingSubCatIds = subCategories
-                .filter(s => s.name.toLowerCase().includes(lowerQuery))
-                .map(s => s._id);
-
-            const matchingBrandIds = brands
-                .filter(b => b.name.toLowerCase().includes(lowerQuery))
-                .map(b => b._id);
-
-            filter.$or = [
-                { _id: { $regex: searchQuery, $options: 'i' } },
-                { name: { $regex: searchQuery, $options: 'i' } },
-                { description: { $regex: searchQuery, $options: 'i' } },
-                { unit: { $regex: searchQuery, $options: 'i' } },
-            ];
-
-            // Add ID-based filters for associations
-            if (matchingCatIds.length > 0) {
-                filter.$or.push({ category_id: { $in: matchingCatIds } });
-            }
-            if (matchingSubCatIds.length > 0) {
-                filter.$or.push({ subcategory_id: { $in: matchingSubCatIds } });
-            }
-            if (matchingBrandIds.length > 0) {
-                filter.$or.push({ brand_id: { $in: matchingBrandIds } });
-            }
-        }
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;

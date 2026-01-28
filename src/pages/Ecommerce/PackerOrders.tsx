@@ -64,6 +64,7 @@ export default function PackerOrders() {
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                                 <th className="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
                                 <th className="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                                <th className="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Picker</th>
                                 <th className="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Status</th>
                                 <th className="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider text-center">PACKING</th>
                             </tr>
@@ -75,6 +76,11 @@ export default function PackerOrders() {
                                 <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                     <td className="px-4 py-3 whitespace-nowrap font-medium text-brand-500">#{order._id.slice(-8)}</td>
                                     <td className="px-4 py-3 text-sm">{order.customer_name || (order.user ? `${order.user.first_name} ${order.user.last_name}` : 'Unknown')}</td>
+                                    <td className="px-4 py-3 text-sm">
+                                        {typeof order.picker_id === 'object' && order.picker_id
+                                            ? `${order.picker_id.first_name || ''} ${order.picker_id.last_name || ''}`
+                                            : <span className="text-gray-400 italic">N/A</span>}
+                                    </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${order.status === 'ready' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
                                             {order.status}

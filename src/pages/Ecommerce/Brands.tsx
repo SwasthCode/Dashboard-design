@@ -42,14 +42,7 @@ export default function Brands() {
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
-        if (searchQuery) {
-            filter.$or = [
-                { _id: { $regex: searchQuery, $options: 'i' } },
-                { name: { $regex: searchQuery, $options: 'i' } },
-                { description: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } },
-            ];
-        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;
@@ -255,8 +248,14 @@ export default function Brands() {
                             )}
                             {!loading && brands.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
-                                        No brands found.
+                                    <td colSpan={7} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                            <p className="text-lg font-medium text-gray-600 dark:text-gray-400">No brands found</p>
+                                            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}

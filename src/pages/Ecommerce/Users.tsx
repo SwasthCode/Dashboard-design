@@ -51,16 +51,7 @@ export default function Customers() {
         }
 
         // Global search
-        if (searchQuery) {
-            filter.$or = [
-                { _id: { $regex: searchQuery, $options: 'i' } },
-                { first_name: { $regex: searchQuery, $options: 'i' } },
-                { last_name: { $regex: searchQuery, $options: 'i' } },
-                { email: { $regex: searchQuery, $options: 'i' } },
-                { phone_number: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } }
-            ];
-        }
+
 
         if (startDate || endDate) {
             filter.createdAt = {};

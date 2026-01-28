@@ -74,19 +74,10 @@ export default function EditOrder() {
     }, [dispatch, id]);
 
     // Fetch Packers/Pickers when roles are loaded
-    useEffect(() => {
-        if (roles.length > 0) {
-            const packerRole = roles.find(r => r.name.toLowerCase() === 'packer');
-            const pickerRole = roles.find(r => r.name.toLowerCase() === 'picker');
-
-            if (packerRole) {
-                dispatch(fetchUsers({ filter: { role_id: packerRole._id } }));
-            }
-            if (pickerRole) {
-                dispatch(fetchUsers({ filter: { role_id: pickerRole._id } }));
-            }
-        }
-    }, [roles, dispatch]);
+    if (roles.length > 0) {
+        // Fetch all users to populate both picker and packer lists correctly
+        dispatch(fetchUsers({}));
+    }
 
     // Populate Data
     useEffect(() => {
@@ -319,25 +310,7 @@ export default function EditOrder() {
                                         <option value="returned">Returned</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <Label htmlFor="picker_id">Assign Picker</Label>
-                                    <select
-                                        id="picker_id"
-                                        value={formData.picker_id || ""}
-                                        onChange={handleInputChange}
-                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
-                                    >
-                                        <option value="">Select a picker...</option>
-                                        {users.filter(u => {
-                                            const pickerRole = roles.find(r => r.name.toLowerCase() === 'picker');
-                                            return u.role && u.role.some(r => (typeof r === 'object' ? r._id : r) === (pickerRole?._id || pickerRole));
-                                        }).map(u => (
-                                            <option key={u._id} value={u._id}>
-                                                {u.first_name} {u.last_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                             
                                 <div>
                                     <Label htmlFor="packer_id">Assign Packer</Label>
                                     <select
@@ -361,46 +334,6 @@ export default function EditOrder() {
                         </div>
                     </div>
 
-                    {/* Picker/Packer Status (Read-only for Admin) */}
-                    {(selectedOrder?.picker_id || selectedOrder?.packer_id) && (
-                        <div className="bg-gray-50 dark:bg-gray-800/20 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                            <h3 className="text-sm font-bold uppercase text-gray-500 mb-4 tracking-wider">Fulfillment Status</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-500">Picker Acceptance:</span>
-                                        {selectedOrder.picker_accepted === undefined ? (
-                                            <span className="text-xs font-bold text-gray-400">PENDING</span>
-                                        ) : selectedOrder.picker_accepted ? (
-                                            <span className="px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-600 rounded-full uppercase">Accepted</span>
-                                        ) : (
-                                            <span className="px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-600 rounded-full uppercase">Rejected</span>
-                                        )}
-                                    </div>
-                                    {selectedOrder.picker_remark && (
-                                        <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
-                                            <span className="text-[10px] block font-bold text-gray-400 uppercase mb-1">Picker Remark</span>
-                                            <p className="text-xs italic text-gray-600 dark:text-gray-300">"{selectedOrder.picker_remark}"</p>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-500">Packer Status:</span>
-                                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${selectedOrder.status === 'ready' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
-                                            {selectedOrder.status === 'ready' ? 'Packed' : selectedOrder.status}
-                                        </span>
-                                    </div>
-                                    {selectedOrder.packer_remark && (
-                                        <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
-                                            <span className="text-[10px] block font-bold text-gray-400 uppercase mb-1">Packer Remark</span>
-                                            <p className="text-xs italic text-gray-600 dark:text-gray-300">"{selectedOrder.packer_remark}"</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Products Section */}
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">

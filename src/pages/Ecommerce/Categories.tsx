@@ -48,31 +48,7 @@ export default function Categories() {
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
-        if (searchQuery) {
-            // Find IDs of main categories and brands that match the search query
-            const matchingMainCatIds = mainCategories
-                .filter(mc => mc.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map(mc => mc._id);
 
-            const matchingBrandIds = brands
-                .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map(b => b._id);
-
-            filter.$or = [
-                { _id: { $regex: searchQuery, $options: 'i' } },
-                { name: { $regex: searchQuery, $options: 'i' } },
-                { description: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } },
-            ];
-
-            // Add ID-based filters for associations
-            if (matchingMainCatIds.length > 0) {
-                filter.$or.push({ main_category_id: { $in: matchingMainCatIds } });
-            }
-            if (matchingBrandIds.length > 0) {
-                filter.$or.push({ brand_id: { $in: matchingBrandIds } });
-            }
-        }
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;
