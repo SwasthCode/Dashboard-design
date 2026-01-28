@@ -94,7 +94,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                 payload.append("first_name", formData.first_name);
                 payload.append("last_name", formData.last_name);
                 payload.append("email", formData.email);
-                payload.append("image", image);
+                payload.append("profile_image", image); // Correct key for users
             } else {
                 // Send as plain object if no image, simpler for most APIs
                 payload = {

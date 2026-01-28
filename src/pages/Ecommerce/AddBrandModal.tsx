@@ -19,7 +19,6 @@ export default function AddBrandModal({ isOpen, onClose }: AddBrandModalProps) {
 
     const [formData, setFormData] = useState({
         name: "",
-        description: "",
         main_category_id: "",
         status: "active" as "active" | "inactive",
         image: null as File | null,
@@ -50,7 +49,6 @@ export default function AddBrandModal({ isOpen, onClose }: AddBrandModalProps) {
         try {
             const data = new FormData();
             data.append("name", formData.name);
-            data.append("description", formData.description);
             data.append("main_category_id", formData.main_category_id);
             data.append("status", formData.status);
             if (formData.image) {
@@ -59,7 +57,7 @@ export default function AddBrandModal({ isOpen, onClose }: AddBrandModalProps) {
 
             await dispatch(addBrand(data)).unwrap();
             onClose();
-            setFormData({ name: "", description: "", main_category_id: "", status: "active", image: null });
+            setFormData({ name: "", main_category_id: "", status: "active", image: null });
             setImagePreview(null);
         } catch (err: any) {
             setError(err || "Failed to add brand");
@@ -142,16 +140,7 @@ export default function AddBrandModal({ isOpen, onClose }: AddBrandModalProps) {
                             </select>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Description (Optional)</label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all dark:text-white resize-none"
-                                placeholder="Short description about the brand..."
-                                rows={3}
-                            />
-                        </div>
+
 
                         <div>
                             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Status</label>

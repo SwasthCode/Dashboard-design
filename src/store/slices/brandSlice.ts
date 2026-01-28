@@ -5,7 +5,6 @@ import { QueryParams, buildQueryString } from '../types';
 export interface Brand {
     _id?: string;
     name: string;
-    description?: string;
     image?: string;
     main_category_id?: string;
     status: 'active' | 'inactive';

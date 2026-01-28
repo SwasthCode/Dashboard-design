@@ -151,9 +151,7 @@ export default function Brands() {
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Main Category
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                    Description
-                                </th>
+
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Status
                                 </th>
@@ -171,7 +169,7 @@ export default function Brands() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500">
+                                    <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading brands...</span>
@@ -209,11 +207,7 @@ export default function Brands() {
                                                 {mainCategories.find(mc => mc._id === brand.main_category_id)?.name || "N/A"}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 whitespace-nowrap">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-[200px] block" title={brand.description}>
-                                                {brand.description || "No description"}
-                                            </span>
-                                        </td>
+
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <span
                                                 className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border border-transparent ${brand.status === "active"
@@ -261,7 +255,7 @@ export default function Brands() {
                             )}
                             {!loading && brands.length === 0 && (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500">
+                                    <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
                                         No brands found.
                                     </td>
                                 </tr>
