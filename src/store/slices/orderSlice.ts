@@ -52,6 +52,14 @@ export interface Order {
         first_name: string;
         last_name: string;
     };
+    picker_id?: string | {
+        _id: string;
+        first_name: string;
+        last_name: string;
+    };
+    picker_accepted?: boolean;
+    picker_remark?: string;
+    packer_remark?: string;
     payment_method?: string;
     payment_status?: string;
     createdAt: string;
@@ -109,6 +117,24 @@ export const fetchOrderById = createAsyncThunk('order/fetchOrderById', async (id
     }
 });
 
+export const fetchMyPicks = createAsyncThunk('order/fetchMyPicks', async (_, { rejectWithValue }) => {
+    try {
+        const response = await https.get('orders/my-picks');
+        return response.data || [];
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch picks');
+    }
+});
+
+export const fetchMyPacks = createAsyncThunk('order/fetchMyPacks', async (_, { rejectWithValue }) => {
+    try {
+        const response = await https.get('orders/my-packs');
+        return response.data || [];
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to fetch packs');
+    }
+});
+
 export const updateOrderStatus = createAsyncThunk('order/updateOrderStatus', async ({ id, status }: { id: string; status: OrderStatus }, { rejectWithValue }) => {
     try {
         const response = await https.put(`orders/${id}`, { status });
@@ -152,6 +178,20 @@ const orderSlice = createSlice({
                 state.orders = action.payload;
             })
             .addCase(fetchOrders.rejected, handleRejected)
+
+            .addCase(fetchMyPicks.pending, handlePending)
+            .addCase(fetchMyPicks.fulfilled, (state, action: PayloadAction<Order[]>) => {
+                state.loading = false;
+                state.orders = action.payload;
+            })
+            .addCase(fetchMyPicks.rejected, handleRejected)
+
+            .addCase(fetchMyPacks.pending, handlePending)
+            .addCase(fetchMyPacks.fulfilled, (state, action: PayloadAction<Order[]>) => {
+                state.loading = false;
+                state.orders = action.payload;
+            })
+            .addCase(fetchMyPacks.rejected, handleRejected)
 
             .addCase(fetchOrderById.pending, handlePending)
             .addCase(fetchOrderById.fulfilled, (state, action: PayloadAction<Order>) => {

@@ -66,6 +66,8 @@ import Roles from "./pages/Acl/Roles";
 import { useSelector } from 'react-redux';
 import CreateOrder from "./pages/Ecommerce/CreateOrder";
 import EditOrder from "./pages/Ecommerce/EditOrder";
+import PickerOrders from "./pages/Ecommerce/PickerOrders";
+import PackerOrders from "./pages/Ecommerce/PackerOrders";
 
 const RootAuthGuard = () => {
   const token = useSelector((state: any) => state.auth.token) || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
@@ -104,6 +106,8 @@ export default function App() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/create" element={<CreateOrder />} />
             <Route path="/orders/edit/:id" element={<EditOrder />} />
+            <Route path="/orders/picker" element={<PickerOrders />} />
+            <Route path="/orders/packer" element={<PackerOrders />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/add" element={<AddProduct />} />
             <Route path="/main-categories" element={<MainCategories />} />

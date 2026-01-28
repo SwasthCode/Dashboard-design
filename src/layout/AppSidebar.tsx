@@ -14,7 +14,7 @@ import {
   HorizontaLDots,
   PlugInIcon,
   LockIcon,
-  // ShootingStarIcon,
+  ShootingStarIcon,
   // TaskIcon,
   ChatIcon,
   FolderIcon,
@@ -86,6 +86,11 @@ const staticNavItems: NavItem[] = [
     path: "/reviews",
   },
   {
+    icon: <ShootingStarIcon />,
+    name: "Coupons",
+    path: "/coupons",
+  },
+  {
     icon: <LockIcon />,
     name: "ACL",
     subItems: [
@@ -142,6 +147,7 @@ const AppSidebar: React.FC = () => {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { roles, roleCounts } = useSelector((state: RootState) => state.user);
+  const { user: currentUser } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     dispatch(fetchRoles({}));
@@ -167,8 +173,28 @@ const AppSidebar: React.FC = () => {
     // Insert Customers item after Dashboard (index 0)
     const newItems = [...staticNavItems];
     newItems.splice(1, 0, customersItem);
+
+    // Add Picker/Packer specific items if user has the role
+    const userRoleKeys = currentUser?.role?.map((r: any) => typeof r === 'object' ? r.key?.toLowerCase() : r.toLowerCase()) || [];
+
+    if (userRoleKeys.includes('picker') || userRoleKeys.includes('admin')) {
+      newItems.push({
+        icon: <ListIcon />,
+        name: " Picks",
+        path: "/orders/picker"
+      });
+    }
+
+    if (userRoleKeys.includes('packer') || userRoleKeys.includes('admin')) {
+      newItems.push({
+        icon: <BoxCubeIcon />,
+        name: "Packs",
+        path: "/orders/packer"
+      });
+    }
+
     return newItems;
-  }, [roles, roleCounts]);
+  }, [roles, roleCounts, currentUser]);
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";

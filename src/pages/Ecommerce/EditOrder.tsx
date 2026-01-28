@@ -43,6 +43,7 @@ export default function EditOrder() {
         shipping_phone: "",
         status: "",
         packer_id: "",
+        picker_id: "",
         createdAt: "",
         total_amount: 0
     });
@@ -72,13 +73,17 @@ export default function EditOrder() {
         });
     }, [dispatch, id]);
 
-    // Fetch Packers when roles are loaded
+    // Fetch Packers/Pickers when roles are loaded
     useEffect(() => {
         if (roles.length > 0) {
             const packerRole = roles.find(r => r.name.toLowerCase() === 'packer');
+            const pickerRole = roles.find(r => r.name.toLowerCase() === 'picker');
+
             if (packerRole) {
-                // Fetch users with this role_id
                 dispatch(fetchUsers({ filter: { role_id: packerRole._id } }));
+            }
+            if (pickerRole) {
+                dispatch(fetchUsers({ filter: { role_id: pickerRole._id } }));
             }
         }
     }, [roles, dispatch]);
@@ -92,6 +97,7 @@ export default function EditOrder() {
                 shipping_phone: selectedOrder.shipping_phone || (selectedOrder.address ? selectedOrder.address.shipping_phone : "") || "",
                 status: selectedOrder.status,
                 packer_id: typeof selectedOrder.packer_id === 'object' && selectedOrder.packer_id ? selectedOrder.packer_id._id : (selectedOrder.packer_id || ""),
+                picker_id: typeof selectedOrder.picker_id === 'object' && selectedOrder.picker_id ? selectedOrder.picker_id._id : (selectedOrder.picker_id || ""),
                 createdAt: selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toISOString().split('T')[0] : "",
                 total_amount: selectedOrder.total_amount
             });
@@ -199,6 +205,7 @@ export default function EditOrder() {
                     shipping_address: formData.shipping_address,
                     shipping_phone: formData.shipping_phone,
                     packer_id: formData.packer_id,
+                    picker_id: formData.picker_id,
                     // createdAt removed - not allowed in backend DTO
                     items: sanitizedItems,
                     total_amount: calculatedTotal // Using calculated total
@@ -312,8 +319,27 @@ export default function EditOrder() {
                                         <option value="returned">Returned</option>
                                     </select>
                                 </div>
+                                {/* <div>
+                                    <Label htmlFor="picker_id">Assign Picker</Label>
+                                    <select
+                                        id="picker_id"
+                                        value={formData.picker_id || ""}
+                                        onChange={handleInputChange}
+                                        className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
+                                    >
+                                        <option value="">Select a picker...</option>
+                                        {users.filter(u => {
+                                            const pickerRole = roles.find(r => r.name.toLowerCase() === 'picker');
+                                            return u.role && u.role.some(r => (typeof r === 'object' ? r._id : r) === pickerRole?._id);
+                                        }).map(u => (
+                                            <option key={u._id} value={u._id}>
+                                                {u.first_name} {u.last_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div> */}
                                 <div>
-                                    <Label htmlFor="packer_id">Select Your Packer</Label>
+                                    <Label htmlFor="packer_id">Assign Packer</Label>
                                     <select
                                         id="packer_id"
                                         value={formData.packer_id || ""}
@@ -321,7 +347,10 @@ export default function EditOrder() {
                                         className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white text-gray-900"
                                     >
                                         <option value="">Select a packer...</option>
-                                        {users.map(u => (
+                                        {users.filter(u => {
+                                            const packerRole = roles.find(r => r.name.toLowerCase() === 'packer');
+                                            return u.role && u.role.some(r => (typeof r === 'object' ? r._id : r) === packerRole?._id);
+                                        }).map(u => (
                                             <option key={u._id} value={u._id}>
                                                 {u.first_name} {u.last_name}
                                             </option>
