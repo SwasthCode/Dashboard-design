@@ -156,7 +156,8 @@ const AppSidebar: React.FC = () => {
 
   const navItems = useMemo(() => {
     const roleItems = roles.map(role => ({
-      name: `${role.name} (${roleCounts?.[role._id!] || 0})`,
+      // name: `${role.name} (${roleCounts?.[role._id!] || 0})`,
+      name: `${role.name}`,
       path: `/users/role/${role._id}`,
       pro: false
     }));

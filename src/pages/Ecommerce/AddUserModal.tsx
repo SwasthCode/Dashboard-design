@@ -134,9 +134,11 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                     <Label htmlFor="phone_number">Phone Number</Label>
                     <Input
                         id="phone_number"
-                        placeholder="6392457271"
+                        placeholder="9876543210"
                         value={formData.phone_number}
                         onChange={handleInputChange}
+                        max={10}
+                        maxLength={10}
                         required
                     />
                 </div>

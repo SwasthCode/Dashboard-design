@@ -165,10 +165,12 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                     <Label htmlFor="phone_number">Phone Number </Label>
                     <Input
                         id="phone_number"
-                        placeholder="6392457271"
+                        placeholder="9876543210"
                         value={formData.phone_number}
                         onChange={handleInputChange}
                         required
+                        max={10}
+                        maxLength={10}
                         disabled
                     />
                 </div>

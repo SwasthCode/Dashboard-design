@@ -32,6 +32,8 @@ export default function Customers() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedRole, setSelectedRole] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9;
@@ -44,10 +46,21 @@ export default function Customers() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
-        // Role Filter (from URL)
+        // Role Filter (from URL or Dropdown)
         if (roleId) {
-            // Filter by role_id as requested
-            filter.role_id = roleId;
+            // roleId from URL is the MongoDB _id (string)
+            // We need to find the corresponding role object to get the numeric role_id
+            const role = roles.find(r => r._id === roleId);
+            if (role && role.role_id !== undefined) {
+                filter['role.role_id'] = role.role_id;
+            }
+        } else if (selectedRole) {
+            const parsed = Number(selectedRole);
+            if (!isNaN(parsed)) filter['role.role_id'] = parsed;
+        }
+
+        if (selectedStatus) {
+            filter.status = selectedStatus;
         }
 
         // Global search
@@ -75,7 +88,7 @@ export default function Customers() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
         return filter;
-    }, [searchQuery, startDate, endDate, roleId]);
+    }, [searchQuery, startDate, endDate, roleId, selectedRole, selectedStatus, roles]);
 
     // Debounced Fetch
     useEffect(() => {
@@ -89,10 +102,12 @@ export default function Customers() {
     }, [dispatch, buildFilter]);
 
     // Handle updates from TableFilter (Search + Date)
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, role_id, status }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedRole(role_id || "");
+        setSelectedStatus(status || "");
         setCurrentPage(1);
     };
 
@@ -132,7 +147,7 @@ export default function Customers() {
 
     // Get Role Name for Display
     const currentRole = roles.find(r => r._id === roleId);
-    const pageTitle = currentRole ? `${currentRole.name}s` : "Customers";
+    const pageTitle = currentRole ? `${currentRole.name}s` : "All Users";
 
     return (
         <div>
@@ -154,6 +169,24 @@ export default function Customers() {
                                 placeholder="Universal Search..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    ...(roleId ? [] : [{
+                                        key: "role_id",
+                                        label: "Role",
+                                        options: roles
+                                            .filter(r => r.role_id !== undefined && r.role_id !== null)
+                                            .map(r => ({ label: r.name, value: String(r.role_id) }))
+                                    }]),
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Active", value: "active" },
+                                            { label: "Inactive", value: "inactive" },
+                                            { label: "Pending", value: "pending" }
+                                        ]
+                                    }
+                                ]}
                             >
                                 {/* <div className="space-y-3">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Advanced Filters</h4>
