@@ -27,16 +27,15 @@ export default function MainCategories() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("");
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
         if (searchQuery) {
             filter.$or = [
-                { _id: { $regex: searchQuery, $options: 'i' } },
                 { name: { $regex: searchQuery, $options: 'i' } },
-                { description: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } },
+                // { description: { $regex: searchQuery, $options: 'i' } }, // Search by description if needed
             ];
         }
         if (startDate || endDate) {
@@ -44,8 +43,11 @@ export default function MainCategories() {
             if (startDate) filter.createdAt.$gte = startDate;
             if (endDate) filter.createdAt.$lte = endDate;
         }
+        if (selectedStatus) {
+            filter.status = selectedStatus;
+        }
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, selectedStatus]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -56,10 +58,11 @@ export default function MainCategories() {
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter]);
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, status }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedStatus(status || "");
     };
 
     // Calculate pagination
@@ -119,6 +122,16 @@ export default function MainCategories() {
                                 placeholder="Search Main Categories..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Active", value: "active" },
+                                            { label: "Inactive", value: "inactive" },
+                                        ]
+                                    }
+                                ]}
                             />
                         </div>
                         <button

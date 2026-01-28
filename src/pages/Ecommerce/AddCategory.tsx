@@ -165,8 +165,8 @@ export default function AddCategory() {
                                             onChange={handleInputChange}
                                             className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-black dark:text-white"
                                         >
-                                            <option value="Active">Active</option>
-                                            <option value="Inactive">Inactive</option>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
                                         </select>
                                         <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
                                             <svg

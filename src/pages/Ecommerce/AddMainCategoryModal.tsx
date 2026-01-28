@@ -104,8 +104,8 @@ export default function AddMainCategoryModal({ isOpen, onClose }: AddMainCategor
                                 onChange={handleInputChange}
                                 className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none transition-all outline-none"
                             >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
                             </select>
                             <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2 pointer-events-none">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
