@@ -41,6 +41,12 @@ export default function Invoices() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
+        if (searchQuery) {
+            filter.$or = [
+                { invoice_number: { $regex: searchQuery, $options: 'i' } },
+            ];
+        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) {

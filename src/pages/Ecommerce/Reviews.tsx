@@ -44,6 +44,13 @@ export default function Reviews() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
+        if (searchQuery) {
+            filter.$or = [
+                { comment: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } },
+            ];
+        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;

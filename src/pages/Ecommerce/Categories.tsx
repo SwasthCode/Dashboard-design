@@ -49,6 +49,14 @@ export default function Categories() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
+        if (searchQuery) {
+            filter.$or = [
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { description: { $regex: searchQuery, $options: 'i' } },
+                { status: { $regex: searchQuery, $options: 'i' } },
+            ];
+        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;

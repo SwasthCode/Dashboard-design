@@ -40,6 +40,14 @@ export default function Orders() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
+        if (searchQuery) {
+            filter.$or = [
+                { customer_name: { $regex: searchQuery, $options: 'i' } },
+                { shipping_address: { $regex: searchQuery, $options: 'i' } },
+                { shipping_phone: { $regex: searchQuery, $options: 'i' } },
+            ];
+        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;

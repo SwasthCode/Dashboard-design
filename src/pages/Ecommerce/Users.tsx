@@ -51,7 +51,23 @@ export default function Customers() {
         }
 
         // Global search
-
+        if (searchQuery) {
+            const terms = searchQuery.trim().split(/\s+/);
+            if (terms.length > 0) {
+                filter.$and = terms.map(term => {
+                    const regex = { $regex: term, $options: "i" };
+                    return {
+                        $or: [
+                            { first_name: regex },
+                            { last_name: regex },
+                            { email: regex },
+                            { phone_number: regex },
+                            { status: regex },
+                        ]
+                    };
+                });
+            }
+        }
 
         if (startDate || endDate) {
             filter.createdAt = {};

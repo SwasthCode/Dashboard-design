@@ -38,6 +38,19 @@ export default function Addresses() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
+        if (searchQuery) {
+            filter.$or = [
+                { address: { $regex: searchQuery, $options: 'i' } },
+                { city: { $regex: searchQuery, $options: 'i' } },
+                { state: { $regex: searchQuery, $options: 'i' } },
+                { pincode: { $regex: searchQuery, $options: 'i' } },
+                { shipping_phone: { $regex: searchQuery, $options: 'i' } },
+                { alternate_phone: { $regex: searchQuery, $options: 'i' } },
+                { landmark: { $regex: searchQuery, $options: 'i' } },
+                { name: { $regex: searchQuery, $options: 'i' } },
+            ];
+        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;
