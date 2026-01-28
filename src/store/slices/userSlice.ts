@@ -77,7 +77,7 @@ export const fetchUsers = createAsyncThunk('user/fetchUsers', async (params: Que
     }
 });
 
-export const fetchRoles = createAsyncThunk('user/fetchRoles', async (params: QueryParams | undefined, { rejectWithValue }) => {
+export const fetchRoles = createAsyncThunk('user/fetchRoles', async (params: QueryParams | undefined) => {
     try {
         const mergedParams = { sort: { createdAt: -1 }, ...params };
         const queryString = buildQueryString(mergedParams);
@@ -87,7 +87,7 @@ export const fetchRoles = createAsyncThunk('user/fetchRoles', async (params: Que
     }
 });
 
-export const fetchUserRoleCounts = createAsyncThunk('user/fetchUserRoleCounts', async (_, { rejectWithValue }) => {
+export const fetchUserRoleCounts = createAsyncThunk('user/fetchUserRoleCounts', async (_) => {
     try {
         // Fetch all users to calculate counts client-side
         const response = await https.get('users');

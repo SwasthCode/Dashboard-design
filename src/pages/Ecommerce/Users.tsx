@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers, deleteUser, User, fetchRoles } from "../../store/slices/userSlice";
@@ -11,6 +11,7 @@ import EditUserModal from "./EditUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import Input from "../../components/form/input/InputField";
+import Select from "../../components/form/Select";
 import DotLoading from "../../components/common/DotLoading";
 
 
@@ -39,6 +40,7 @@ export default function Customers() {
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+    const [roleFilter, setRoleFilter] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
@@ -51,9 +53,13 @@ export default function Customers() {
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
-        // REMOVED: Role Filter sent to API. 
-        // We will fetch all (or searchable) users and filter by Role client-side 
-        // to ensure consistency with the client-side counting logic.
+        // Role Filter (from URL)
+        if (roleId) {
+            // Filter by role_id as requested
+            filter.role_id = roleId;
+        } else if (roleFilter) {
+            filter.role_id = roleFilter;
+        }
 
         // Global search
         if (searchQuery) {
@@ -77,13 +83,15 @@ export default function Customers() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
         return filter;
-    }, [searchQuery, startDate, endDate, firstName, lastName, email, phone]); // Removed roleId dependency
+    }, [searchQuery, startDate, endDate, firstName, lastName, email, phone, roleId, roleFilter]);
 
     // Debounced Fetch
     useEffect(() => {
         const timer = setTimeout(() => {
             const filter = buildFilter();
-            dispatch(fetchUsers({ filter }));
+            // Request a large limit to ensure we get 'all' data for client-side pagination
+            // Adjust 1000 if your backend supports a specific 'all' keyword or different limit
+            dispatch(fetchUsers({ filter, limit: 1000 }));
         }, 500);
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter]);
@@ -96,22 +104,11 @@ export default function Customers() {
         setCurrentPage(1);
     };
 
-    // Client-Side Role Filtering
-    const filteredUsers = useMemo(() => {
-        if (!roleId) return users;
-        return users.filter(user => {
-            const roleData = user.role?.[0];
-            // Handle populated object or string ID
-            const rId = typeof roleData === 'object' ? roleData._id : String(roleData);
-            return rId === roleId;
-        });
-    }, [users, roleId]);
-
     // Calculate pagination
-    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const totalPages = Math.ceil(users.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+    const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -160,6 +157,18 @@ export default function Customers() {
                             placeholder="Universal Search..."
                             onFilterChange={handleFilterChange}
                         >
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">
+                                    Role
+                                </label>
+                                <Select
+                                    options={roles.map(r => ({ label: r.name, value: r._id || "" }))}
+                                    placeholder="Filter by Role"
+                                    value={roleFilter}
+                                    onChange={(value) => setRoleFilter(value)}
+                                    className="bg-gray-50 dark:bg-gray-800"
+                                />
+                            </div>
                             <div className="space-y-1.5">
                                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">
                                     First Name
