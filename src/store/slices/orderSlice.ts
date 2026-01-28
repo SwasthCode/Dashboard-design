@@ -5,13 +5,17 @@ import { buildQueryString } from '../types';
 export type OrderStatus = "pending" | "hold" | "ready" | "shipped" | "delivered" | "cancelled" | "returned";
 
 export interface OrderItem {
-    product_id: string;
+    _id?: string;
+    product_id?: string | null;
     product_name?: string;
     name?: string; // Matching API response
     quantity: number;
     price: number;
     image?: string;
+    images?: { url: string; _id: string }[];
     brand_name?: string;
+    unit?: string;
+    description?: string;
 }
 
 export interface Order {
@@ -20,6 +24,9 @@ export interface Order {
         _id: string;
         first_name: string;
         last_name: string;
+        phone_number?: string;
+        email?: string;
+        profile_image?: string;
     };
     address?: {
         name?: string;
@@ -47,7 +54,6 @@ export interface Order {
 interface OrderState {
     orders: Order[];
     selectedOrder: Order | null;
-    statuses: string[]; // Dynamic statuses
     loading: boolean;
     updating: boolean;
     error: string | null;
@@ -56,7 +62,6 @@ interface OrderState {
 const initialState: OrderState = {
     orders: [],
     selectedOrder: null,
-    statuses: [],
     loading: false,
     updating: false,
     error: null,
@@ -65,17 +70,24 @@ const initialState: OrderState = {
 // Async Thunks
 export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: { filter?: any } = {}, { rejectWithValue }) => {
     try {
-        // Build query string manually if needed, or pass params
-        // Check if filter is object and stringify it, as our buildQueryString in types.js might handle it, 
-        // but let's be safe and explicit based on user feedback about filters not working.
-        // Actually, the buildQueryString utility ALREADY handles stringification.
-        // Let's verify usage in the thunk payload.
+        // Prepare params, removing empty filter if present
+        const queryParams: any = { ...params };
+        if (queryParams.filter && Object.keys(queryParams.filter).length === 0) {
+            delete queryParams.filter;
+        }
 
-        // If the backend expects ?filter={"status":"pending"}
-        const queryString = buildQueryString(params);
+        const queryString = buildQueryString(queryParams);
+        console.log("Fetching orders with query:", queryString);
         const response = await https.get(`orders${queryString}`);
-        return response.data || [];
+        console.log("API Response for orders:", response);
+
+        // The API returns { success: true, data: [...], ... }
+        if (response.data && Array.isArray(response.data)) {
+            return response.data;
+        }
+        return response || [];
     } catch (error: any) {
+        console.error("Error fetching orders:", error);
         return rejectWithValue(error.message || 'Failed to fetch orders');
     }
 });
@@ -83,7 +95,8 @@ export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: 
 export const fetchOrderById = createAsyncThunk('order/fetchOrderById', async (id: string, { rejectWithValue }) => {
     try {
         const response = await https.get(`orders/${id}`);
-        return response.data;
+        // Handle both { data: ... } and direct object returns
+        return response.data || response;
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch order');
     }
@@ -104,16 +117,6 @@ export const updateOrder = createAsyncThunk('order/updateOrder', async ({ id, da
         return response.data;
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to update order');
-    }
-});
-
-export const fetchOrderStatuses = createAsyncThunk('order/fetchOrderStatuses', async (_, { rejectWithValue }) => {
-    try {
-        const response = await https.get(`orders/statuses`);
-        // Assuming API returns { data: ["pending", "shipped", ...] } or just ["..."]
-        return response.data;
-    } catch (error: any) {
-        return rejectWithValue(error.message || 'Failed to fetch order statuses');
     }
 });
 
@@ -145,15 +148,11 @@ const orderSlice = createSlice({
 
             .addCase(fetchOrderById.pending, handlePending)
             .addCase(fetchOrderById.fulfilled, (state, action: PayloadAction<Order>) => {
+                console.log("fetchOrderById fulfilled payload:", action.payload);
                 state.loading = false;
                 state.selectedOrder = action.payload;
             })
             .addCase(fetchOrderById.rejected, handleRejected)
-
-            // Fetch Statuses
-            .addCase(fetchOrderStatuses.fulfilled, (state, action: PayloadAction<string[]>) => {
-                state.statuses = action.payload;
-            })
 
             .addCase(updateOrderStatus.pending, (state) => {
                 state.updating = true;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders, updateOrderStatus, fetchOrderStatuses, Order, OrderStatus } from "../../store/slices/orderSlice";
+import { fetchOrders, updateOrderStatus, Order, OrderStatus } from "../../store/slices/orderSlice";
 import { createInvoice } from "../../store/slices/invoiceSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -15,7 +15,7 @@ export default function Orders() {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
-    const { orders, loading, updating, statuses } = useSelector((state: RootState) => state.order);
+    const { orders, loading, updating, error } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
@@ -26,14 +26,14 @@ export default function Orders() {
     const [endDate, setEndDate] = useState("");
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
-    // Fetch dynamic statuses on mount
     useEffect(() => {
-        dispatch(fetchOrderStatuses());
-    }, [dispatch]);
+        console.log("Orders Page State:", { ordersLength: orders.length, loading, error, orders });
+    }, [orders, loading, error]);
 
-    const statusOptions = statuses.length > 0 ? statuses : ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
-    // ... rest of the component code (buildFilter etc.)
+
+
+    const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
@@ -389,147 +389,155 @@ export default function Orders() {
                 description="Manage your orders in the Khana Fast Admin Dashboard"
             />
             <PageBreadcrumb pageTitle="Orders" />
-            <div className="space-y-6">
-                <div className="flex flex-col gap-4">
-                    <TableFilter
-                        placeholder="Search by ID or Customer..."
-                        onFilterChange={({ search, startDate: start, endDate: end }) => {
-                            setSearchQuery(search);
-                            setStartDate(start);
-                            setEndDate(end);
-                        }}
-                    >
-                        <div className="space-y-2">
-                            <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Filter by Status</h4>
-                            <div className="grid grid-cols-2 gap-2">
-                                {statusOptions.map((status) => (
-                                    <label key={status} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                        <input
-                                            type="checkbox"
-                                            className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
-                                            checked={selectedStatuses.includes(status)}
-                                            onChange={() => {
-                                                const newStatuses = selectedStatuses.includes(status)
-                                                    ? selectedStatuses.filter(s => s !== status)
-                                                    : [...selectedStatuses, status];
-                                                setSelectedStatuses(newStatuses);
-                                            }}
-                                        />
-                                        <span className="text-sm text-gray-700 dark:text-gray-300">{status}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    </TableFilter>
-                </div>
 
-                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
-                    <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Orders</h3>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+                <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-wide">
+                        Recent Orders
+                    </h3>
+                    <div className="w-full xl:w-auto">
+                        <TableFilter
+                            placeholder="Search by ID or Customer..."
+                            onFilterChange={({ search, startDate: start, endDate: end }) => {
+                                setSearchQuery(search);
+                                setStartDate(start);
+                                setEndDate(end);
+                            }}
+                            className="mb-0"
+                        >
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Filter by Status</h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {statusOptions.map((status) => (
+                                        <label key={status} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                                checked={selectedStatuses.includes(status)}
+                                                onChange={() => {
+                                                    const newStatuses = selectedStatuses.includes(status)
+                                                        ? selectedStatuses.filter(s => s !== status)
+                                                        : [...selectedStatuses, status];
+                                                    setSelectedStatuses(newStatuses);
+                                                }}
+                                            />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">{status}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        </TableFilter>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-50 dark:bg-gray-800/50">
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Address</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Products</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated At</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">INVOICE</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">STATUS</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">ACTIONS</th>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Address</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Products</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Price</th>
+                                {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Updated At</th> */}
+                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">INVOICE</th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">STATUS</th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
+                            {loading ? (
+                                <tr className="animate-pulse">
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <DotLoading />
+                                            <span>Loading orders...</span>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {loading ? (
-                                    <tr className="animate-pulse">
-                                        <td colSpan={9} className="px-6 py-10 text-center text-gray-500">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <DotLoading />
-                                                <span>Loading orders...</span>
+                            ) : (
+                                currentOrders.map((order: Order, i: number) => (
+                                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                        <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.slice(- 8)}</span></td>
+                                        <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer_name || `${order.user?.first_name} ${order.user?.last_name}` || 'N/A'}</span></td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex flex-col max-w-xs">
+                                                <span className="text-sm text-gray-800 dark:text-white truncate">
+                                                    {order.shipping_address || (order.address ? `${order.address.address}, ${order.address.city}, ${order.address.state} ${order.address.pincode}` : 'N/A')}
+                                                </span>
+                                                {order.address?.shipping_phone && (
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {order.address.shipping_phone}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
-                                    </tr>
-                                ) : (
-                                    currentOrders.map((order: Order, i: number) => (
-                                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.slice(- 8)}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer_name || `${order.user?.first_name} ${order.user?.last_name}` || 'N/A'}</span></td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col max-w-xs">
-                                                    <span className="text-sm text-gray-800 dark:text-white truncate">
-                                                        {order.shipping_address || (order.address ? `${order.address.address}, ${order.address.city}, ${order.address.state} ${order.address.pincode}` : 'N/A')}
-                                                    </span>
-                                                    {order.address?.shipping_phone && (
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {order.address.shipping_phone}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col gap-1">
-                                                    {order.items?.map((item, idx) => (
-                                                        <div key={idx} className="flex flex-col">
-                                                            <span className="text-sm text-gray-600 dark:text-gray-300">
-                                                                {item.name || item.product_name}
-                                                            </span>
-                                                            {item.brand_name && (
-                                                                <span className="text-[10px] text-gray-400 font-medium">
-                                                                    {item.brand_name}
-                                                                </span>
+                                        <td className="px-4 py-3">
+                                            <div className="flex flex-col gap-2">
+                                                {order.items?.map((item, idx) => {
+                                                    const imgUrl = item.image || (item.images && item.images.length > 0 ? item.images[0].url : null);
+                                                    return (
+                                                        <div key={idx} className="flex items-center gap-2">
+                                                            {imgUrl && (
+                                                                <img src={imgUrl} alt={item.name} className="w-8 h-8 rounded object-cover border border-gray-100" />
                                                             )}
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm text-gray-600 dark:text-gray-300">
+                                                                    {item.name || item.product_name}
+                                                                    {item.quantity && <span className="text-xs text-gray-400 ml-1">x{item.quantity}</span>}
+                                                                </span>
+                                                                {item.brand_name && (
+                                                                    <span className="text-[10px] text-gray-400 font-medium">
+                                                                        {item.brand_name}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">&#8377;{order.total_amount}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm text-gray-500 dark:text-gray-400">{order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : "-"}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                {['pending', 'ready', 'ship', 'shipped', 'delivered'].includes(order.status.toLowerCase()) ? (
-                                                    <button
-                                                        onClick={() => handlePrintInvoice(order)}
-                                                        className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors inline-block"
-                                                        title="Print Invoice"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
-                                                        </svg>
-                                                    </button>
-                                                ) : (
-                                                    <span className="text-xs text-gray-400 italic">Not available</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                                                    {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                {renderActions(order)}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        startIndex={indexOfFirstItem}
-                        endIndex={indexOfLastItem}
-                        totalResults={orders.length}
-                    />
+                                                    );
+                                                })}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
+                                        <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">&#8377;{order.total_amount}</span></td>
+                                        {/* <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">{order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : "-"}</span></td> */}
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                                            {['pending', 'ready', 'ship', 'shipped', 'delivered'].includes(order.status.toLowerCase()) ? (
+                                                <button
+                                                    onClick={() => handlePrintInvoice(order)}
+                                                    className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors inline-block"
+                                                    title="Print Invoice"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                                                    </svg>
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-gray-400 italic">Not available</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order.status)}`}>
+                                                {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                            {renderActions(order)}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    startIndex={indexOfFirstItem}
+                    endIndex={indexOfLastItem}
+                    totalResults={orders.length}
+                />
             </div>
-
-
         </div>
     );
 }

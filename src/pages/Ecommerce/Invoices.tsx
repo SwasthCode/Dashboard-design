@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchInvoices, Invoice as InvoiceType } from "../../store/slices/invoiceSlice";
 import { RootState, AppDispatch } from "../../store";
@@ -22,8 +22,7 @@ interface Invoice {
     status: "Paid" | "Unpaid" | "Overdue";
     orderStatus?: string;
     updatedAt?: string;
-    originalOrder?: Order; // We might need to fetch this or keep it empty for now if not fully populated
-    // Ideally the invoice from backend should contain enough info for printing
+    originalOrder?: Order;
     printData?: any;
 }
 
@@ -33,16 +32,51 @@ export default function Invoices() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
 
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+
+    // Construct filter for backend
+    const buildFilter = useCallback(() => {
+        const filter: any = {};
+        if (searchQuery) {
+            filter.$or = [
+                { invoice_number: { $regex: searchQuery, $options: 'i' } },
+                { 'user_id.first_name': { $regex: searchQuery, $options: 'i' } },
+                { 'user_id.last_name': { $regex: searchQuery, $options: 'i' } },
+                { 'user_id.email': { $regex: searchQuery, $options: 'i' } }
+            ];
+        }
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) {
+                filter.createdAt.$gte = startDate;
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                filter.createdAt.$lte = end.toISOString();
+            }
+        }
+        return filter;
+    }, [searchQuery, startDate, endDate]);
+
     useEffect(() => {
-        dispatch(fetchInvoices({}));
-    }, [dispatch]);
+        const timer = setTimeout(() => {
+            const filter = buildFilter();
+            dispatch(fetchInvoices({ filter }));
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [dispatch, buildFilter]);
 
     const invoices: Invoice[] = backendInvoices.map((inv: InvoiceType) => ({
         id: (inv.invoice_number || inv._id).slice(-8).toUpperCase(),
-        client: `${inv.user_id?.first_name} ${inv.user_id?.last_name}`,
+        client: inv.user_id ? `${inv.user_id.first_name} ${inv.user_id.last_name}` : "Unknown Client",
         email: inv.user_id?.email || "Not available",
         phone_number: inv.user_id?.phone_number || inv.billing_address?.shipping_phone || "Not available",
-        amount: `$${inv.total_amount.toLocaleString()}`,
+        amount: `₹${inv.total_amount.toLocaleString()}`,
         paymentMode: inv.payment_method || "Not available",
         date: new Date(inv.issued_at || inv.createdAt).toLocaleDateString("en-US", {
             month: "short",
@@ -54,42 +88,16 @@ export default function Invoices() {
             day: "numeric",
             year: "numeric",
         }) : "N/A",
-        status: inv.status === "paid" ? "Paid" : inv.status === "pending" ? "Unpaid" : "Unpaid", // Map backend status
+        status: inv.status === "paid" ? "Paid" : inv.status === "pending" ? "Unpaid" : "Unpaid",
         orderStatus: typeof inv.order_id === 'object' ? inv.order_id.status : undefined,
         updatedAt: inv.updatedAt,
-        printData: inv, // Passing the whole invoice object for printing
+        printData: inv,
     }));
 
-    const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
-
-    useEffect(() => {
-        setFilteredInvoices(invoices);
-    }, [backendInvoices]);
-
-    const handleFilterChange = ({ search, startDate, endDate }: any) => {
-        let result = invoices;
-
-        if (search) {
-            const lowerSearch = search.toLowerCase();
-            result = result.filter(inv =>
-                inv.client.toLowerCase().includes(lowerSearch) ||
-                inv.id.toLowerCase().includes(lowerSearch) ||
-                inv.email.toLowerCase().includes(lowerSearch)
-            );
-        }
-
-        if (startDate && endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            result = result.filter(inv => {
-                if (!inv.updatedAt) return true;
-                const date = new Date(inv.updatedAt);
-                return date >= start && date <= end;
-            });
-        }
-
-        setFilteredInvoices(result);
-        setCurrentPage(1);
+    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+        setSearchQuery(search);
+        setStartDate(start);
+        setEndDate(end);
     };
 
     const printInvoice = (invoiceData: any) => {
@@ -217,10 +225,10 @@ export default function Invoices() {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+    const totalPages = Math.ceil(invoices.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentInvoices = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
+    const currentInvoices = invoices.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -234,58 +242,54 @@ export default function Invoices() {
             />
             <PageBreadcrumb pageTitle="Invoices" />
 
-            <div className="flex flex-col gap-4 mb-6">
-                <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
-                    <div className="flex-1 w-full">
-                        <TableFilter
-                            placeholder="Search Invoices..."
-                            onFilterChange={handleFilterChange}
-                        />
-                    </div>
-                </div>
-            </div>
-
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white uppercase tracking-wide">
                         Invoice List
                     </h3>
+
+                    <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto items-start sm:items-center">
+                        <div className="w-full sm:w-auto">
+                            <TableFilter
+                                placeholder="Search Invoices..."
+                                onFilterChange={handleFilterChange}
+                                className="mb-0"
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-gray-50 dark:bg-gray-800/50">
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Invoice ID
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Client
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Phone
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Total Amount
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Payment Mode
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Issued Date
                                 </th>
-                                {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Due Date
-                                </th> */}
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Invoice Status
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Order Status
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Updated At
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
+                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -293,27 +297,33 @@ export default function Invoices() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={10} className="px-6 py-10 text-center text-gray-500">
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading invoices...</span>
                                         </div>
                                     </td>
                                 </tr>
+                            ) : invoices.length === 0 ? (
+                                <tr>
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500">
+                                        No invoices found.
+                                    </td>
+                                </tr>
                             ) : (
                                 currentInvoices.map((invoice, i) => (
                                     <tr
                                         key={i}
-                                        className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                                        className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm font-medium text-brand-500 underline cursor-pointer">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className="text-sm font-semibold text-brand-600 dark:text-brand-400 font-mono">
                                                 {invoice.id}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-medium text-gray-800 dark:text-white">
+                                                <span className="text-sm font-semibold text-gray-800 dark:text-white">
                                                     {invoice.client || "Not available"}
                                                 </span>
                                                 <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -321,54 +331,48 @@ export default function Invoices() {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
                                                 {invoice.phone_number || "Not available"}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm font-medium text-gray-800 dark:text-white">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className="text-sm font-bold text-gray-800 dark:text-white">
                                                 {invoice.amount}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
                                                 {invoice.paymentMode || "Not available"}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
                                                 {invoice.date || "Not available"}
                                             </span>
                                         </td>
-                                        {/* <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                {invoice.dueDate || "Not available"}
-                                            </span>
-                                        </td> */}
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-3 whitespace-nowrap">
                                             <span
-                                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${invoice.status === "Paid"
-                                                    ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400"
+                                                className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border border-transparent ${invoice.status === "Paid"
+                                                    ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500"
                                                     : invoice.status === "Unpaid"
-                                                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400"
-                                                        : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"
+                                                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-500"
+                                                        : "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500"
                                                     }`}
                                             >
                                                 {invoice.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-3 whitespace-nowrap">
                                             {invoice.orderStatus ? (
                                                 <span
-                                                    className={`px-2 py-1 text-[10px] font-semibold rounded-full ${
-                                                        invoice.orderStatus.toLowerCase() === "pending" ? "bg-orange-100 text-orange-600" :
-                                                        invoice.orderStatus.toLowerCase() === "ready" ? "bg-blue-100 text-blue-600" :
-                                                        invoice.orderStatus.toLowerCase() === "shipped" ? "bg-purple-100 text-purple-600" :
-                                                        invoice.orderStatus.toLowerCase() === "delivered" ? "bg-green-100 text-green-600" :
-                                                        invoice.orderStatus.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600" :
-                                                        "bg-gray-100 text-gray-600"
-                                                    }`}
+                                                    className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border border-transparent ${invoice.orderStatus.toLowerCase() === "pending" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-500" :
+                                                            invoice.orderStatus.toLowerCase() === "ready" ? "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500" :
+                                                                invoice.orderStatus.toLowerCase() === "shipped" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-500" :
+                                                                    invoice.orderStatus.toLowerCase() === "delivered" ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500" :
+                                                                        invoice.orderStatus.toLowerCase() === "cancelled" ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500" :
+                                                                            "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                                                        }`}
                                                 >
                                                     {invoice.orderStatus.charAt(0).toUpperCase() + invoice.orderStatus.slice(1)}
                                                 </span>
@@ -376,25 +380,25 @@ export default function Invoices() {
                                                 <span className="text-sm text-gray-400 font-medium">N/A</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                                             {invoice.updatedAt}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
-                                            <div className="flex justify-end gap-2">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-center">
+                                            <div className="flex items-center justify-center gap-2">
                                                 {invoice.printData && (
                                                     <button
                                                         onClick={() => printInvoice(invoice.printData)}
-                                                        className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
+                                                        className="p-1.5 text-gray-500 hover:text-brand-500 bg-white border border-gray-200 rounded-lg hover:border-brand-200 transition-all shadow-sm"
                                                         title="View/Print Invoice"
                                                     >
-                                                        <EyeIcon className="w-5 h-5" />
+                                                        <EyeIcon className="w-4 h-4" />
                                                     </button>
                                                 )}
                                                 <button
-                                                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-red-500 bg-white border border-gray-200 rounded-lg hover:border-red-200 transition-all shadow-sm"
                                                     title="Delete"
                                                 >
-                                                    <TrashBinIcon className="w-5 h-5" />
+                                                    <TrashBinIcon className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -411,7 +415,7 @@ export default function Invoices() {
                     onPageChange={handlePageChange}
                     startIndex={indexOfFirstItem}
                     endIndex={indexOfLastItem}
-                    totalResults={filteredInvoices.length}
+                    totalResults={invoices.length}
                 />
             </div>
         </div>

@@ -14,9 +14,10 @@ interface TableFilterProps {
     onFilterChange: (state: FilterState) => void;
     placeholder?: string;
     children?: ReactNode;
+    className?: string;
 }
 
-export default function TableFilter({ onFilterChange, placeholder = "Search...", children }: TableFilterProps) {
+export default function TableFilter({ onFilterChange, placeholder = "Search...", children, className = "" }: TableFilterProps) {
     const [search, setSearch] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
@@ -50,9 +51,17 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
     }, [search, startDate, endDate]);
 
     const handleDateRangeChange = (dates: Date[], _dateStr: string) => {
-        if (dates.length === 2) {
-            setStartDate(dates[0].toISOString());
-            setEndDate(dates[1].toISOString());
+        if (dates.length === 2 && dates[0] && dates[1]) {
+            // Ensure start date is beginning of day (just in case)
+            const start = new Date(dates[0]);
+            start.setHours(0, 0, 0, 0);
+
+            // Ensure end date is end of day
+            const end = new Date(dates[1]);
+            end.setHours(23, 59, 59, 999);
+
+            setStartDate(start.toISOString());
+            setEndDate(end.toISOString());
         } else if (dates.length === 0) {
             setStartDate("");
             setEndDate("");
@@ -68,11 +77,10 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
         setSearch("");
         setStartDate("");
         setEndDate("");
-        // If children have their own state, we can't clear them here easily.
     };
 
     return (
-        <div className="mb-6" ref={filterRef}>
+        <div className={className} ref={filterRef}>
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 {/* Left: Search Bar */}
                 <div className="relative w-full sm:max-w-md group">
