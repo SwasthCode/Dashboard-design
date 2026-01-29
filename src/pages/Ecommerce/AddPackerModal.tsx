@@ -12,6 +12,7 @@ interface AddPackerModalProps {
 export default function AddPackerModal({ isOpen, onClose, packer }: AddPackerModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
@@ -21,6 +22,10 @@ export default function AddPackerModal({ isOpen, onClose, packer }: AddPackerMod
     });
 
     useEffect(() => {
+        if (!isOpen) {
+            setError("");
+        }
+
         if (packer) {
             setFormData({
                 name: packer.name,
@@ -43,6 +48,7 @@ export default function AddPackerModal({ isOpen, onClose, packer }: AddPackerMod
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError("");
         try {
             if (packer) {
                 await dispatch(updatePacker({ id: packer._id, data: formData })).unwrap();
@@ -50,8 +56,8 @@ export default function AddPackerModal({ isOpen, onClose, packer }: AddPackerMod
                 await dispatch(createPacker(formData)).unwrap();
             }
             onClose();
-        } catch (error) {
-            console.error("Failed to save packer:", error);
+        } catch (err: any) {
+            setError(err || "Failed to save packer");
         } finally {
             setLoading(false);
         }

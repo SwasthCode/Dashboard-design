@@ -10,7 +10,7 @@ import EditMainCategoryModal from "./EditMainCategoryModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
-import { ITEMS_PER_PAGE } from "../../constants/constants";
+import { ITEMS_PER_PAGE, MIN_TABLE_HEIGHT } from "../../constants/constants";
 
 
 export default function MainCategories() {
@@ -35,7 +35,7 @@ export default function MainCategories() {
         if (searchQuery) {
             filter.$or = [
                 { name: { $regex: searchQuery, $options: 'i' } },
-                // { description: { $regex: searchQuery, $options: 'i' } }, // Search by description if needed
+                { description: { $regex: searchQuery, $options: 'i' } },
             ];
         }
         if (startDate || endDate) {
@@ -145,7 +145,7 @@ export default function MainCategories() {
                         </button>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto ${MIN_TABLE_HEIGHT}`}>
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

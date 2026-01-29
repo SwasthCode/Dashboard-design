@@ -77,6 +77,13 @@ export default function EditReviewModal({ isOpen, onClose, review }: EditReviewM
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setError(null);
+            setNewImages([]);
+        }
+    }, [isOpen]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6 text-inter">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">

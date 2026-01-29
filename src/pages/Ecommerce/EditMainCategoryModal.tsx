@@ -82,6 +82,16 @@ export default function EditMainCategoryModal({ isOpen, onClose, category }: Edi
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setError(null);
+            setImages([]);
+            if (category) {
+                setPreview(category.image || null);
+            }
+        }
+    }, [isOpen, category]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[550px] p-6">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">

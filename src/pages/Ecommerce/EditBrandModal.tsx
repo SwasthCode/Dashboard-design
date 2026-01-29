@@ -30,7 +30,7 @@ export default function EditBrandModal({ isOpen, onClose, brand }: EditBrandModa
         if (brand) {
             setFormData({
                 name: brand.name,
-                main_category_id: brand.main_category_id || "",
+                main_category_id: brand.main_category_id || brand.mainCategory?._id || "",
                 status: brand.status,
                 image: null,
             });
@@ -78,6 +78,21 @@ export default function EditBrandModal({ isOpen, onClose, brand }: EditBrandModa
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!isOpen) {
+            setError("");
+            if (brand) {
+                setFormData({
+                    name: brand.name,
+                    main_category_id: brand.main_category_id || brand.mainCategory?._id || "",
+                    status: brand.status,
+                    image: null,
+                });
+                setImagePreview(brand.image || null);
+            }
+        }
+    }, [isOpen, brand]);
 
     if (!isOpen) return null;
 

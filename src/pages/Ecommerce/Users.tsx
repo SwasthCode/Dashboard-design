@@ -11,7 +11,7 @@ import EditUserModal from "./EditUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
-import { ITEMS_PER_PAGE } from "../../constants/constants";
+import { ITEMS_PER_PAGE, MIN_TABLE_HEIGHT } from "../../constants/constants";
 
 
 const sanitizeUrl = (url: string | undefined): string => {
@@ -266,7 +266,7 @@ export default function Customers() {
                         </button>
                     </div>
                 </div>
-                <div className="overflow-x-auto min-h-[600px]">
+                <div className={`overflow-x-auto ${MIN_TABLE_HEIGHT}`}>
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

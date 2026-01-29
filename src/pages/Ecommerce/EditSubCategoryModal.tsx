@@ -27,6 +27,7 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
         category_id: "",
         brand_id: "",
         description: "",
+        status: "active"
     });
     const [images, setImages] = useState<File[]>([]);
     const [preview, setPreview] = useState<string | null>(null);
@@ -41,9 +42,10 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
         if (subCategory) {
             setFormData({
                 name: subCategory.name || "",
-                category_id: subCategory.category_id || "",
-                brand_id: subCategory.brand_id || "",
+                category_id: subCategory.category_id || subCategory.category?._id || "",
+                brand_id: subCategory.brand_id || subCategory.brand?._id || "",
                 description: subCategory.description || "",
+                status: (subCategory.status || "active").toLowerCase()
             });
             setPreview(subCategory.image || null);
         }
@@ -78,6 +80,7 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
         data.append("category_id", formData.category_id);
         data.append("brand_id", formData.brand_id);
         data.append("description", formData.description);
+        data.append("status", formData.status);
 
         if (images.length > 0) {
             data.append("image", images[0]);
@@ -95,6 +98,16 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!isOpen) {
+            setError(null);
+            setImages([]);
+            if (subCategory) {
+                setPreview(subCategory.image || null);
+            }
+        }
+    }, [isOpen, subCategory]);
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[550px] p-6">
@@ -121,6 +134,20 @@ export default function EditSubCategoryModal({ isOpen, onClose, subCategory }: E
                             onChange={handleInputChange}
                             required
                         />
+                    </div>
+
+                    {/* Status */}
+                    <div className="col-span-1">
+                        <Label htmlFor="status">Status</Label>
+                        <select
+                            id="status"
+                            value={formData.status}
+                            onChange={handleInputChange}
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800 transition-all outline-none"
+                        >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
                     </div>
 
                     {/* Parent Category */}

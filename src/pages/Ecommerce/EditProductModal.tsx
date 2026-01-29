@@ -225,6 +225,18 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setError(null);
+            setImages([]);
+            setPreviews([]);
+            setRemovedImageIds([]);
+            if (product) {
+                setExistingImages(product.images || []);
+            }
+        }
+    }, [isOpen, product]);
+
     const filteredSubCategories = subCategories.filter(s => s.category_id === formData.category_id);
 
     return (

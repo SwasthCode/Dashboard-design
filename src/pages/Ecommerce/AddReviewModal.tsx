@@ -112,6 +112,21 @@ export default function AddReviewModal({ isOpen, onClose }: AddReviewModalProps)
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({
+                product_id: "",
+                rating: 5,
+                comment: "",
+                status: "Published",
+                selectedUserId: "",
+                customerName: ""
+            });
+            setImages([]);
+            setError(null);
+        }
+    }, [isOpen]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] p-6 text-inter">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">

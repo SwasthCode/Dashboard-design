@@ -92,6 +92,20 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({
+                name: "",
+                description: "",
+                main_category_id: "",
+                brand_id: "",
+                status: "Active"
+            });
+            setImages([]);
+            setError(null);
+        }
+    }, [isOpen]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[550px] p-6">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">

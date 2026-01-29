@@ -7,6 +7,11 @@ export interface Brand {
     name: string;
     image?: string;
     main_category_id?: string;
+    mainCategory?: {
+        _id: string;
+        name: string;
+        image?: string;
+    };
     status: 'active' | 'inactive';
     createdAt?: string;
     updatedAt?: string;

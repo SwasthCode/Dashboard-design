@@ -31,6 +31,8 @@ export default function Brands() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("");
+    const [selectedMainCategory, setSelectedMainCategory] = useState("");
 
     useEffect(() => {
         dispatch(fetchBrands({}));
@@ -44,9 +46,13 @@ export default function Brands() {
         const filter: any = {};
 
         if (searchQuery) {
+            const matchingCategoryIds = mainCategories
+                .filter(mc => mc.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(mc => mc._id);
+
             filter.$or = [
                 { name: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } },
+                { main_category_id: { $in: matchingCategoryIds } },
             ];
         }
 
@@ -55,8 +61,17 @@ export default function Brands() {
             if (startDate) filter.createdAt.$gte = startDate;
             if (endDate) filter.createdAt.$lte = endDate;
         }
+
+        if (selectedStatus) {
+            filter.status = selectedStatus;
+        }
+
+        if (selectedMainCategory) {
+            filter.main_category_id = selectedMainCategory;
+        }
+
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, selectedStatus, selectedMainCategory]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -66,10 +81,13 @@ export default function Brands() {
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter]);
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, status, mainCategory }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedStatus(status || "");
+        setSelectedMainCategory(mainCategory || "");
+        setCurrentPage(1);
     };
 
     const totalPages = Math.ceil(brands.length / ITEMS_PER_PAGE);
@@ -125,6 +143,22 @@ export default function Brands() {
                                 placeholder="Search Brands..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    {
+                                        key: "mainCategory",
+                                        label: "Main Category",
+                                        options: mainCategories.map(mc => ({ label: mc.name, value: mc._id || "" }))
+                                    },
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Active", value: "active" },
+                                            { label: "Inactive", value: "inactive" },
+                                        ]
+                                    },
+
+                                ]}
                             />
                         </div>
                         <button
@@ -177,7 +211,7 @@ export default function Brands() {
                                     </td>
                                 </tr>
                             ) : (
-                                currentBrands.map((brand, i) => (
+                                currentBrands.map((brand: any, i: number) => (
                                     <tr
                                         key={brand._id || i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
@@ -204,7 +238,8 @@ export default function Brands() {
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                {mainCategories.find(mc => mc._id === brand.main_category_id)?.name || "N/A"}
+                                                {/* {mainCategories.find(mc => mc._id === brand.main_category_id)?.name || "N/A"} */}
+                                                {brand?.mainCategory?.name}
                                             </span>
                                         </td>
 

@@ -178,6 +178,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
             });
             setVariants([]);
             setImages([]);
+            setPreviews([]);
             onClose();
         } catch (err: any) {
             setError(err || "Failed to add product");
@@ -185,6 +186,27 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({
+                name: "",
+                category_id: "",
+                subcategory_id: "",
+                brand_id: "",
+                price: "",
+                mrp: "",
+                unit: "",
+                stock: "",
+                description: "",
+                isAvailable: true
+            });
+            setVariants([]);
+            setImages([]);
+            setPreviews([]);
+            setError(null);
+        }
+    }, [isOpen]);
 
     const filteredSubCategories = subCategories.filter(s => s.category_id === formData.category_id);
 

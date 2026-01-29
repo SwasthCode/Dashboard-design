@@ -12,7 +12,7 @@ import EditCategoryModal from "./EditCategoryModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
-import { ITEMS_PER_PAGE } from "../../constants/constants";
+import { ITEMS_PER_PAGE, MIN_TABLE_HEIGHT } from "../../constants/constants";
 
 
 export default function Categories() {
@@ -32,8 +32,9 @@ export default function Categories() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-    const [selectedMainCategories, setSelectedMainCategories] = useState<string[]>([]);
-    const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+    const [selectedStatus, setSelectedStatus] = useState("");
+    const [selectedMainCategory, setSelectedMainCategory] = useState("");
+    const [selectedBrand, setSelectedBrand] = useState("");
 
     useEffect(() => {
         dispatch(fetchCategories({}));
@@ -50,11 +51,32 @@ export default function Categories() {
         const filter: any = {};
 
         if (searchQuery) {
+            const matchingMainCategoryIds = mainCategories
+                .filter(mc => mc.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(mc => mc._id);
+
+            const matchingBrandIds = brands
+                .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(b => b._id);
+
             filter.$or = [
                 { name: { $regex: searchQuery, $options: 'i' } },
                 { description: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } },
+                { main_category_id: { $in: matchingMainCategoryIds } },
+                { brand_id: { $in: matchingBrandIds } },
             ];
+        }
+
+        if (selectedStatus) {
+            filter.status = selectedStatus;
+        }
+
+        if (selectedMainCategory) {
+            filter.main_category_id = selectedMainCategory;
+        }
+
+        if (selectedBrand) {
+            filter.brand_id = selectedBrand;
         }
 
         if (startDate || endDate) {
@@ -63,15 +85,8 @@ export default function Categories() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
 
-        if (selectedMainCategories.length > 0) {
-            filter.main_category_id = { $in: selectedMainCategories };
-        }
-        if (selectedBrands.length > 0) {
-            filter.brand_id = { $in: selectedBrands };
-        }
-
         return filter;
-    }, [searchQuery, startDate, endDate, mainCategories, brands, selectedMainCategories, selectedBrands]);
+    }, [searchQuery, selectedStatus, selectedMainCategory, selectedBrand, startDate, endDate, mainCategories, brands]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -81,10 +96,13 @@ export default function Categories() {
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter]);
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, status, mainCategory, brand }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedStatus(status || "");
+        setSelectedMainCategory(mainCategory || "");
+        setSelectedBrand(brand || "");
     };
 
     // Calculate pagination
@@ -141,55 +159,27 @@ export default function Categories() {
                                 placeholder="Search Categories..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
-                            >
-                                <div className="space-y-6">
-                                    {/* Main Category Filter */}
-                                    <div className="space-y-2">
-                                        <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Main Category</h4>
-                                        <div className="max-h-40 overflow-y-auto custom-scrollbar pr-2 space-y-1">
-                                            {mainCategories.map((mc: any) => (
-                                                <label key={mc._id} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
-                                                        checked={selectedMainCategories.includes(mc._id)}
-                                                        onChange={() => {
-                                                            const newSelection = selectedMainCategories.includes(mc._id)
-                                                                ? selectedMainCategories.filter(id => id !== mc._id)
-                                                                : [...selectedMainCategories, mc._id];
-                                                            setSelectedMainCategories(newSelection);
-                                                        }}
-                                                    />
-                                                    <span className="text-sm text-gray-700 dark:text-gray-300">{mc.name}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Brand Filter */}
-                                    <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-4">
-                                        <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Brand</h4>
-                                        <div className="max-h-40 overflow-y-auto custom-scrollbar pr-2 space-y-1">
-                                            {brands.map((b: any) => (
-                                                <label key={b._id} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
-                                                        checked={selectedBrands.includes(b._id)}
-                                                        onChange={() => {
-                                                            const newSelection = selectedBrands.includes(b._id)
-                                                                ? selectedBrands.filter(id => id !== b._id)
-                                                                : [...selectedBrands, b._id];
-                                                            setSelectedBrands(newSelection);
-                                                        }}
-                                                    />
-                                                    <span className="text-sm text-gray-700 dark:text-gray-300">{b.name}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </TableFilter>
+                                filters={[
+                                    {
+                                        key: "mainCategory",
+                                        label: "Main Category",
+                                        options: mainCategories.map(mc => ({ label: mc.name, value: mc._id || "" }))
+                                    },
+                                    {
+                                        key: "brand",
+                                        label: "Brand",
+                                        options: brands.map(b => ({ label: b.name, value: b._id || "" }))
+                                    },
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Active", value: "active" },
+                                            { label: "Inactive", value: "inactive" },
+                                        ]
+                                    }
+                                ]}
+                            />
                         </div>
                         <button
                             onClick={() => setIsAddModalOpen(true)}
@@ -202,7 +192,7 @@ export default function Categories() {
                         </button>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto ${MIN_TABLE_HEIGHT}`}>
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

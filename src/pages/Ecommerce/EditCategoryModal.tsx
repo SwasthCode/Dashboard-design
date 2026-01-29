@@ -45,9 +45,9 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
             setFormData({
                 name: category.name || "",
                 description: category.description || "",
-                main_category_id: category.main_category_id || "",
-                brand_id: category.brand_id || "",
-                status: category.status || "Active"
+                main_category_id: category.main_category_id || category.mainCategory?._id || "",
+                brand_id: category.brand_id || category.brand?._id || "",
+                status: (category.status || "active").toLowerCase()
             });
             setPreview(category.image || null);
         }
@@ -97,6 +97,16 @@ export default function EditCategoryModal({ isOpen, onClose, category }: EditCat
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!isOpen) {
+            setError(null);
+            setImages([]);
+            if (category) {
+                setPreview(category.image || null);
+            }
+        }
+    }, [isOpen, category]);
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[550px] p-6">

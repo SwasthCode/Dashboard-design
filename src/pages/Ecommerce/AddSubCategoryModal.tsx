@@ -81,6 +81,19 @@ export default function AddSubCategoryModal({ isOpen, onClose }: AddSubCategoryM
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({
+                name: "",
+                category_id: "",
+                brand_id: "",
+                description: "",
+            });
+            setImages([]);
+            setError(null);
+        }
+    }, [isOpen]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[550px] p-6">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
@@ -96,7 +109,7 @@ export default function AddSubCategoryModal({ isOpen, onClose }: AddSubCategoryM
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Sub-Category Name */}
-                    <div className="col-span-1">
+                    <div className="col-span-1 md:col-span-2">
                         <Label htmlFor="name">Sub-Category Name</Label>
                         <Input
                             type="text"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { addMainCategory } from "../../store/slices/mainCategorySlice";
 import { AppDispatch } from "../../store";
@@ -22,8 +22,20 @@ export default function AddMainCategoryModal({ isOpen, onClose }: AddMainCategor
     const [formData, setFormData] = useState({
         name: "",
         description: "",
-        status: "Active"
+        status: "active"
     });
+
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({
+                name: "",
+                description: "",
+                status: "active"
+            });
+            setImages([]);
+            setError(null);
+        }
+    }, [isOpen]);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -70,7 +82,7 @@ export default function AddMainCategoryModal({ isOpen, onClose }: AddMainCategor
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[550px] p-6">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Main Category</h3>
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add Main Category</h3>
             </div>
 
             {error && (

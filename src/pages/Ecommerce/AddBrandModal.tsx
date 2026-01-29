@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DotLoading from "../../components/common/DotLoading";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -65,6 +65,14 @@ export default function AddBrandModal({ isOpen, onClose }: AddBrandModalProps) {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({ name: "", main_category_id: "", status: "active", image: null });
+            setImagePreview(null);
+            setError("");
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 

@@ -79,6 +79,12 @@ export default function EditAddressModal({ isOpen, onClose, address }: EditAddre
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setError(null);
+        }
+    }, [isOpen]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] p-6 text-inter">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
