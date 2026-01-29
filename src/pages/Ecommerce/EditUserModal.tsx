@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateUser, User, fetchRoles } from "../../store/slices/userSlice";
+import { updateUser, User, fetchRoles, fetchUsers } from "../../store/slices/userSlice";
 import { AppDispatch, RootState } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
@@ -17,9 +17,10 @@ interface EditCustomerModalProps {
     isOpen: boolean;
     onClose: () => void;
     user: User | null;
+    initialRoleId?: string;
 }
 
-export default function EditCustomerModal({ isOpen, onClose, user }: EditCustomerModalProps) {
+export default function EditCustomerModal({ isOpen, onClose, user, initialRoleId }: EditCustomerModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { roles } = useSelector((state: RootState) => state.user);
     const [loading, setLoading] = useState(false);
@@ -61,7 +62,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
             });
             setImage(null);
         }
-    }, [user]);
+    }, [user, roles]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
@@ -97,6 +98,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                 payload.append("first_name", formData.first_name);
                 payload.append("last_name", formData.last_name);
                 payload.append("email", formData.email);
+                payload.append("phone_number", formData.phone_number);
                 payload.append("status", statusValue);
                 if (selectedRole) {
                     payload.append("role", JSON.stringify([selectedRole.role_type]));
@@ -108,12 +110,23 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                     first_name: formData.first_name,
                     last_name: formData.last_name,
                     email: formData.email,
+                    phone_number: formData.phone_number,
                     status: statusValue,
                     role: selectedRole ? [selectedRole.role_type] : []
                 };
             }
 
             await dispatch(updateUser({ id: userId, data: payload })).unwrap();
+
+            const filter: any = {};
+            if (initialRoleId) {
+                const role = roles.find(r => r._id === initialRoleId);
+                if (role && role.role_id !== undefined) {
+                    filter['role.role_id'] = role.role_id;
+                }
+            }
+            dispatch(fetchUsers({ filter, limit: 1000 }));
+
             onClose();
         } catch (err: any) {
             setError(err || "Failed to update customer");
@@ -180,26 +193,27 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                         required
                         max={10}
                         maxLength={10}
-                        disabled
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label htmlFor="role">Role</Label>
-                        <select
-                            id="role"
-                            value={formData.role}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
-                        >
-                            <option value="">Select Role</option>
-                            {roles.map((r) => (
-                                <option key={r._id} value={r._id}>{r.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                <div className={`grid ${initialRoleId ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+                    {!initialRoleId && (
+                        <div>
+                            <Label htmlFor="role">Role</Label>
+                            <select
+                                id="role"
+                                value={formData.role}
+                                onChange={handleInputChange}
+                                required
+                                className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                            >
+                                <option value="">Select Role</option>
+                                {roles.map((r) => (
+                                    <option key={r._id} value={r._id}>{r.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <Label htmlFor="status">Status </Label>
                         <select

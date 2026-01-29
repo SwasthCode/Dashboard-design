@@ -37,7 +37,7 @@ export default function Customers() {
     const [selectedStatus, setSelectedStatus] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
- 
+
     useEffect(() => {
         if (roles.length === 0) dispatch(fetchRoles({}));
     }, [dispatch, roles.length]);
@@ -266,7 +266,7 @@ export default function Customers() {
                         </button>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto min-h-[600px]">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -414,17 +414,18 @@ export default function Customers() {
                     totalResults={users.length}
                 />
             </div>
-            <AddUserModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+            <AddUserModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} initialRoleId={roleId} />
             <EditUserModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 user={selectedUser}
+                initialRoleId={roleId}
             />
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Delete User"
+                title={`Delete ${currentRole ? currentRole.name : "User"}`}
                 message={`Are you sure you want to delete "${selectedUser?.first_name} ${selectedUser?.last_name}"? This action cannot be undone.`}
                 loading={isDeleting}
             />

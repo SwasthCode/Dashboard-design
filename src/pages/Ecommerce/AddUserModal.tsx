@@ -11,9 +11,10 @@ import DotLoading from "../../components/common/DotLoading";
 interface AddCustomerModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialRoleId?: string;
 }
 
-export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
+export default function AddCustomerModal({ isOpen, onClose, initialRoleId }: AddCustomerModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { roles } = useSelector((state: RootState) => state.user);
     const [loading, setLoading] = useState(false);
@@ -32,6 +33,9 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         if (isOpen && roles.length === 0) {
             dispatch(fetchRoles());
         }
+        if (isOpen && initialRoleId) {
+            setFormData(prev => ({ ...prev, role: initialRoleId }));
+        }
         if (!isOpen) {
             setFormData({
                 first_name: "",
@@ -44,7 +48,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
             setError(null);
             setLoading(false);
         }
-    }, [dispatch, isOpen, roles.length]);
+    }, [dispatch, isOpen, roles.length, initialRoleId]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
@@ -64,16 +68,16 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                 role: selectedRole ? [selectedRole?.role_type] : []
             };
             await dispatch(createUser(userData)).unwrap();
-            dispatch(fetchUsers());
+
+            const filter: any = {};
+            if (initialRoleId) {
+                const role = roles.find(r => r._id === initialRoleId);
+                if (role && role.role_id !== undefined) {
+                    filter['role.role_id'] = role.role_id;
+                }
+            }
+            dispatch(fetchUsers({ filter, limit: 1000 }));
             // Reset and close
-            setFormData({
-                first_name: "",
-                last_name: "",
-                email: "",
-                phone_number: "",
-                role: "",
-                status: "active"
-            });
             onClose();
         } catch (err: any) {
             setError(err || "Failed to add user");
@@ -82,10 +86,13 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
         }
     };
 
+    const selectedRoleName = roles.find(r => r._id === formData.role)?.name;
+    const modalTitle = selectedRoleName ? `Add New ${selectedRoleName}` : "Add New User";
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[500px] w-full p-4 md:p-6 text-inter mx-4 md:mx-auto mt-4 md:mt-0 mb-4 md:mb-0">
             <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Customer</h3>
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">{modalTitle}</h3>
             </div>
 
             {error && (
@@ -143,22 +150,24 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label htmlFor="role">Role</Label>
-                        <select
-                            id="role"
-                            value={formData.role}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
-                        >
-                            <option value="">Select Role</option>
-                            {roles.map((r) => (
-                                <option key={r._id} value={r._id}>{r.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                <div className={`grid ${initialRoleId ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+                    {!initialRoleId && (
+                        <div>
+                            <Label htmlFor="role">Role</Label>
+                            <select
+                                id="role"
+                                value={formData.role}
+                                onChange={handleInputChange}
+                                required
+                                className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
+                            >
+                                <option value="">Select Role</option>
+                                {roles.map((r) => (
+                                    <option key={r._id} value={r._id}>{r.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <Label htmlFor="status">Status</Label>
                         <select
@@ -192,7 +201,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                                 <DotLoading size="md" className="text-white" />
                                 <span>Adding...</span>
                             </>
-                        ) : "Add User"}
+                        ) : modalTitle}
                     </button>
                 </div>
             </form>
