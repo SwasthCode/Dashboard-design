@@ -48,6 +48,7 @@ export interface Product {
     };
     createdAt?: string;
     updatedAt?: string;
+    __v?: number;
 }
 
 interface ProductState {

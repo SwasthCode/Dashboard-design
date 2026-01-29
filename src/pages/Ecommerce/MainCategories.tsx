@@ -149,6 +149,9 @@ export default function MainCategories() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">
+                                    S.no
+                                </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-16">
                                     Image
                                 </th>
@@ -175,7 +178,7 @@ export default function MainCategories() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
+                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading main categories...</span>
@@ -188,6 +191,9 @@ export default function MainCategories() {
                                         key={category._id || i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                     >
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            {(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+                                        </td>
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                                                 <img

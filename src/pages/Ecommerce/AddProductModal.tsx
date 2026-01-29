@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addProduct } from "../../store/slices/productSlice";
 import { fetchBrands } from "../../store/slices/brandSlice";
+import { fetchCategories } from "../../store/slices/categorySlice";
+import { fetchSubCategories } from "../../store/slices/subCategorySlice";
 import { RootState, AppDispatch } from "../../store";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import DotLoading from "../../components/common/DotLoading";
+import { PRODUCT_UNITS } from "../../constants/constants";
 
 
 interface AddProductModalProps {
@@ -24,6 +27,8 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
+
     const [formData, setFormData] = useState({
         name: "",
         category_id: "",
@@ -38,10 +43,12 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     });
 
     useEffect(() => {
-        if (isOpen && brands.length === 0) {
+        if (isOpen) {
             dispatch(fetchBrands({}));
+            dispatch(fetchCategories());
+            dispatch(fetchSubCategories());
         }
-    }, [isOpen, brands.length, dispatch]);
+    }, [isOpen, dispatch]);
 
     const [variants, setVariants] = useState<{
         label: string;
@@ -53,9 +60,9 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
         expiryDate: string;
     }[]>([]);
 
-    const calculateDiscount = (price: string, mrp: string) => {
-        const p = parseFloat(price);
-        const m = parseFloat(mrp);
+    const calculateDiscount = (price: string | number, mrp: string | number) => {
+        const p = typeof price === 'string' ? parseFloat(price) : price;
+        const m = typeof mrp === 'string' ? parseFloat(mrp) : mrp;
         if (p && m && m > p) {
             const discount = ((m - p) / m) * 100;
             return Math.round(discount) + "%";
@@ -64,7 +71,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     };
 
     const addVariant = () => {
-        setVariants([...variants, {
+        setVariants([{
             label: "",
             price: "",
             originalPrice: "",
@@ -72,7 +79,14 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
             manufacturerName: "",
             manufacturerAddress: "",
             expiryDate: ""
-        }]);
+        }, ...variants]);
+        setExpandedIndex(0);
+    };
+
+    const cloneVariant = (index: number) => {
+        const variantToClone = variants[index];
+        setVariants([{ ...variantToClone }, ...variants]);
+        setExpandedIndex(0);
     };
 
     const removeVariant = (index: number) => {
@@ -208,7 +222,12 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
         }
     }, [isOpen]);
 
-    const filteredSubCategories = subCategories.filter(s => s.category_id === formData.category_id);
+    const filteredSubCategories = subCategories.filter(s => {
+        const parentId = typeof s.category_id === 'string'
+            ? s.category_id
+            : (s.category_id as any)?._id || s.category?._id;
+        return parentId === formData.category_id;
+    });
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1400px] w-full p-4 md:p-6 text-outfit mx-4 md:mx-auto mt-4 md:mt-0 mb-4 md:mb-0">
@@ -226,10 +245,10 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 items-start">
                     {/* Left Column: Primary Details */}
                     <div className="space-y-4">
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-3">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-4">
                             <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Basic Information</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div>
+                            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                <div className="md:col-span-6">
                                     <Label htmlFor="name">Product Name</Label>
                                     <Input
                                         id="name"
@@ -238,17 +257,17 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                                         value={formData.name}
                                         onChange={handleInputChange}
                                         required
-                                        className="h-9"
+                                        className="h-10"
                                     />
                                 </div>
-                                <div>
+                                <div className="md:col-span-2">
                                     <Label htmlFor="category_id">Category</Label>
                                     <select
                                         id="category_id"
                                         value={formData.category_id}
                                         onChange={handleInputChange}
                                         required
-                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        className="w-full h-10 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none transition-all"
                                     >
                                         <option value="">Select Category</option>
                                         {categories.map((cat) => (
@@ -256,13 +275,13 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                                         ))}
                                     </select>
                                 </div>
-                                <div>
+                                <div className="md:col-span-2">
                                     <Label htmlFor="subcategory_id">Subcategory</Label>
                                     <select
                                         id="subcategory_id"
                                         value={formData.subcategory_id}
                                         onChange={handleInputChange}
-                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        className="w-full h-10 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none transition-all"
                                         disabled={!formData.category_id}
                                     >
                                         <option value="">Select Subcategory</option>
@@ -271,13 +290,13 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                                         ))}
                                     </select>
                                 </div>
-                                <div>
+                                <div className="md:col-span-2">
                                     <Label htmlFor="brand_id">Brand</Label>
                                     <select
                                         id="brand_id"
                                         value={formData.brand_id}
                                         onChange={handleInputChange}
-                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        className="w-full h-10 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none transition-all"
                                     >
                                         <option value="">Select Brand</option>
                                         {brands.map((brand) => (
@@ -285,50 +304,22 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                                         ))}
                                     </select>
                                 </div>
-                                <div>
+                                <div className="md:col-span-3">
                                     <Label htmlFor="unit">Unit (e.g. Kg, Pcs)</Label>
                                     <select
                                         id="unit"
                                         value={formData.unit}
                                         onChange={handleInputChange}
                                         required
-                                        className="w-full h-9 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none"
+                                        className="w-full h-10 rounded-lg border border-gray-300 bg-transparent px-4 py-1 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white appearance-none transition-all"
                                     >
                                         <option value="">Select Unit</option>
-                                        <option value="Kg">Kg</option>
-                                        <option value="Pcs">Pcs</option>
-                                        <option value="Gm">Gm</option>
-                                        <option value="Ltr">Ltr</option>
-                                        <option value="Ml">Ml</option>
-                                        <option value="Packet">Packet</option>
-                                        <option value="Box">Box</option>
+                                        {PRODUCT_UNITS.map((unit) => (
+                                            <option key={unit.value} value={unit.value}>{unit.label}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div>
-                                    <Label htmlFor="price">Base Price</Label>
-                                    <Input
-                                        id="price"
-                                        type="number"
-                                        placeholder="0"
-                                        value={formData.price}
-                                        onChange={handleInputChange}
-                                        required
-                                        className="h-9"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="mrp">Base MRP</Label>
-                                    <Input
-                                        id="mrp"
-                                        type="number"
-                                        placeholder="0"
-                                        value={formData.mrp}
-                                        onChange={handleInputChange}
-                                        required
-                                        className="h-9"
-                                    />
-                                </div>
-                                <div className="md:col-span-2">
+                                <div className="md:col-span-3">
                                     <Label htmlFor="stock">Base Stock Count</Label>
                                     <Input
                                         id="stock"
@@ -337,122 +328,231 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                                         value={formData.stock}
                                         onChange={handleInputChange}
                                         required
-                                        className="h-9"
+                                        className="h-10"
                                     />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label htmlFor="price">Base Price</Label>
+                                    <Input
+                                        id="price"
+                                        type="number"
+                                        placeholder="0"
+                                        value={formData.price}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="h-10"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label htmlFor="mrp">Base MRP</Label>
+                                    <Input
+                                        id="mrp"
+                                        type="number"
+                                        placeholder="0"
+                                        value={formData.mrp}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="h-10"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Discount</Label>
+                                    <div className="h-10 flex items-center px-4 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-lg">
+                                        <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                            {calculateDiscount(formData.price, formData.mrp)} OFF
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                            <Label htmlFor="description" className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Long Description</Label>
-                            <textarea
-                                rows={2}
-                                id="description"
-                                placeholder="Type product description..."
-                                className="w-full rounded-xl border border-gray-200 bg-white py-3 px-5 text-sm outline-none transition focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                            ></textarea>
-                        </div>
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-4">
+                            <div>
+                                <Label htmlFor="description" className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Product Description</Label>
+                                <textarea
+                                    rows={2}
+                                    id="description"
+                                    placeholder="Brief overview of the product..."
+                                    className="w-full rounded-xl border border-gray-200 bg-white py-2.5 px-4 text-sm outline-none transition focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-800"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                ></textarea>
+                            </div>
 
-                        <div className="flex items-center gap-3 p-4 bg-brand-50/30 dark:bg-brand-500/5 rounded-xl border border-brand-100 dark:border-brand-900/30">
-                            <input
-                                type="checkbox"
-                                id="isAvailable"
-                                checked={formData.isAvailable}
-                                onChange={handleInputChange}
-                                className="h-5 w-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
-                            />
-                            <Label htmlFor="isAvailable" className="mb-0 text-sm font-semibold text-brand-700 dark:text-brand-400">Available for Sale</Label>
+                            <div className="flex items-center gap-3 p-3 bg-brand-50/30 dark:bg-brand-500/5 rounded-xl border border-brand-100 dark:border-brand-900/30">
+                                <input
+                                    type="checkbox"
+                                    id="isAvailable"
+                                    checked={formData.isAvailable}
+                                    onChange={handleInputChange}
+                                    className="h-5 w-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500 transition-all cursor-pointer"
+                                />
+                                <Label htmlFor="isAvailable" className="mb-0 text-sm font-semibold text-brand-700 dark:text-brand-400 cursor-pointer">Available for Sale</Label>
+                            </div>
                         </div>
                     </div>
 
                     {/* Right Column: Variants & Media */}
                     <div className="space-y-4">
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
                             <div className="flex justify-between items-center mb-4">
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400">Product Variants</h4>
                                 <button
                                     type="button"
                                     onClick={addVariant}
-                                    className="text-[10px] font-bold uppercase bg-white dark:bg-gray-900 text-brand-500 border border-brand-200 dark:border-brand-900 px-3 py-1.5 rounded-lg hover:bg-brand-50 transition-colors shadow-sm"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-500 text-white font-bold text-[10px] rounded-lg hover:bg-brand-600 transition-all shadow-sm active:scale-95"
                                 >
-                                    + Add Variant
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    <span>Add Variant</span>
                                 </button>
                             </div>
 
-                            <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                 {variants.map((variant, index) => (
-                                    <div key={index} className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 animate-fadeIn relative">
-                                        <div className="grid grid-cols-3 gap-2 md:gap-3">
-                                            <div>
-                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Label</Label>
-                                                <Input
-                                                    type="text"
-                                                    placeholder="500g"
-                                                    value={variant.label}
-                                                    onChange={(e) => updateVariant(index, "label", e.target.value)}
-                                                    className="h-9 text-xs"
-                                                />
+                                    <div key={index} className={`bg-white dark:bg-gray-900 rounded-xl border ${expandedIndex === index ? 'border-brand-200 dark:border-brand-800 ring-1 ring-brand-500/5' : 'border-gray-100 dark:border-gray-800 shadow-sm'} overflow-hidden transition-all duration-300`}>
+                                        <div
+                                            onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
+                                            className={`flex items-center justify-between p-3.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${expandedIndex === index ? 'bg-brand-50/30 dark:bg-brand-500/5 border-b border-gray-100 dark:border-gray-800' : ''}`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-1 rounded-md transition-transform duration-300 ${expandedIndex === index ? 'rotate-180 text-brand-500' : 'text-gray-400'}`}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M6 9l6 6 6-6" />
+                                                    </svg>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-xs font-bold ${expandedIndex === index ? 'text-brand-700 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                        {variant.label || `Variant #${index + 1}`}
+                                                    </span>
+                                                    {variant.price && (
+                                                        <span className="text-[10px] text-gray-500 font-medium tracking-tight">₹{variant.price}</span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Price</Label>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="0"
-                                                    value={variant.price}
-                                                    onChange={(e) => updateVariant(index, "price", e.target.value)}
-                                                    className="h-9 text-xs"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">MRP</Label>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="0"
-                                                    value={variant.originalPrice}
-                                                    onChange={(e) => updateVariant(index, "originalPrice", e.target.value)}
-                                                    className="h-9 text-xs"
-                                                />
+
+                                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => cloneVariant(index)}
+                                                    className="p-2 text-gray-500 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-lg transition-all"
+                                                    title="Clone"
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeVariant(index)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
+                                                    title="Remove"
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                        <path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                                                    </svg>
+                                                </button>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2 md:gap-3">
-                                            <div>
-                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Shelf Life</Label>
-                                                <Input
-                                                    type="text"
-                                                    placeholder="6m"
-                                                    value={variant.shelfLife}
-                                                    onChange={(e) => updateVariant(index, "shelfLife", e.target.value)}
-                                                    className="h-9 text-xs"
-                                                />
+                                        <div className={`overflow-hidden transition-all duration-300 ${expandedIndex === index ? 'max-h-[500px] opacity-100 p-4 space-y-4' : 'max-h-0 opacity-0'}`}>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div>
+                                                    <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Label</Label>
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="500g"
+                                                        value={variant.label}
+                                                        onChange={(e) => updateVariant(index, "label", e.target.value)}
+                                                        className="h-9 text-xs"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Price</Label>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="0"
+                                                        value={variant.price}
+                                                        onChange={(e) => updateVariant(index, "price", e.target.value)}
+                                                        className="h-9 text-xs"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">MRP</Label>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="0"
+                                                        value={variant.originalPrice}
+                                                        onChange={(e) => updateVariant(index, "originalPrice", e.target.value)}
+                                                        className="h-9 text-xs"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div>
-                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Expiry</Label>
-                                                <Input
-                                                    type="text"
-                                                    placeholder="2025-01"
-                                                    value={variant.expiryDate}
-                                                    onChange={(e) => updateVariant(index, "expiryDate", e.target.value)}
-                                                    className="h-9 text-xs"
-                                                />
-                                            </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
-                                            <div>
-                                                <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Manufacturer Name</Label>
-                                                <Input
-                                                    type="text"
-                                                    placeholder="Name"
-                                                    value={variant.manufacturerName}
-                                                    onChange={(e) => updateVariant(index, "manufacturerName", e.target.value)}
-                                                    className="h-9 text-xs"
-                                                />
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Shelf Life</Label>
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="6m"
+                                                        value={variant.shelfLife}
+                                                        onChange={(e) => updateVariant(index, "shelfLife", e.target.value)}
+                                                        className="h-9 text-xs"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Expiry Range (MM/YYYY)</Label>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="relative flex-1">
+                                                            <Input
+                                                                type="month"
+                                                                value={variant.expiryDate?.split('-')[0] ? (() => {
+                                                                    const [m, y] = variant.expiryDate.split('-')[0].split('/');
+                                                                    return y && m ? `${y}-${m}` : '';
+                                                                })() : ''}
+                                                                onChange={(e) => {
+                                                                    const [y, m] = e.target.value.split('-');
+                                                                    const currentTo = variant.expiryDate?.split('-')[1] || '';
+                                                                    updateVariant(index, "expiryDate", `${m}/${y}-${currentTo}`);
+                                                                }}
+                                                                className="h-9 text-[10px] px-2 pr-1"
+                                                            />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-gray-400">to</span>
+                                                        <div className="relative flex-1">
+                                                            <Input
+                                                                type="month"
+                                                                value={variant.expiryDate?.split('-')[1] ? (() => {
+                                                                    const [m, y] = variant.expiryDate.split('-')[1].split('/');
+                                                                    return y && m ? `${y}-${m}` : '';
+                                                                })() : ''}
+                                                                onChange={(e) => {
+                                                                    const [y, m] = e.target.value.split('-');
+                                                                    const currentFrom = variant.expiryDate?.split('-')[0] || '';
+                                                                    updateVariant(index, "expiryDate", `${currentFrom}-${m}/${y}`);
+                                                                }}
+                                                                className="h-9 text-[10px] px-2 pr-1"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <div className="flex-1">
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div>
+                                                    <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Manufacturer Name</Label>
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="Name"
+                                                        value={variant.manufacturerName}
+                                                        onChange={(e) => updateVariant(index, "manufacturerName", e.target.value)}
+                                                        className="h-9 text-xs"
+                                                    />
+                                                </div>
+                                                <div>
                                                     <Label className="text-[10px] uppercase text-gray-400 font-bold mb-1">Manufacturer Address</Label>
                                                     <Input
                                                         type="text"
@@ -461,17 +561,6 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                                                         onChange={(e) => updateVariant(index, "manufacturerAddress", e.target.value)}
                                                         className="h-9 text-xs"
                                                     />
-                                                </div>
-                                                <div className="flex-shrink-0 pt-6">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeVariant(index)}
-                                                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                    >
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                                            <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                        </svg>
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -483,7 +572,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                             </div>
                         </div>
 
-                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
                             <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Product Media</h4>
                             <div className="relative block w-full cursor-pointer appearance-none rounded-xl border-2 border-dashed border-brand-200 bg-white py-6 px-4 dark:bg-gray-900/50 hover:border-brand-500 transition-colors group">
                                 <input
@@ -536,14 +625,14 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 px-6 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        className="flex-1 px-6 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                         Discard
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex-[2] px-6 py-3 bg-brand-500 text-white font-bold text-sm rounded-xl hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="flex-[2] px-6 py-2.5 bg-brand-500 text-white font-bold text-sm rounded-xl hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {loading ? (
                             <>
@@ -554,6 +643,6 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                     </button>
                 </div>
             </form>
-        </Modal>
+        </Modal >
     );
 }

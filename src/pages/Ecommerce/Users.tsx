@@ -270,6 +270,7 @@ export default function Customers() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">S.no</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Name</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Email</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Phone</th>
@@ -283,7 +284,7 @@ export default function Customers() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={9} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <DotLoading />
                                             <span>Loading {pageTitle.toLowerCase()}...</span>
@@ -292,7 +293,7 @@ export default function Customers() {
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={9} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -308,6 +309,9 @@ export default function Customers() {
                                         key={user._id || i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                     >
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            {(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+                                        </td>
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="h-9 w-9 min-w-[36px] rounded-full bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-600 font-bold uppercase text-xs overflow-hidden border border-brand-100 dark:border-brand-500/20">

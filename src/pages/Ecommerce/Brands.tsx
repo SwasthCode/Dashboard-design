@@ -176,6 +176,9 @@ export default function Brands() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">
+                                    S.no
+                                </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-16">
                                     Logo
                                 </th>
@@ -203,7 +206,7 @@ export default function Brands() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
+                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading brands...</span>
@@ -216,6 +219,9 @@ export default function Brands() {
                                         key={brand._id || i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                     >
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            {(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+                                        </td>
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                                                 {brand.image ? (
@@ -290,7 +296,7 @@ export default function Brands() {
                             )}
                             {!loading && brands.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={8} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />

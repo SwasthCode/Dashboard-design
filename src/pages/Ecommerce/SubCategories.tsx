@@ -191,6 +191,9 @@ export default function SubCategories() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">
+                                    S.no
+                                </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-16">
                                     Image
                                 </th>
@@ -223,7 +226,7 @@ export default function SubCategories() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={9} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading sub-categories...</span>
@@ -232,7 +235,7 @@ export default function SubCategories() {
                                 </tr>
                             ) : subCategories.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -248,6 +251,9 @@ export default function SubCategories() {
                                     key={subCategory._id || i}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                 >
+                                    <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        {(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+                                    </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <div className="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                                             {subCategory.image ? (
