@@ -9,6 +9,7 @@ import EditRoleModal from "./EditRoleModal";
 import DeleteConfirmationModal from "../Ecommerce/DeleteConfirmationModal";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 export default function Roles() {
     const dispatch = useDispatch<AppDispatch>();
@@ -25,7 +26,6 @@ export default function Roles() {
     const [endDate, setEndDate] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
 
     // Filter construction
     const buildFilter = useCallback(() => {
@@ -57,9 +57,9 @@ export default function Roles() {
     };
 
     // Pagination logic
-    const totalPages = Math.ceil(roles.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(roles.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentRoles = roles.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

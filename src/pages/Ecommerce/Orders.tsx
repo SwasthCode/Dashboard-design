@@ -10,6 +10,7 @@ import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 export default function Orders() {
     const navigate = useNavigate();
@@ -18,7 +19,6 @@ export default function Orders() {
     const { orders, loading, updating, error } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 7;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -73,9 +73,9 @@ export default function Orders() {
 
     // Calculate pagination (Backend should ideally handle this too, but for now we filter then slice local or backend returns filtered list)
     // Since we are fetching filtered orders from backend, 'orders' IS the current filtered list.
-    const totalPages = Math.ceil(orders.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

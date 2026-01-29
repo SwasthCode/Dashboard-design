@@ -12,6 +12,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
 import EditBrandModal from "./EditBrandModal";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 
 export default function Brands() {
@@ -25,7 +26,6 @@ export default function Brands() {
     const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -72,9 +72,9 @@ export default function Brands() {
         setEndDate(end);
     };
 
-    const totalPages = Math.ceil(brands.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(brands.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentBrands = brands.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

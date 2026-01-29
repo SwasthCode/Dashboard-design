@@ -10,6 +10,7 @@ import EditMainCategoryModal from "./EditMainCategoryModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 
 export default function MainCategories() {
@@ -21,7 +22,6 @@ export default function MainCategories() {
     const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -66,9 +66,9 @@ export default function MainCategories() {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(mainCategories.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(mainCategories.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentCategories = mainCategories.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

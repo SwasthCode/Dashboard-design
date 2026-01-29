@@ -7,14 +7,14 @@ import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import DotLoading from "../../components/common/DotLoading";
 import { Modal } from "../../components/ui/modal";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 export default function PackerOrders() {
     const dispatch = useDispatch<AppDispatch>();
     const { orders, loading, updating } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
-
+ 
     const [selectedOrderForPacking, setSelectedOrderForPacking] = useState<Order | null>(null);
     const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
@@ -43,9 +43,9 @@ export default function PackerOrders() {
         }
     };
 
-    const totalPages = Math.ceil(orders.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
 
     return (

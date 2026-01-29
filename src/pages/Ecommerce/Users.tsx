@@ -11,6 +11,7 @@ import EditUserModal from "./EditUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 
 const sanitizeUrl = (url: string | undefined): string => {
@@ -36,8 +37,7 @@ export default function Customers() {
     const [selectedStatus, setSelectedStatus] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 9;
-
+ 
     useEffect(() => {
         if (roles.length === 0) dispatch(fetchRoles({}));
     }, [dispatch, roles.length]);
@@ -112,9 +112,9 @@ export default function Customers() {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(users.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {
@@ -262,7 +262,7 @@ export default function Customers() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Add {currentRole ? currentRole.name : "Customer"}
+                            Add {currentRole ? currentRole.name : "User"}
                         </button>
                     </div>
                 </div>

@@ -9,6 +9,7 @@ import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
 import { TrashBinIcon } from "../../icons";
 import { Order } from "../../store/slices/orderSlice";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 interface Invoice {
     id: string;
@@ -30,7 +31,6 @@ export default function Invoices() {
     const dispatch = useDispatch<AppDispatch>();
     const { invoices: backendInvoices, loading } = useSelector((state: RootState) => state.invoice);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -224,9 +224,9 @@ export default function Invoices() {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(invoices.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(invoices.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentInvoices = invoices.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

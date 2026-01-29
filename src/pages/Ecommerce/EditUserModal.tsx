@@ -89,18 +89,27 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
 
             let payload: any;
 
+            const selectedRole = roles.find((r: any) => r._id === formData.role);
+            const statusValue = formData.status.toLowerCase();
+
             if (image) {
                 payload = new FormData();
                 payload.append("first_name", formData.first_name);
                 payload.append("last_name", formData.last_name);
                 payload.append("email", formData.email);
+                payload.append("status", statusValue);
+                if (selectedRole) {
+                    payload.append("role", JSON.stringify([selectedRole.role_type]));
+                }
                 payload.append("profile_image", image); // Correct key for users
             } else {
                 // Send as plain object if no image, simpler for most APIs
                 payload = {
                     first_name: formData.first_name,
                     last_name: formData.last_name,
-                    email: formData.email
+                    email: formData.email,
+                    status: statusValue,
+                    role: selectedRole ? [selectedRole.role_type] : []
                 };
             }
 
@@ -183,8 +192,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                             value={formData.role}
                             onChange={handleInputChange}
                             required
-                            disabled
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-gray-50 dark:bg-gray-800/50 px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-gray-400 opacity-70 cursor-not-allowed"
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         >
                             <option value="">Select Role</option>
                             {roles.map((r) => (
@@ -198,8 +206,7 @@ export default function EditCustomerModal({ isOpen, onClose, user }: EditCustome
                             id="status"
                             value={formData.status}
                             onChange={handleInputChange}
-                            disabled
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-gray-50 dark:bg-gray-800/50 px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-gray-400 opacity-70 cursor-not-allowed"
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         >
                             <option value="active">Active</option>
                             <option value="pending">Pending</option>

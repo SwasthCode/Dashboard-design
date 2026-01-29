@@ -3,6 +3,7 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 interface Coupon {
     id: number;
@@ -18,7 +19,6 @@ interface Coupon {
 
 export default function Coupons() {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
 
     const [coupons, setCoupons] = useState<Coupon[]>([
         { id: 1, code: "WELCOME20", description: "Welcome Discount", discount: "20%", expiryDiff: "25 days", status: "Active", usage: 154, createdAt: "2024-01-01", updatedAt: "2024-01-01" },
@@ -61,9 +61,9 @@ export default function Coupons() {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(filteredCoupons.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(filteredCoupons.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentCoupons = filteredCoupons.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

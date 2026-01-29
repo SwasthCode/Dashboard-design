@@ -12,6 +12,7 @@ import EditSubCategoryModal from "./EditSubCategoryModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 
 export default function SubCategories() {
@@ -26,8 +27,7 @@ export default function SubCategories() {
     const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
-
+ 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
@@ -96,9 +96,9 @@ export default function SubCategories() {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(subCategories.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(subCategories.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentSubCategories = subCategories.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

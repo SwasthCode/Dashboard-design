@@ -7,6 +7,7 @@ import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import DotLoading from "../../components/common/DotLoading";
 import { fetchUsers, fetchRoles } from "../../store/slices/userSlice";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 export default function PickerOrders() {
     const dispatch = useDispatch<AppDispatch>();
@@ -14,8 +15,7 @@ export default function PickerOrders() {
     const { users, roles } = useSelector((state: RootState) => state.user);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
-
+ 
     useEffect(() => {
         dispatch(fetchRoles({}));
     }, [dispatch]);
@@ -63,9 +63,9 @@ export default function PickerOrders() {
         }
     };
 
-    const totalPages = Math.ceil(orders.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
 
     const packers = users.filter(u => {

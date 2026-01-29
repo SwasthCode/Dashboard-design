@@ -14,6 +14,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import EditProductModal from "./EditProductModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
+import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 
 export default function Products() {
@@ -31,8 +32,7 @@ export default function Products() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-    const itemsPerPage = 8;
-
+ 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
@@ -91,9 +91,9 @@ export default function Products() {
     };
 
     // Calculate pagination
-    const totalPages = Math.ceil(products.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (page: number) => {

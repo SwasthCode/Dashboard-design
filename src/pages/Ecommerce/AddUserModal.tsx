@@ -76,7 +76,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
             });
             onClose();
         } catch (err: any) {
-            setError(err || "Failed to add customer");
+            setError(err || "Failed to add user");
         } finally {
             setLoading(false);
         }
@@ -192,7 +192,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
                                 <DotLoading size="md" className="text-white" />
                                 <span>Adding...</span>
                             </>
-                        ) : "Add Customer"}
+                        ) : "Add User"}
                     </button>
                 </div>
             </form>
