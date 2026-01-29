@@ -84,12 +84,12 @@ export default function TableFilter({ onFilterChange, placeholder = "Search...",
         setEndDate("");
     };
 
-    const clearAllFilters = () => {
-        setSearch("");
-        setStartDate("");
-        setEndDate("");
-        setDynamicFilters({});
-    };
+    // const clearAllFilters = () => {
+    //     setSearch("");
+    //     setStartDate("");
+    //     setEndDate("");
+    //     setDynamicFilters({});
+    // };
 
     return (
         <div className={className}>

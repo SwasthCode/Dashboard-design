@@ -60,7 +60,6 @@ import Support from "./pages/Utility/Support";
 import FAQ from "./pages/Utility/FAQ";
 import StepOne from "./pages/Onboarding/StepOne";
 import StepTwo from "./pages/Onboarding/StepTwo";
-import ResetPassword from "./pages/AuthPages/ResetPassword";
 import Roles from "./pages/Acl/Roles";
 
 import { useSelector } from 'react-redux';
@@ -202,7 +201,7 @@ export default function App() {
           {/* <Route path="/" element={<SignIn />} />  <-- Replaced by RootAuthGuard */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          {/* <Route path="/reset-password" element={<ResetPassword />} /> */}
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

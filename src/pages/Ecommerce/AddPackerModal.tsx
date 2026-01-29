@@ -20,6 +20,7 @@ export default function AddPackerModal({ isOpen, onClose, packer }: AddPackerMod
         address: "",
         status: "active" as "active" | "inactive",
     });
+    console.log("===>", error)
 
     useEffect(() => {
         if (!isOpen) {

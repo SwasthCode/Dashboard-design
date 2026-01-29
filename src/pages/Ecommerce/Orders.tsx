@@ -18,7 +18,7 @@ export default function Orders() {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
-    const { orders, loading, updating, error } = useSelector((state: RootState) => state.order);
+    const { orders, loading, error } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -359,19 +359,19 @@ export default function Orders() {
             </button>
         );
 
-        const editButton = (
-            <button
-                onClick={() => navigate(`/orders/edit/${order._id}`)}
-                // className={`p-1.5 transition-colors text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg`}
-                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
+        // const editButton = (
+        //     <button
+        //         onClick={() => navigate(`/orders/edit/${order._id}`)}
+        //         // className={`p-1.5 transition-colors text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg`}
+        //         className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
 
-                title={"Edit Order"}
-            >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-            </button>
-        );
+        //         title={"Edit Order"}
+        //     >
+        //         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        //         </svg>
+        //     </button>
+        // );
 
         const invoiceButton = (
             <button
