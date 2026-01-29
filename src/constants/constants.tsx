@@ -32,7 +32,6 @@ export const PRODUCT_UNITS = [
     { label: "Can", value: "can" },
     { label: "Tin", value: "tin" }
 ];
-
 export const PRODUCT_PRICE_RANGES = [
     { label: "Under 500", value: "0-500" },
     { label: "500 - 1000", value: "500-1000" },
@@ -40,3 +39,31 @@ export const PRODUCT_PRICE_RANGES = [
     { label: "Above 5000", value: "5000-" },
     { label: "Custom Range", value: "custom" },
 ];
+export const ORDER_STATUS = [
+    { label: "Pending", value: "pending" },
+    { label: "Ready", value: "ready" },
+    { label: "Shipped", value: "shipped" },
+    { label: "Delivered", value: "delivered" },
+    { label: "Cancelled", value: "cancelled" },
+    { label: "Returned", value: "returned" },
+];
+export const PAYMENT_METHODS = [
+    { label: "COD", value: "cod" },
+    { label: "Online", value: "online" },
+];
+export const STATUS = [
+    { label: "Active", value: "active" },
+    { label: "Inactive", value: "inactive" },
+    { label: "Pending", value: "pending" },
+    { label: "Available", value: "available" },
+    { label: "Unavailable", value: "unavailable" },
+    { label: "Out of Stock", value: "out_of_stock" },
+]
+// export const STATUS_COLORS = {
+//     pending: "bg-orange-100 text-orange-600",
+//     ready: "bg-blue-100 text-blue-600",
+//     shipped: "bg-purple-100 text-purple-600",
+//     delivered: "bg-green-100 text-green-600",
+//     cancelled: "bg-red-100 text-red-600",
+//     returned: "bg-gray-100 text-gray-600",
+// };

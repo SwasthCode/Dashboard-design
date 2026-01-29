@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders, updateOrderStatus, Order, OrderStatus } from "../../store/slices/orderSlice";
+import { fetchOrders, deleteOrder, createOrder, Order } from "../../store/slices/orderSlice";
 import { createInvoice } from "../../store/slices/invoiceSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -10,7 +10,9 @@ import PageMeta from "../../components/common/PageMeta";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
-import { ITEMS_PER_PAGE } from "../../constants/constants";
+import { ITEMS_PER_PAGE, MIN_TABLE_HEIGHT } from "../../constants/constants";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import { getStatusColor } from "../../utils/helper";
 
 export default function Orders() {
     const navigate = useNavigate();
@@ -19,6 +21,8 @@ export default function Orders() {
     const { orders, loading, updating, error } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const filterRef = useRef<HTMLDivElement>(null);
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +30,25 @@ export default function Orders() {
     const [endDate, setEndDate] = useState("");
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([]);
+    const [itemSearch, setItemSearch] = useState("");
+    const [minQuantity, setMinQuantity] = useState(""); // Total Quantity
+    const [minItemCount, setMinItemCount] = useState(""); // Count of items
+
+    // Delete Modal State
+    // Delete Modal State
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deletingOrder, setDeletingOrder] = useState<Order | null>(null);
+    const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+                setIsFilterOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     useEffect(() => {
         console.log("Orders Page State:", { ordersLength: orders.length, loading, error, orders });
@@ -34,17 +57,19 @@ export default function Orders() {
 
 
 
-    const statusOptions = ["Pending", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
+    const statusOptions = ["Pending", "Hold", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
         if (searchQuery) {
+            const cleanSearch = searchQuery.trim().replace("#", "");
             filter.$or = [
-                { customer_name: { $regex: searchQuery, $options: 'i' } },
-                { shipping_address: { $regex: searchQuery, $options: 'i' } },
-                { shipping_phone: { $regex: searchQuery, $options: 'i' } },
+                { _id: { $regex: cleanSearch, $options: "i" } },
+                { customer_name: { $regex: searchQuery, $options: "i" } },
+                { shipping_address: { $regex: searchQuery, $options: "i" } },
+                { shipping_phone: { $regex: searchQuery, $options: "i" } },
             ];
         }
 
@@ -54,13 +79,48 @@ export default function Orders() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
         if (selectedStatuses.length > 0) {
-            filter.status = { $in: selectedStatuses.map(s => s.toLowerCase()) };
+            filter.status = { $in: selectedStatuses.map((s) => s.toLowerCase()) };
         }
         if (selectedPaymentMethods.length > 0) {
             filter.payment_method = { $in: selectedPaymentMethods };
         }
+
+
+        if (minItemCount) {
+            // Note: This might require $expr which is supported in aggregation or find (mongo 3.6+)
+            // If backend doesn't support $expr in find, this might fail or require aggregation.
+            // Attempting standard Query if possible, or using $where (slow but works on some versions).
+            // Ideally: { $expr: { $gte: [{ $size: "$items" }, Number(minItemCount)] } }
+            const count = Number(minItemCount);
+            if (!isNaN(count)) {
+                filter.$expr = { $gte: [{ $size: "$items" }, count] };
+            }
+        }
+
+        if (itemSearch) {
+            filter.items = {
+                $elemMatch: {
+                    $or: [
+                        { name: { $regex: itemSearch, $options: "i" } },
+                        { product_name: { $regex: itemSearch, $options: "i" } }
+                    ]
+                }
+            };
+        }
+        if (minQuantity) {
+            // "Min. Quantity" - Interpreting as TOTAL quantity across all items if backend supports it via aggregation or virtual.
+            // If "Min. Quantity" means "At least ONE item has this quantity", use items.quantity.
+            // User said "Min. Quantity" in context of general filtering.
+            // Given I can't easily sum without aggregation in "find", I'll stick to 'items.quantity' matches for now 
+            // essentially "Order contains an item with qty >= X", or try a specific field if one exists.
+            // Reverting to previous logic for "Min Quantity" on items.item.
+            const qty = Number(minQuantity);
+            if (!isNaN(qty)) {
+                filter["items.quantity"] = { $gte: qty };
+            }
+        }
         return filter;
-    }, [searchQuery, startDate, endDate, selectedStatuses, selectedPaymentMethods]);
+    }, [searchQuery, startDate, endDate, selectedStatuses, selectedPaymentMethods, itemSearch, minQuantity, minItemCount]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -82,19 +142,61 @@ export default function Orders() {
         setCurrentPage(page);
     };
 
-    const handleStatusChange = (id: string, newStatus: string) => {
-        dispatch(updateOrderStatus({ id, status: newStatus as OrderStatus }));
+
+
+    const handleDeleteOrder = (order: Order) => {
+        setDeletingOrder(order);
+        setDeleteModalOpen(true);
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case "pending": return "bg-orange-100 text-orange-600";
-            case "ready": return "bg-blue-100 text-blue-600";
-            case "shipped": return "bg-purple-100 text-purple-600";
-            case "delivered": return "bg-green-100 text-green-600";
-            case "cancelled": return "bg-red-100 text-red-600";
-            case "returned": return "bg-gray-100 text-gray-600";
-            default: return "bg-gray-100 text-gray-600";
+    const confirmDeleteOrder = async () => {
+        if (!deletingOrder) return;
+
+        setIsDeleteLoading(true);
+        try {
+            await dispatch(deleteOrder(deletingOrder._id)).unwrap();
+            setDeleteModalOpen(false);
+            setDeletingOrder(null);
+        } catch (error) {
+            console.error("Failed to delete order:", error);
+        } finally {
+            setIsDeleteLoading(false);
+        }
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        setDeletingOrder(null);
+    };
+
+
+    const handleCloneOrder = async (order: Order) => {
+        if (!confirm("Are you sure you want to clone this order?")) return;
+
+        try {
+            // Construct payload as per requirement
+            const payload = {
+                user_id: order.user?._id,
+                address_id: order.address?._id,
+                packer_id: typeof order.packer_id === 'object' ? order.packer_id?._id : order.packer_id,
+                picker_id: typeof order.picker_id === 'object' ? order.picker_id?._id : order.picker_id,
+                payment_method: order.payment_method || "COD",
+                items: order.items?.map((item: any) => {
+                    const productId = item.product_id || item.product?._id || item.product;
+                    return {
+                        product_id: productId,
+                        quantity: item.quantity
+                    };
+                }).filter((item) => item.product_id) || []
+            };
+
+            await dispatch(createOrder(payload)).unwrap();
+
+            // Refresh orders
+            dispatch(fetchOrders({ filter: buildFilter() }));
+        } catch (error) {
+            console.error("Failed to clone order:", error);
+            alert("Failed to clone order");
         }
     };
 
@@ -125,7 +227,7 @@ export default function Orders() {
         // Use _id for invoice number in this view to match "like before"
         const invoiceId = order._id.slice(-8).toUpperCase();
 
-        const itemsHtml = order.items?.map((item: any) => `
+        const itemsHtml = order.items?.map((item) => `
             <tr style="border-bottom: 1px solid #f3f4f6;">
                 <td style="padding: 12px 0; font-size: 14px; color: #1f2937;">${item.name || item.product_name}</td>
                 <td style="padding: 12px 0; text-align: center; font-size: 14px; color: #1f2937;">${item.quantity}</td>
@@ -241,127 +343,29 @@ export default function Orders() {
     };
 
     const renderActions = (order: Order) => {
-        let actions = null;
-        switch (order.status) {
-            case "pending":
-                actions = (
-                    <>
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "ready")}
-                            className={`px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Accept
-                        </button>
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "hold")}
-                            className={`px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Hold
-                        </button>
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "cancelled")}
-                            className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Cancel
-                        </button>
-                    </>
-                );
-                break;
-            case "hold":
-                actions = (
-                    <>
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "ready")}
-                            className={`px-3 py-1 text-xs font-medium text-white bg-brand-500 rounded hover:bg-brand-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Accept
-                        </button>
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "cancelled")}
-                            className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Cancel
-                        </button>
-                    </>
-                );
-                break;
-            case "ready":
-                actions = (
-                    <>
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "shipped")}
-                            className={`px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Ship
-                        </button>
-                        <button
-                            disabled={updating}
-                            onClick={() => handleStatusChange(order._id, "cancelled")}
-                            className={`px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            Cancel
-                        </button>
-                    </>
-                );
-                break;
-            case "shipped":
-                actions = (
-                    <button
-                        disabled={updating}
-                        onClick={() => handleStatusChange(order._id, "delivered")}
-                        className={`px-3 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        Mark Delivered
-                    </button>
-                );
-                break;
-            case "delivered":
-                actions = (
-                    <button
-                        disabled={updating}
-                        onClick={() => handleStatusChange(order._id, "returned")}
-                        className={`px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded hover:bg-purple-200 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        Mark Returned
-                    </button>
-                );
-                break;
-            default:
-                actions = null;
-        }
 
-        const status = order.status.toLowerCase();
-        const isRestricted = ['shipped', 'delivered'].includes(status);
-        const isHidden = ['returned', 'cancelled'].includes(status);
+        const viewButton = (
+            <button
+                onClick={() => navigate(`/orders/view/${order._id}`)}
+                // className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
 
-        if (isHidden) {
-            return (
-                <div className="flex items-center justify-end gap-3">
-                    {actions}
-                    <span className="text-xs text-gray-400 italic">Not available</span>
-                    <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
-                    <span className="text-xs text-gray-400 italic">Not available</span>
-                </div>
-            );
-        }
+                title="View Order Details"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+            </button>
+        );
 
         const editButton = (
             <button
-                disabled={updating || isRestricted}
-                onClick={() => {
-                    navigate(`/orders/edit/${order._id}`);
-                }}
-                className={`p-1.5 transition-colors ${isRestricted
-                    ? 'text-gray-200 cursor-not-allowed'
-                    : 'text-gray-500 hover:text-brand-500'
-                    }`}
-                title={isRestricted ? "Cannot edit in current status" : "Edit Order"}
+                onClick={() => navigate(`/orders/edit/${order._id}`)}
+                // className={`p-1.5 transition-colors text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg`}
+                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
+
+                title={"Edit Order"}
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -369,22 +373,64 @@ export default function Orders() {
             </button>
         );
 
-        if (!actions) {
-            return (
-                <div className="flex justify-end gap-2">
-                    {editButton}
-                    <span className="text-xs text-gray-400 italic self-center">Not available</span>
-                    <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
-                    <span className="text-xs text-gray-400 italic self-center">Not available</span>
-                </div>
-            );
-        }
+        const invoiceButton = (
+            <button
+                onClick={() => handlePrintInvoice(order)}
+                // className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors inline-block"
+                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
+
+                title="Print Invoice"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                </svg>
+            </button>
+        );
+
+        const cloneButton = (
+            // <button
+            //     onClick={() => handleCloneOrder(order)}
+            //     className="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+            //     title="Clone Order"
+            // >
+            //     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            //         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+            //     </svg>
+            // </button>
+            <button
+                onClick={() => handleCloneOrder(order)}
+                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
+                title="Clone"
+            >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </button>
+
+        );
+
+        const deleteButton = (
+            <button
+                onClick={() => handleDeleteOrder(order)}
+                // className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
+
+                title="Delete Order"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        );
 
         return (
-            <div className="flex items-center justify-end gap-3">
-                {actions}
-                <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
-                {editButton}
+            <div className={`flex items-center justify-end gap-1`}>
+                {invoiceButton}
+                {viewButton}
+                {cloneButton}
+                {/* {editButton} */}
+                {deleteButton}
             </div>
         );
     };
@@ -404,7 +450,7 @@ export default function Orders() {
                     </h3>
                     <div className="w-full xl:w-auto">
                         <TableFilter
-                            placeholder="Search by ID or Customer..."
+                            placeholder="Universal search..."
                             onFilterChange={({ search, startDate: start, endDate: end }) => {
                                 setSearchQuery(search);
                                 setStartDate(start);
@@ -412,80 +458,176 @@ export default function Orders() {
                             }}
                             className="mb-0"
                         >
-                            <div className="space-y-6">
-                                {/* Status Filter */}
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Filter by Status</h4>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {statusOptions.map((status) => (
-                                            <label key={status} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
-                                                    checked={selectedStatuses.includes(status)}
-                                                    onChange={() => {
-                                                        const newStatuses = selectedStatuses.includes(status)
-                                                            ? selectedStatuses.filter(s => s !== status)
-                                                            : [...selectedStatuses, status];
-                                                        setSelectedStatuses(newStatuses);
-                                                    }}
-                                                />
-                                                <span className="text-sm text-gray-700 dark:text-gray-300">{status}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
+                            <div className="relative" ref={filterRef}>
+                                <button
+                                    className={`flex h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium shadow-theme-xs transition-all hover:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 ${(selectedStatuses.length > 0 || selectedPaymentMethods.length > 0 || itemSearch || minQuantity || minItemCount) ? 'border-brand-500 ring-3 ring-brand-500/10' : ''}`}
+                                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                >
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    </svg>
+                                    <span className={(selectedStatuses.length > 0 || selectedPaymentMethods.length > 0 || itemSearch || minQuantity || minItemCount) ? 'text-brand-600' : 'text-gray-500'}>
+                                        {(selectedStatuses.length > 0 || selectedPaymentMethods.length > 0 || itemSearch || minQuantity || minItemCount)
+                                            ? `${selectedStatuses.length + selectedPaymentMethods.length + (itemSearch ? 1 : 0) + (minQuantity ? 1 : 0) + (minItemCount ? 1 : 0)} Filters`
+                                            : 'Filter'}
+                                    </span>
+                                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {isFilterOpen && (
+                                    <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-gray-200 bg-white p-4 shadow-xl dark:border-gray-800 dark:bg-gray-900 animate-fadeIn">
+                                        <div className="space-y-6">
+                                            <div>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status</h4>
+                                                    {selectedStatuses.length > 0 && (
+                                                        <button
+                                                            onClick={() => setSelectedStatuses([])}
+                                                            className="text-[10px] text-brand-500 hover:text-brand-600 font-bold uppercase"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {statusOptions.map((status) => (
+                                                        <label key={status} className="flex items-center gap-2 cursor-pointer group">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                                                checked={selectedStatuses.includes(status)}
+                                                                onChange={() => {
+                                                                    const newStatuses = selectedStatuses.includes(status)
+                                                                        ? selectedStatuses.filter(s => s !== status)
+                                                                        : [...selectedStatuses, status];
+                                                                    setSelectedStatuses(newStatuses);
+                                                                }}
+                                                            />
+                                                            <span className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">{status}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
 
-                                {/* Payment Method Filter */}
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mb-2">Payment Method</h4>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {["Online", "COD"].map((method) => (
-                                            <label key={method} className="flex items-center gap-2 cursor-pointer p-1 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
-                                                    checked={selectedPaymentMethods.includes(method)}
-                                                    onChange={() => {
-                                                        const newMethods = selectedPaymentMethods.includes(method)
-                                                            ? selectedPaymentMethods.filter(m => m !== method)
-                                                            : [...selectedPaymentMethods, method];
-                                                        setSelectedPaymentMethods(newMethods);
-                                                    }}
-                                                />
-                                                <span className="text-sm text-gray-700 dark:text-gray-300">{method}</span>
-                                            </label>
-                                        ))}
+                                            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment</h4>
+                                                    {selectedPaymentMethods.length > 0 && (
+                                                        <button
+                                                            onClick={() => setSelectedPaymentMethods([])}
+                                                            className="text-[10px] text-brand-500 hover:text-brand-600 font-bold uppercase"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {["Online", "COD"].map((method) => (
+                                                        <label key={method} className="flex items-center gap-2 cursor-pointer group">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
+                                                                checked={selectedPaymentMethods.includes(method)}
+                                                                onChange={() => {
+                                                                    const newMethods = selectedPaymentMethods.includes(method)
+                                                                        ? selectedPaymentMethods.filter(m => m !== method)
+                                                                        : [...selectedPaymentMethods, method];
+                                                                    setSelectedPaymentMethods(newMethods);
+                                                                }}
+                                                            />
+                                                            <span className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">{method}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Item Details</h4>
+                                                    {(itemSearch || minQuantity || minItemCount) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setItemSearch("");
+                                                                setMinQuantity("");
+                                                                setMinItemCount("");
+                                                            }}
+                                                            className="text-[10px] text-brand-500 hover:text-brand-600 font-bold uppercase"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {/* <div>
+                                                        <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Item Name</label>
+                                                        <input
+                                                            type="text"
+                                                            value={itemSearch}
+                                                            onChange={(e) => setItemSearch(e.target.value)}
+                                                            placeholder="Search items..."
+                                                            className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all placeholder:text-gray-400"
+                                                        />
+                                                    </div> */}
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Min. Item</label>
+                                                            <input
+                                                                type="number"
+                                                                value={minItemCount}
+                                                                onChange={(e) => setMinItemCount(e.target.value)}
+                                                                placeholder="e.g. 5"
+                                                                min="1"
+                                                                className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all placeholder:text-gray-400"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Min. Quantity</label>
+                                                            <input
+                                                                type="number"
+                                                                value={minQuantity}
+                                                                onChange={(e) => setMinQuantity(e.target.value)}
+                                                                placeholder="e.g. 50"
+                                                                min="1"
+                                                                className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all placeholder:text-gray-400"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </TableFilter>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className={`overflow-x-auto ${MIN_TABLE_HEIGHT}`}>
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">S.no</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Customer</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Address</th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Products</th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Items</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Delivery Date</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Payment</th>
+                                {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Pay Status</th> */}
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Price</th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Picker</th>
+                                {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Picker</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Pick Status</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Packer</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Pack-Status</th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">INVOICE</th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">OVERALL STATUS</th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">ACTIONS</th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">OVERALL STATUS</th> */}
+                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Last Status</th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 relative min-h-[100px]">
                             {loading ? (
                                 <tr className="animate-pulse">
-                                    <td colSpan={13} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <DotLoading />
                                             <span>Loading orders...</span>
@@ -494,7 +636,7 @@ export default function Orders() {
                                 </tr>
                             ) : orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={13} className="px-4 py-10 text-center text-gray-500 h-[400px]">
+                                    <td colSpan={10} className="px-4 py-10 text-center text-gray-500 h-[400px]">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -507,7 +649,10 @@ export default function Orders() {
                             ) : (
                                 currentOrders.map((order: Order, i: number) => (
                                     <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                        <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm font-medium text-brand-500 underline cursor-pointer">#{order._id.slice(- 8)}</span></td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            {(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm  text-gray-800 dark:text-white font-bold cursor-pointer">#{order.order_id}</span></td>
                                         <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm font-medium text-gray-800 dark:text-white">{order.customer_name || `${order.user?.first_name} ${order.user?.last_name}` || 'N/A'}</span></td>
                                         <td className="px-4 py-3">
                                             <div className="flex flex-col max-w-xs">
@@ -521,29 +666,14 @@ export default function Orders() {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex flex-col gap-2">
-                                                {order.items?.map((item, idx) => {
-                                                    const imgUrl = item.image || (item.images && item.images.length > 0 ? item.images[0].url : null);
-                                                    return (
-                                                        <div key={idx} className="flex items-center gap-2">
-                                                            {imgUrl && (
-                                                                <img src={imgUrl} alt={item.name} className="w-8 h-8 rounded object-cover border border-gray-100" />
-                                                            )}
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm text-gray-600 dark:text-gray-300">
-                                                                    {item.name || item.product_name}
-                                                                    {item.quantity && <span className="text-xs text-gray-400 ml-1">x{item.quantity}</span>}
-                                                                </span>
-                                                                {item.brand_name && (
-                                                                    <span className="text-[10px] text-gray-400 font-medium">
-                                                                        {item.brand_name}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-bold text-gray-800 dark:text-white">
+                                                    {order.items?.length || 0} {order.items?.length === 1 ? 'Item' : 'Items'}
+                                                </span>
+                                                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-tight">
+                                                    ({order.items?.reduce((acc, item: any) => acc + (item.quantity || 1), 0) || 0} Total Qty)
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
@@ -553,10 +683,25 @@ export default function Orders() {
                                                 : 'bg-amber-50 text-amber-600 border-amber-100'
                                                 }`}>
                                                 {order.payment_method || 'N/A'}
+
+
+                                            </span>
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order?.payment_status || 'Pending')}`}>
+                                                {order.payment_status || 'Pending'}
                                             </span>
                                         </td>
+                                        {/* <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_status?.toLowerCase() === 'paid'
+                                                ? 'bg-green-50 text-green-600 border-green-100'
+                                                : order.payment_status?.toLowerCase() === 'failed'
+                                                    ? 'bg-red-50 text-red-600 border-red-100'
+                                                    : 'bg-gray-50 text-gray-600 border-gray-100'
+                                                }`}>
+                                                {order.payment_status || 'Pending'}
+                                            </span>
+                                        </td> */}
                                         <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">&#8377;{order.total_amount}</span></td>
-                                        <td className="px-4 py-3 whitespace-nowrap">
+                                        {/* <td className="px-4 py-3 whitespace-nowrap">
                                             <span className="text-xs text-gray-800 dark:text-white font-medium">
                                                 {typeof order.picker_id === 'object' && order.picker_id
                                                     ? `${order.picker_id.first_name || ''} ${order.picker_id.last_name || ''}`
@@ -585,20 +730,10 @@ export default function Orders() {
                                             ) : '-'}
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
-                                            {['pending', 'ready', 'ship', 'shipped', 'delivered'].includes(order.status.toLowerCase()) ? (
-                                                <button
-                                                    onClick={() => handlePrintInvoice(order)}
-                                                    className="p-1.5 text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors inline-block"
-                                                    title="Print Invoice"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
-                                                    </svg>
-                                                </button>
-                                            ) : (
-                                                <span className="text-xs text-gray-400 italic">Not available</span>
-                                            )}
-                                        </td>
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order.status)}`}>
+                                                {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
+                                            </span>
+                                        </td> */}
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order.status)}`}>
                                                 {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
@@ -621,7 +756,21 @@ export default function Orders() {
                     endIndex={indexOfLastItem}
                     totalResults={orders.length}
                 />
-            </div >
-        </div >
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={closeDeleteModal}
+                onConfirm={confirmDeleteOrder}
+                title="Delete Order"
+                message={deletingOrder ? (
+                    <span>
+                        Are you sure you want to delete Order <b className="text-gray-800 dark:text-white">#{deletingOrder._id.slice(-6).toUpperCase()}</b> for <b className="text-gray-800 dark:text-white">{deletingOrder.customer_name || 'Customer'}</b>? This action cannot be undone.
+                    </span>
+                ) : "Are you sure you want to delete this order?"}
+                loading={isDeleteLoading}
+            />
+        </div>
     );
 }

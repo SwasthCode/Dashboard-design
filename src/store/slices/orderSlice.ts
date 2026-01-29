@@ -20,6 +20,7 @@ export interface OrderItem {
 
 export interface Order {
     _id: string;
+    order_id: string;
     user: {
         _id: string;
         first_name: string;
@@ -29,6 +30,7 @@ export interface Order {
         profile_image?: string;
     };
     address?: {
+        _id?: string;
         name?: string;
         shipping_phone?: string;
         pincode?: string;
@@ -153,6 +155,24 @@ export const updateOrder = createAsyncThunk('order/updateOrder', async ({ id, da
     }
 });
 
+export const deleteOrder = createAsyncThunk('order/deleteOrder', async (id: string, { rejectWithValue }) => {
+    try {
+        await https.delete(`orders/${id}`);
+        return id;
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to delete order');
+    }
+});
+
+export const createOrder = createAsyncThunk('order/createOrder', async (data: any, { rejectWithValue }) => {
+    try {
+        const response = await https.post('orders', data);
+        return response.data;
+    } catch (error: any) {
+        return rejectWithValue(error.message || 'Failed to create order');
+    }
+});
+
 const orderSlice = createSlice({
     name: 'order',
     initialState,
@@ -239,6 +259,22 @@ const orderSlice = createSlice({
             .addCase(updateOrder.rejected, (state, action: any) => {
                 state.updating = false;
                 state.error = action.payload || 'Failed to update order';
+            })
+            // Delete Order
+            .addCase(deleteOrder.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteOrder.fulfilled, (state, action: PayloadAction<string>) => {
+                state.loading = false;
+                state.orders = state.orders.filter(o => o._id !== action.payload);
+                if (state.selectedOrder && state.selectedOrder._id === action.payload) {
+                    state.selectedOrder = null;
+                }
+            })
+            .addCase(deleteOrder.rejected, (state, action: any) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to delete order';
             });
     },
 });
