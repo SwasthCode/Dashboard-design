@@ -26,6 +26,7 @@ export default function Roles() {
     const [endDate, setEndDate] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedStatus, setSelectedStatus] = useState("");
 
     // Filter construction
     const buildFilter = useCallback(() => {
@@ -38,8 +39,11 @@ export default function Roles() {
             if (startDate) filter.createdAt.$gte = startDate;
             if (endDate) filter.createdAt.$lte = endDate;
         }
+        if (selectedStatus) {
+            filter.status = selectedStatus;
+        }
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, selectedStatus]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -50,10 +54,11 @@ export default function Roles() {
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter]);
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, status }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedStatus(status || "");
     };
 
     // Pagination logic
@@ -102,6 +107,16 @@ export default function Roles() {
                                 placeholder="Search Roles..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Active", value: "active" },
+                                            { label: "Inactive", value: "inactive" },
+                                        ]
+                                    }
+                                ]}
                             />
                         </div>
                         <button
@@ -120,6 +135,9 @@ export default function Roles() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">
+                                    S.no
+                                </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Role Name
                                 </th>
@@ -155,13 +173,17 @@ export default function Roles() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                                             </svg>
                                             <p className="text-lg font-medium text-gray-600 dark:text-gray-400">No roles found</p>
+                                            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : null}
 
-                            {!loading && currentRoles.map((role) => (
+                            {!loading && currentRoles.map((role, index) => (
                                 <tr key={role._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
+                                    <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+                                    </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-500 border border-gray-100 dark:border-gray-800">
