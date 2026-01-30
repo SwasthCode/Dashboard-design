@@ -48,8 +48,8 @@ export const ORDER_STATUS = [
     { label: "Returned", value: "returned" },
 ];
 export const PAYMENT_METHODS = [
-    { label: "COD", value: "cod" },
-    { label: "Online", value: "online" },
+    { label: "Cash on Delivery", value: "cod" },
+    { label: "Online Payment", value: "online" },
 ];
 export const STATUS = [
     { label: "Active", value: "active" },

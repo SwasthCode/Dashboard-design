@@ -113,7 +113,7 @@ export const fetchProducts = createAsyncThunk('product/fetchProducts', async (pa
 export const fetchProductsSelect = createAsyncThunk('product/fetchProductsSelect', async (params: QueryParams | undefined, { rejectWithValue }) => {
     try {
         const queryString = buildQueryString(params || {});
-        const response = await https.get(`products/select${queryString}`);
+        const response = await https.get(`products${queryString}`);
         return response.data || [];
     } catch (error: any) {
         return rejectWithValue(error.message || 'Failed to fetch products');

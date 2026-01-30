@@ -13,9 +13,31 @@ export interface OrderItem {
     price: number;
     image?: string;
     images?: { url: string; _id: string }[];
+    brand?: {
+        _id: string;
+        name: string;
+    };
     brand_name?: string;
     unit?: string;
     description?: string;
+}
+
+export interface UserStatusHistory {
+    status: string;
+    changedAt: string;
+    comment: string;
+    _id: string;
+}
+
+export interface OrderAssignment {
+    user_id: string;
+    name: string;
+    phone: string;
+    status: string;
+    updated_at: string;
+    remark_msg?: string;
+    status_history?: UserStatusHistory[];
+    _id: string;
 }
 
 export interface Order {
@@ -59,11 +81,22 @@ export interface Order {
         first_name: string;
         last_name: string;
     };
+    picker_obj?: OrderAssignment;
+    packer_obj?: OrderAssignment;
     picker_accepted?: boolean;
     picker_remark?: string;
     packer_remark?: string;
-    payment_method?: string;
-    payment_status?: string;
+    payment_details?: {
+        method: string;
+        status: string;
+        transaction_id: string;
+        gateway: string;
+        currency: string;
+        payable_amount: number;
+        paid_amount: number;
+        payment_time: string;
+    };
+    order_remark?: string;
     createdAt: string;
     updatedAt: string;
 }

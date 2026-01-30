@@ -12,13 +12,14 @@ import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
 import { ITEMS_PER_PAGE, MIN_TABLE_HEIGHT } from "../../constants/constants";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import OrderRemarkModal from "./OrderRemarkModal";
 import { getStatusColor } from "../../utils/helper";
 
 export default function Orders() {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
-    const { orders, loading, updating, error } = useSelector((state: RootState) => state.order);
+    const { orders, loading, error } = useSelector((state: RootState) => state.order);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -34,11 +35,13 @@ export default function Orders() {
     const [minQuantity, setMinQuantity] = useState(""); // Total Quantity
     const [minItemCount, setMinItemCount] = useState(""); // Count of items
 
-    // Delete Modal State
-    // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deletingOrder, setDeletingOrder] = useState<Order | null>(null);
     const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+    // Remark Modal State
+    const [remarkModalOpen, setRemarkModalOpen] = useState(false);
+    const [remarkOrder, setRemarkOrder] = useState<Order | null>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -169,6 +172,11 @@ export default function Orders() {
         setDeletingOrder(null);
     };
 
+    const handleOpenRemark = (order: Order) => {
+        setRemarkOrder(order);
+        setRemarkModalOpen(true);
+    };
+
 
     const handleCloneOrder = async (order: Order) => {
         if (!confirm("Are you sure you want to clone this order?")) return;
@@ -180,7 +188,7 @@ export default function Orders() {
                 address_id: order.address?._id,
                 packer_id: typeof order.packer_id === 'object' ? order.packer_id?._id : order.packer_id,
                 picker_id: typeof order.picker_id === 'object' ? order.picker_id?._id : order.picker_id,
-                payment_method: order.payment_method || "COD",
+                payment_method: order.payment_details?.method || "cod",
                 items: order.items?.map((item: any) => {
                     const productId = item.product_id || item.product?._id || item.product;
                     return {
@@ -213,7 +221,16 @@ export default function Orders() {
     };
 
     const printOrderData = (order: Order) => {
-        const printWindow = window.open('', '_blank');
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.left = '0';
+        iframe.style.top = '0';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+
+        const printWindow = iframe.contentWindow;
         if (!printWindow) return;
 
         const date = new Date(order.createdAt).toLocaleDateString();
@@ -339,7 +356,10 @@ export default function Orders() {
 
         printWindow.document.close();
         printWindow.focus();
-        setTimeout(() => printWindow.print(), 500);
+        setTimeout(() => {
+            printWindow.print();
+            document.body.removeChild(iframe);
+        }, 500);
     };
 
     const renderActions = (order: Order) => {
@@ -359,19 +379,6 @@ export default function Orders() {
             </button>
         );
 
-        const editButton = (
-            <button
-                onClick={() => navigate(`/orders/edit/${order._id}`)}
-                // className={`p-1.5 transition-colors text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg`}
-                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
-
-                title={"Edit Order"}
-            >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-            </button>
-        );
 
         const invoiceButton = (
             <button
@@ -423,14 +430,25 @@ export default function Orders() {
                 </svg>
             </button>
         );
+        const remarkButton = (
+            <button
+                onClick={() => handleOpenRemark(order)}
+                className="p-1.5 text-gray-500 hover:text-green-500 bg-white border border-gray-200 rounded-lg hover:border-green-200 transition-all shadow-sm"
+                title="Order Remark"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
+        );
 
         return (
             <div className={`flex items-center justify-end gap-1`}>
                 {invoiceButton}
                 {viewButton}
                 {cloneButton}
-                {/* {editButton} */}
                 {deleteButton}
+                {order.order_remark && remarkButton}
             </div>
         );
     };
@@ -448,7 +466,8 @@ export default function Orders() {
                     <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-wide">
                         Recent Orders
                     </h3>
-                    <div className="w-full xl:w-auto">
+                    <div className="w-full xl:w-auto flex items-center justify-end gap-3 flex-wrap">
+
                         <TableFilter
                             placeholder="Universal search..."
                             onFilterChange={({ search, startDate: start, endDate: end }) => {
@@ -600,6 +619,15 @@ export default function Orders() {
                                 )}
                             </div>
                         </TableFilter>
+                        <button
+                            onClick={() => navigate('/orders/create')}
+                            className="inline-flex items-center justify-center h-11 px-4 text-sm font-medium text-white transition-colors bg-brand-500 rounded-lg hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                        >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Create Order
+                        </button>
                     </div>
                 </div>
                 <div className={`overflow-x-auto ${MIN_TABLE_HEIGHT}`}>
@@ -678,17 +706,20 @@ export default function Orders() {
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
                                         <td className="px-4 py-3 whitespace-nowrap">
-                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_method?.toLowerCase() === 'online'
-                                                ? 'bg-blue-50 text-blue-600 border-blue-100'
-                                                : 'bg-amber-50 text-amber-600 border-amber-100'
-                                                }`}>
-                                                {order.payment_method || 'N/A'}
+                                            <div className="flex flex-col items-start gap-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_details?.method?.toLowerCase() === 'online'
+                                                        ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                                        : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                        }`}>
+                                                        {order.payment_details?.method || 'N/A'}
+                                                    </span>
 
-
-                                            </span>
-                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order?.payment_status || 'Pending')}`}>
-                                                {order.payment_status || 'Pending'}
-                                            </span>
+                                                </div>
+                                                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order?.payment_details?.status || 'Pending')}`}>
+                                                    {order.payment_details?.status || 'Pending'}
+                                                </span>
+                                            </div>
                                         </td>
                                         {/* <td className="px-4 py-3 whitespace-nowrap">
                                             <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_status?.toLowerCase() === 'paid'
@@ -770,6 +801,14 @@ export default function Orders() {
                     </span>
                 ) : "Are you sure you want to delete this order?"}
                 loading={isDeleteLoading}
+            />
+
+            {/* Remark Modal */}
+            <OrderRemarkModal
+                isOpen={remarkModalOpen}
+                onClose={() => setRemarkModalOpen(false)}
+                remark={remarkOrder?.order_remark || ""}
+                orderId={remarkOrder?.order_id}
             />
         </div>
     );

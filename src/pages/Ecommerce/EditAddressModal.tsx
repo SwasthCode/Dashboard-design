@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAllStates, getDistrictsByState } from "../../utils/indiaStates";
 import { useDispatch } from "react-redux";
 import { updateAddress, Address } from "../../store/slices/addressSlice";
 import { AppDispatch } from "../../store";
@@ -119,6 +120,13 @@ export default function EditAddressModal({ isOpen, onClose, address }: EditAddre
                             value={formData.shipping_phone}
                             onChange={handleInputChange}
                             required
+                            maxLength={10}
+                            minLength={10}
+                            onKeyPress={(e) => {
+                                if (!/[0-9]/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
                         />
                     </div>
@@ -162,27 +170,39 @@ export default function EditAddressModal({ isOpen, onClose, address }: EditAddre
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
+                        <Label htmlFor="state">State</Label>
+                        <select
+                            id="state"
+                            value={formData.state}
+                            onChange={(e) => {
+                                handleInputChange(e);
+                                setFormData(prev => ({ ...prev, city: "" })); // Reset city when state changes
+                            }}
+                            required
+                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white dark:bg-gray-900"
+                        >
+                            <option value="">Select State</option>
+                            {getAllStates().map((state: string) => (
+                                <option key={state} value={state}>{state}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
                         <Label htmlFor="city">City/District/Town</Label>
-                        <input
-                            type="text"
+                        <select
                             id="city"
                             value={formData.city}
                             onChange={handleInputChange}
                             required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
-                        />
-                    </div>
-
-                    <div>
-                        <Label htmlFor="state">State</Label>
-                        <input
-                            type="text"
-                            id="state"
-                            value={formData.state}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white"
-                        />
+                            disabled={!formData.state}
+                            className={`w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white dark:bg-gray-900 ${!formData.state ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        >
+                            <option value="">Select District</option>
+                            {formData.state && getDistrictsByState(formData.state)?.map((district: string) => (
+                                <option key={district} value={district}>{district}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -201,6 +221,9 @@ export default function EditAddressModal({ isOpen, onClose, address }: EditAddre
                         <Label htmlFor="alternate_phone">Alternate Phone (Optional)</Label>
                         <input
                             type="tel"
+                            maxLength={10}
+                            minLength={10}
+                            pattern="[0-9]{10}"
                             id="alternate_phone"
                             value={formData.alternate_phone}
                             onChange={handleInputChange}
