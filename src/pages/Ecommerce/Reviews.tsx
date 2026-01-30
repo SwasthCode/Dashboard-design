@@ -13,6 +13,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
 import { ITEMS_PER_PAGE } from "../../constants/constants";
+import { formatTimeAgo } from "../../utils/dateUtils";
 
 
 export default function Reviews() {
@@ -384,7 +385,7 @@ export default function Reviews() {
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">
-                                            {review.updatedAt ? new Date(review.updatedAt).toLocaleDateString() : "-"}
+                                            {review.updatedAt ? formatTimeAgo(review.updatedAt) : "-"}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
