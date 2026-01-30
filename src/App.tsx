@@ -70,6 +70,7 @@ import EditOrder from "./pages/Ecommerce/EditOrder";
 import PickerOrders from "./pages/Ecommerce/PickerOrders";
 import PackerOrders from "./pages/Ecommerce/PackerOrders";
 import ViewOrder from "./pages/Ecommerce/ViewOrder";
+import MyActivity from "./pages/Activity/MyActivity";
 
 const RootAuthGuard = () => {
   const { token, user } = useSelector((state: any) => state.auth);
@@ -131,6 +132,7 @@ export default function App() {
             <Route path="/orders/view/:id" element={<ViewOrder />} />
             <Route path="/orders/picker" element={<PickerOrders />} />
             <Route path="/orders/packer" element={<PackerOrders />} />
+            <Route path="/my-activity" element={<MyActivity />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/add" element={<AddProduct />} />
             <Route path="/main-categories" element={<MainCategories />} />

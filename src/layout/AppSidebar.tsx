@@ -159,20 +159,44 @@ const AppSidebar: React.FC = () => {
     // Define userRoleKeys first so it's available for all checks
     const userRoleKeys = currentUser?.role?.map((r: any) => typeof r === 'object' ? r.key?.toLowerCase() : String(r).toLowerCase()) || [];
 
-    // Determine if the user is a standard user (role "user" or id 3) AND NOT an admin
-    const isStandardUser = userRoleKeys.includes('user') || userRoleKeys.includes('3');
-    const isAdmin = userRoleKeys.includes('admin') || userRoleKeys.includes('1'); // Assuming 1 is admin
+    // Role Checks
+    // 3 -> Packer, 4 -> Picker
+    const isPacker = userRoleKeys.includes('packer') || userRoleKeys.includes('3') || userRoleKeys.includes(3);
+    const isPicker = userRoleKeys.includes('picker') || userRoleKeys.includes('4') || userRoleKeys.includes(4);
+    const isAdmin = userRoleKeys.includes('admin') || userRoleKeys.includes('1');
+    const isUser = userRoleKeys.includes('user'); // Basic user if any
 
-    // If strictly a standard user (and not admin), show limited menu
-    if (isStandardUser && !isAdmin) {
+    // Packer or Picker View
+    // Packer or Picker View
+    if ((isPacker || isPicker) && !isAdmin) {
+      const dashboard = staticNavItems.find(i => i.name === 'Dashboard');
+      const orders = staticNavItems.find(i => i.name === 'Orders');
+      const settings = staticNavItems.find(i => i.name === 'Settings');
+
+      const finalItems: NavItem[] = [];
+      if (dashboard) finalItems.push(dashboard);
+      if (orders) finalItems.push(orders);
+
+      // Add "My Activity"
+      finalItems.push({
+        icon: <ListIcon />,
+        name: "My Activity",
+        path: "/my-activity"
+      });
+
+      if (settings) finalItems.push(settings);
+
+      return finalItems;
+    }
+
+    // Standard User (if different from Packer/Picker) - keeping legacy check just in case "user" role exists independently
+    if (isUser && !isAdmin) {
       const userAllowedItems = ['Dashboard', 'Orders', 'Settings'];
       return staticNavItems.filter(item => userAllowedItems.includes(item.name));
     }
 
-    // Otherwise (Admin etc), show full menu with dynamic additions (like Customers)
-
+    // Admin / Full View
     const roleItems = roles.map(role => ({
-      // name: `${role.name} (${roleCounts?.[role._id!] || 0})`,
       name: `${role.name}`,
       path: `/users/role/${role._id}`,
       pro: false
@@ -187,19 +211,17 @@ const AppSidebar: React.FC = () => {
       ]
     };
 
-    // Insert Customers item after Dashboard (index 0)
     const newItems = [...staticNavItems];
-    newItems.splice(1, 0, customersItem);
+    newItems.splice(1, 0, customersItem); // Insert Users after Dashboard
 
-    if (userRoleKeys.includes('picker') || userRoleKeys.includes('admin')) {
+    // Admin sees explicit Picker/Packer menus if needed, or we can leave them out if Admin just browses all orders
+    // The previous logic added "Picks" and "Packs" for admins. Keeping that for Admin convenience.
+    if (isAdmin) {
       newItems.push({
         icon: <ListIcon />,
         name: " Picks",
         path: "/orders/picker"
       });
-    }
-
-    if (userRoleKeys.includes('packer') || userRoleKeys.includes('admin')) {
       newItems.push({
         icon: <BoxCubeIcon />,
         name: "Packs",
