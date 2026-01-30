@@ -95,8 +95,18 @@ export interface Order {
         payable_amount: number;
         paid_amount: number;
         payment_time: string;
+        adjustment?: {
+            adjustment_type: 'collect' | 'refund' | 'balanced';
+            adjustment_balance: number;
+            status: string;
+            adjustment_time: string | null;
+            adjustment_remark: string;
+            adjustment_by: string;
+        };
     };
     order_remark?: string;
+    delivery_distance?: number;
+    delivery_charges?: number;
     createdAt: string;
     updatedAt: string;
 }

@@ -10,6 +10,7 @@ import PageMeta from "../../components/common/PageMeta";
 import Label from "../../components/form/Label";
 import DotLoading from "../../components/common/DotLoading";
 import { PAYMENT_METHODS } from "../../constants/constants";
+import AddAddressModal from "./AddAddressModal";
 
 interface NewOrderItem {
     product_id: string;
@@ -48,6 +49,7 @@ export default function CreateOrder() {
     const [remark, setRemark] = useState("");
     const [pickerRemark, setPickerRemark] = useState("");
     const [packerRemark, setPackerRemark] = useState("");
+    const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
     // Initial Data Fetch
     useEffect(() => {
@@ -255,7 +257,21 @@ export default function CreateOrder() {
                         </div>
 
                         <div>
-                            <Label htmlFor="address">Delivery Address</Label>
+                            <div className="flex items-center justify-between mb-2">
+                                <Label htmlFor="address" className="mb-0">Delivery Address</Label>
+                                {selectedUserId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddressModalOpen(true)}
+                                        className="text-xs font-bold text-brand-500 hover:text-brand-600 flex items-center gap-1 transition-colors"
+                                    >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Add New
+                                    </button>
+                                )}
+                            </div>
                             <select
                                 id="address"
                                 value={selectedAddressId}
@@ -592,6 +608,18 @@ export default function CreateOrder() {
                     </div>
                 </form>
             </div>
+            <AddAddressModal
+                isOpen={isAddressModalOpen}
+                onClose={() => {
+                    setIsAddressModalOpen(false);
+                    if (selectedUserId) {
+                        dispatch(fetchUserById(selectedUserId)).unwrap().then((fetchedUser: User) => {
+                            setSelectedUser(fetchedUser);
+                        });
+                    }
+                }}
+                userId={selectedUserId}
+            />
         </div>
     );
 }

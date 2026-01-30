@@ -47,6 +47,7 @@ export const ORDER_STATUS = [
     { label: "Cancelled", value: "cancelled" },
     { label: "Returned", value: "returned" },
 ];
+
 export const PAYMENT_METHODS = [
     { label: "Cash on Delivery", value: "cod" },
     { label: "Online Payment", value: "online" },
@@ -67,3 +68,17 @@ export const STATUS = [
 //     cancelled: "bg-red-100 text-red-600",
 //     returned: "bg-gray-100 text-gray-600",
 // };
+
+
+export const DELIVERY_CHARGES = [
+    { label: "Free", value: "free" },
+    { label: "Paid", value: "paid" },
+];
+
+export const ADJUSTMENT_STATUSES = [
+    { label: "collect", value: "collect" },
+    { label: "refund", value: "refund" },
+    { label: "balance", value: "balance" },
+]
+export const MAX_DELIVERY_CHARGES_CUT_OFF = 1000
+export const DELIVERY_FEES_PER_KM = 10
