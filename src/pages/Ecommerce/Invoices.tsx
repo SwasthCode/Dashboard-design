@@ -299,6 +299,9 @@ export default function Invoices() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">
+                                    S.no
+                                </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Invoice ID
                                 </th>
@@ -359,6 +362,9 @@ export default function Invoices() {
                                         key={i}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                     >
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            {(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+                                        </td>
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <span className="text-sm font-semibold text-brand-600 dark:text-brand-400 font-mono">
                                                 {invoice.id}

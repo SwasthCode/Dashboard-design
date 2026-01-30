@@ -111,6 +111,9 @@ export default function Coupons() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">
+                                    S.no
+                                </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Code
                                 </th>
@@ -141,11 +144,14 @@ export default function Coupons() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {currentCoupons.map((coupon) => (
+                            {currentCoupons.map((coupon, index) => (
                                 <tr
                                     key={coupon.id}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                 >
+                                    <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+                                    </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <span className="text-sm font-bold text-brand-600 bg-brand-50 dark:bg-brand-500/10 px-2 py-1 rounded border border-brand-100 dark:border-brand-500/20 font-mono">
                                             {coupon.code}
