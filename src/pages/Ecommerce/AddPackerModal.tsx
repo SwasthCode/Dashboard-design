@@ -83,6 +83,11 @@ export default function AddPackerModal({ isOpen, onClose, packer }: AddPackerMod
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                    {error && (
+                        <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+                            {error}
+                        </div>
+                    )}
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
