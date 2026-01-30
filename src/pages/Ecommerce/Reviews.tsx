@@ -28,11 +28,13 @@ export default function Reviews() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
- 
+
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("");
+    const [selectedRating, setSelectedRating] = useState("");
 
     useEffect(() => {
         // Initial fetch for products and users if not already loaded
@@ -45,10 +47,53 @@ export default function Reviews() {
         const filter: any = {};
 
         if (searchQuery) {
+            const queryLower = searchQuery.toLowerCase();
+            const isSearchActive = queryLower === 'active';
+            const statusCriteria = isSearchActive
+                ? { $regex: "^active$|^pending$", $options: "i" }
+                : { $regex: searchQuery, $options: 'i' };
+
+            // Find matching product IDs
+            const matchingProductIds = products
+                .filter(p => p.name.toLowerCase().includes(queryLower))
+                .map(p => p._id);
+
+            // Find matching user IDs
+            const matchingUserIds = users
+                .filter(u => {
+                    const fullName = `${u.first_name} ${u.last_name}`.toLowerCase();
+                    return fullName.includes(queryLower);
+                })
+                .map(u => u.id || u._id);
+
+            // Handle rating search (e.g., "5 stars" or "5star")
+            let ratingSearch: any = null;
+            const ratingMatch = searchQuery.match(/(\d)\s*star/i);
+            if (ratingMatch) {
+                ratingSearch = Number(ratingMatch[1]);
+            }
+
             filter.$or = [
                 { comment: { $regex: searchQuery, $options: 'i' } },
-                { status: { $regex: searchQuery, $options: 'i' } },
+                { status: statusCriteria },
+                { product_id: { $in: matchingProductIds } },
+                { user_id: { $in: matchingUserIds } },
+                { "userInfo.fullname": { $regex: searchQuery, $options: 'i' } },
             ];
+
+            if (ratingSearch) {
+                filter.$or.push({ rating: ratingSearch });
+            }
+        }
+
+        if (selectedStatus) {
+            filter.status = selectedStatus === 'Active'
+                ? { $regex: "^active$|^pending$", $options: "i" }
+                : selectedStatus;
+        }
+
+        if (selectedRating) {
+            filter.rating = Number(selectedRating);
         }
 
         if (startDate || endDate) {
@@ -57,7 +102,7 @@ export default function Reviews() {
             if (endDate) filter.createdAt.$lte = endDate;
         }
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, selectedStatus, selectedRating, products, users]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -68,10 +113,12 @@ export default function Reviews() {
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter, products.length, users.length]);
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, status, rating }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedStatus(status || "");
+        setSelectedRating(rating || "");
     };
 
     // Calculate pagination
@@ -154,6 +201,27 @@ export default function Reviews() {
                                 placeholder="Search Reviews..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Published", value: "Published" },
+                                            { label: "Active", value: "Active" },
+                                        ]
+                                    },
+                                    {
+                                        key: "rating",
+                                        label: "Rating",
+                                        options: [
+                                            { label: "5 Stars", value: "5" },
+                                            { label: "4 Stars", value: "4" },
+                                            { label: "3 Stars", value: "3" },
+                                            { label: "2 Stars", value: "2" },
+                                            { label: "1 Star", value: "1" },
+                                        ]
+                                    }
+                                ]}
                             />
                         </div>
                         <button
@@ -207,6 +275,19 @@ export default function Reviews() {
                                         <div className="flex flex-col items-center gap-2">
                                             <DotLoading />
                                             <span>Loading reviews...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                            {!reviewsLoading && reviews.length === 0 && (
+                                <tr>
+                                    <td colSpan={9} className="px-4 py-10 text-center text-gray-500">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <svg className="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span className="text-lg font-medium">No reviews found</span>
+                                            <p className="text-sm">Try adjusting your search or filters</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -288,12 +369,12 @@ export default function Reviews() {
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <span
-                                            className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border border-transparent ${review.status === "Published"
+                                            className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border border-transparent ${(review.status || "").toLowerCase() === "published"
                                                 ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500"
                                                 : "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-500"
                                                 }`}
                                         >
-                                            {review.status}
+                                            {(review.status || "").toLowerCase() === "published" ? "Published" : "Active"}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
