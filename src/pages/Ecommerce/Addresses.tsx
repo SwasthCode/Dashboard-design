@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAddresses, deleteAddress, Address } from "../../store/slices/addressSlice";
+import { fetchUsers, User } from "../../store/slices/userSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -10,12 +11,15 @@ import EditAddressModal from "./EditAddressModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import TableFilter from "../../components/common/TableFilter";
 import DotLoading from "../../components/common/DotLoading";
+import Avatar from "../../components/ui/avatar/Avatar";
 import { ITEMS_PER_PAGE } from "../../constants/constants";
 
 
 export default function Addresses() {
     const dispatch = useDispatch<AppDispatch>();
-    const { addresses, loading } = useSelector((state: RootState) => state.address);
+    const { addresses, loading: addressesLoading } = useSelector((state: RootState) => state.address);
+    const { users, loading: usersLoading } = useSelector((state: RootState) => state.user);
+    const loading = addressesLoading || usersLoading;
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -34,7 +38,8 @@ export default function Addresses() {
 
     useEffect(() => {
         dispatch(fetchAddresses({}));
-    }, [dispatch]);
+        if (users.length === 0) dispatch(fetchUsers({}));
+    }, [dispatch, users.length]);
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
@@ -118,6 +123,20 @@ export default function Addresses() {
                 setIsDeleting(false);
             }
         }
+    };
+
+    const sanitizeUrl = (url: any) => {
+        if (!url) return '';
+        const urlStr = typeof url === 'object' ? url.url : url;
+        if (urlStr.startsWith('http')) return urlStr;
+        if (urlStr.startsWith('uploads')) return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${urlStr}`;
+        return urlStr;
+    };
+
+    const getUserImage = (userId: any) => {
+        const user = users.find(u => (u.id || u._id) === userId);
+        if (!user) return '';
+        return sanitizeUrl(user.profile_image || user.image);
     };
 
     return (
@@ -242,10 +261,16 @@ export default function Addresses() {
                                         className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                     >
                                         <td className="px-4 py-3 whitespace-nowrap">
-                                            <span className="text-sm font-semibold text-gray-800 dark:text-white">
-                                                {/* {getUserName(addr.user_id)} */}
-                                                {addr.name}
-                                            </span>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar
+                                                    src={getUserImage(addr.user_id) || "https://ui-avatars.com/api/?name=" + (addr.name || "User")}
+                                                    size="small"
+                                                    alt={addr.name}
+                                                />
+                                                <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                                                    {addr.name}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="text-sm font-semibold text-gray-800 dark:text-white">
