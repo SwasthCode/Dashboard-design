@@ -326,6 +326,7 @@ export default function CreateOrder() {
                         <table className="w-full text-left">
                             <thead className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                                 <tr>
+                                    <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase w-10">S.No</th>
                                     <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Product</th>
                                     <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Stock</th>
                                     <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Price</th>
@@ -337,13 +338,16 @@ export default function CreateOrder() {
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
                                 {items.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-8 text-center text-gray-400 text-sm">
+                                        <td colSpan={7} className="px-4 py-8 text-center text-gray-400 text-sm">
                                             No products added yet.
                                         </td>
                                     </tr>
                                 ) : (
                                     items.map((item, index) => (
                                         <tr key={index}>
+                                            <td className="px-4 py-3 text-sm text-gray-500 text-center">
+                                                {index + 1}
+                                            </td>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-white">
                                                 {item.product_name}
                                             </td>
@@ -384,7 +388,7 @@ export default function CreateOrder() {
                             </tbody>
                             <tfoot className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                                 <tr>
-                                    <td colSpan={4} className="px-4 py-3 text-right text-sm font-bold text-gray-600 dark:text-gray-300">
+                                    <td colSpan={5} className="px-4 py-3 text-right text-sm font-bold text-gray-600 dark:text-gray-300">
                                         Subtotal:
                                     </td>
                                     <td className="px-4 py-3 text-right text-lg font-bold text-brand-600 dark:text-white">

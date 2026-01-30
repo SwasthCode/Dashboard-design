@@ -636,7 +636,7 @@ export default function Products() {
                                     </tr>
                                     {expandedRows.has(product._id || '') && product.variants && product.variants.length > 0 && (
                                         <tr className="bg-gray-50/30 dark:bg-gray-800/10 border-b border-gray-100 dark:border-gray-800">
-                                            <td colSpan={10} className="px-4 py-4 animate-fadeIn">
+                                            <td colSpan={11} className="px-4 py-4 animate-fadeIn">
                                                 <div className="flex flex-col gap-4 pl-8 pr-4 pb-2">
                                                     <div className="flex items-center gap-2">
                                                         <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800"></div>
@@ -644,7 +644,7 @@ export default function Products() {
                                                         <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800"></div>
                                                     </div>
                                                     {/* ... Variant content ... */}
-                                                    <div className="max-w-[85vw] md:max-w-[70vw] lg:max-w-[50vw] xl:max-w-[60vw] overflow-x-auto custom-scrollbar pb-2">
+                                                    <div className="w-full max-w-[75vw] overflow-x-auto custom-scrollbar pb-2">
                                                         <div className="flex gap-4">
                                                             {product.variants.map((variant, index) => (
                                                                 <div key={index} className="min-w-[300px] bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
