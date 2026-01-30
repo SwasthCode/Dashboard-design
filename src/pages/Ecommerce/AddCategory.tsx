@@ -62,7 +62,7 @@ export default function AddCategory() {
     return (
         <div>
             <PageMeta
-                title="Add Category | TailAdmin - React.js Admin Dashboard"
+                title="Add Category | Khana Fast "
                 description="Add a new category to your store"
             />
             <PageBreadcrumb pageTitle="Add Category" />

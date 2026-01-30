@@ -390,8 +390,8 @@ export default function Products() {
     return (
         <div>
             <PageMeta
-                title="Products | TailAdmin - React.js Admin Dashboard"
-                description="This is the Products page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Products | Khana Fast "
+                description="This is the Products page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Products" />
 

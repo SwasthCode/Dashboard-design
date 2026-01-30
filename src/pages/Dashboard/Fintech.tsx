@@ -5,8 +5,8 @@ export default function Fintech() {
     return (
         <div>
             <PageMeta
-                title="Fintech | TailAdmin - React.js Admin Dashboard"
-                description="This is the Fintech page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Fintech | Khana Fast "
+                description="This is the Fintech page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Fintech" />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

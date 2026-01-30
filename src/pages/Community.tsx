@@ -5,8 +5,8 @@ export default function Community() {
     return (
         <div>
             <PageMeta
-                title="Community | TailAdmin - React.js Admin Dashboard"
-                description="This is the Community page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Community | Khana Fast "
+                description="This is the Community page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Community" />
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

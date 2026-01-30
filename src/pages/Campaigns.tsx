@@ -5,8 +5,8 @@ export default function Campaigns() {
     return (
         <div>
             <PageMeta
-                title="Campaigns | TailAdmin - React.js Admin Dashboard"
-                description="This is the Campaigns page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Campaigns | Khana Fast "
+                description="This is the Campaigns page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Marketing Campaigns" />
             <div className="space-y-6">

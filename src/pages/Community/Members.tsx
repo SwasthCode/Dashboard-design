@@ -5,8 +5,8 @@ export default function Members() {
     return (
         <div>
             <PageMeta
-                title="Members | TailAdmin - React.js Admin Dashboard"
-                description="This is the Members page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Members | Khana Fast "
+                description="This is the Members page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Members" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm min-h-[400px]">

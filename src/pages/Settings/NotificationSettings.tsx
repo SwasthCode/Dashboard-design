@@ -5,8 +5,8 @@ export default function NotificationSettings() {
     return (
         <div>
             <PageMeta
-                title="Notification Settings | TailAdmin - React.js Admin Dashboard"
-                description="This is the Notification Settings page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Notification Settings | Khana Fast "
+                description="This is the Notification Settings page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Notification Settings" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm min-h-[400px]">

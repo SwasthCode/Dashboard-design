@@ -5,8 +5,8 @@ export default function Finance() {
     return (
         <div>
             <PageMeta
-                title="Finance | TailAdmin - React.js Admin Dashboard"
-                description="This is the Finance page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Finance | Khana Fast "
+                description="This is the Finance page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Finance" />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

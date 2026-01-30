@@ -5,8 +5,8 @@ export default function Support() {
     return (
         <div>
             <PageMeta
-                title="Support | TailAdmin - React.js Admin Dashboard"
-                description="This is the Support page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Support | Khana Fast "
+                description="This is the Support page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Support" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm min-h-[400px]">

@@ -152,7 +152,7 @@ export default function Customers() {
     return (
         <div>
             <PageMeta
-                title={`${pageTitle} | TailAdmin - React.js Admin Dashboard`}
+                title={`${pageTitle} | Khana Fast `}
                 description={`${pageTitle} page`}
             />
             <PageBreadcrumb pageTitle={pageTitle} />

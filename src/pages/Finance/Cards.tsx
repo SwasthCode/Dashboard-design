@@ -5,8 +5,8 @@ export default function Cards() {
     return (
         <div>
             <PageMeta
-                title="Cards | TailAdmin - React.js Admin Dashboard"
-                description="This is the Cards page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Cards | Khana Fast "
+                description="This is the Cards page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Cards" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm min-h-[400px]">

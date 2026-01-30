@@ -87,7 +87,7 @@ export default function Roles() {
 
     return (
         <div>
-            <PageMeta title="Khana Fast | Roles Management" description="Manage user roles and permissions." />
+            <PageMeta title=" Khana Fast | Roles Management" description="Manage user roles and permissions." />
             <PageBreadcrumb pageTitle="Roles" />
 
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">

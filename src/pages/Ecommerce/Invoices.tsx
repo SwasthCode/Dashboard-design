@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchInvoices, Invoice as InvoiceType } from "../../store/slices/invoiceSlice";
+import { fetchUsers } from "../../store/slices/userSlice";
 import { RootState, AppDispatch } from "../../store";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -10,6 +11,7 @@ import DotLoading from "../../components/common/DotLoading";
 import { TrashBinIcon } from "../../icons";
 import { Order } from "../../store/slices/orderSlice";
 import { ITEMS_PER_PAGE } from "../../constants/constants";
+import { formatTimeAgo } from "../../utils/dateUtils";
 
 interface Invoice {
     id: string;
@@ -30,21 +32,42 @@ interface Invoice {
 export default function Invoices() {
     const dispatch = useDispatch<AppDispatch>();
     const { invoices: backendInvoices, loading } = useSelector((state: RootState) => state.invoice);
+    const { users } = useSelector((state: RootState) => state.user);
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Initial load for users
+    useEffect(() => {
+        dispatch(fetchUsers({ limit: 1000 }));
+    }, [dispatch]);
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("");
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
         const filter: any = {};
 
         if (searchQuery) {
+            const cleanSearch = searchQuery.trim();
+            const matchingUserIds = users
+                .filter(u =>
+                    `${u.first_name} ${u.last_name}`.toLowerCase().includes(cleanSearch.toLowerCase()) ||
+                    u.email?.toLowerCase().includes(cleanSearch.toLowerCase()) ||
+                    u.phone_number?.includes(cleanSearch)
+                )
+                .map(u => u._id);
+
             filter.$or = [
-                { invoice_number: { $regex: searchQuery, $options: 'i' } },
+                { invoice_number: { $regex: cleanSearch, $options: 'i' } },
+                { user_id: { $in: matchingUserIds } }
             ];
+        }
+
+        if (selectedStatus && selectedStatus !== "all") {
+            filter.status = selectedStatus.toLowerCase() === 'unpaid' ? 'pending' : selectedStatus.toLowerCase();
         }
 
         if (startDate || endDate) {
@@ -59,7 +82,7 @@ export default function Invoices() {
             }
         }
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, selectedStatus, users]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -89,14 +112,17 @@ export default function Invoices() {
         }) : "N/A",
         status: inv.status === "paid" ? "Paid" : inv.status === "pending" ? "Unpaid" : "Unpaid",
         orderStatus: typeof inv.order_id === 'object' ? inv.order_id.status : undefined,
-        updatedAt: inv.updatedAt,
+        updatedAt: inv.updatedAt ? formatTimeAgo(inv.updatedAt) : "N/A",
         printData: inv,
     }));
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, status }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        if (status !== undefined) {
+            setSelectedStatus(status);
+        }
     };
 
     const printInvoice = (invoiceData: any) => {
@@ -236,8 +262,8 @@ export default function Invoices() {
     return (
         <div>
             <PageMeta
-                title="Invoices | TailAdmin - React.js Admin Dashboard"
-                description="This is the Invoices page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Invoices | Khana Fast "
+                description="Manage your invoices in the Khana Fast Admin Dashboard"
             />
             <PageBreadcrumb pageTitle="Invoices" />
 
@@ -253,6 +279,18 @@ export default function Invoices() {
                                 placeholder="Search Invoices..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "All Status", value: "all" },
+                                            { label: "Paid", value: "paid" },
+                                            { label: "Unpaid", value: "unpaid" },
+                                            { label: "Cancelled", value: "cancelled" }
+                                        ]
+                                    }
+                                ]}
                             />
                         </div>
                     </div>

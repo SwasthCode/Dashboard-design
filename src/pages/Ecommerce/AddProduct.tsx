@@ -90,7 +90,7 @@ export default function AddProduct() {
     return (
         <div>
             <PageMeta
-                title="Add Product | TailAdmin - React.js Admin Dashboard"
+                title="Add Product | Khana Fast "
                 description="Add a new product to your store"
             />
             <PageBreadcrumb pageTitle="Add Product" />

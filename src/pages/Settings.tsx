@@ -5,8 +5,8 @@ export default function Settings() {
     return (
         <div>
             <PageMeta
-                title="Settings | TailAdmin - React.js Admin Dashboard"
-                description="This is the Settings page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Settings | Khana Fast "
+                description="This is the Settings page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Settings" />
             <div className="max-w-4xl mx-auto space-y-6">

@@ -5,8 +5,8 @@ export default function JobBoard() {
     return (
         <div>
             <PageMeta
-                title="Job Board | TailAdmin - React.js Admin Dashboard"
-                description="This is the Job Board page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Job Board | Khana Fast "
+                description="This is the Job Board page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Job Board" />
             <div className="space-y-6">

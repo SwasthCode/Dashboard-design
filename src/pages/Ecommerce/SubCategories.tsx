@@ -136,7 +136,7 @@ export default function SubCategories() {
     return (
         <div>
             <PageMeta
-                title="Sub Categories | TailAdmin - React.js Admin Dashboard"
+                title="Sub Categories | Khana Fast "
                 description="Sub Categories page for TailAdmin"
             />
             <PageBreadcrumb pageTitle="Sub Categories" />

@@ -6,8 +6,8 @@ export default function Messages() {
   return (
     <div>
       <PageMeta
-        title="Messages | TailAdmin - React.js Admin Dashboard Template"
-        description="This is the Messages page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Messages | Khana Fast  Template"
+        description="This is the Messages page for   Tailwind CSS Admin Dashboard Template"
       />#1 Tailwind CSS Dashboard
 
       <PageBreadcrumb pageTitle="Messages" />

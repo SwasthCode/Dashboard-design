@@ -18,7 +18,7 @@ interface Transaction {
 
 export default function Pay() {
     const [currentPage, setCurrentPage] = useState(1);
- 
+
     const [transactions] = useState<Transaction[]>([
         { id: "#TRX-8547", customer: "John Doe", date: "Jan 12, 2024", amount: "$120.00", method: "Credit Card", status: "Paid", createdAt: "2024-01-12", updatedAt: "2024-01-12" },
         { id: "#TRX-8548", customer: "Jane Smith", date: "Jan 13, 2024", amount: "$240.00", method: "PayPal", status: "Paid", createdAt: "2024-01-13", updatedAt: "2024-01-13" },
@@ -77,8 +77,8 @@ export default function Pay() {
     return (
         <div>
             <PageMeta
-                title="Payments | TailAdmin - React.js Admin Dashboard"
-                description="This is the Payments page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Payments | Khana Fast "
+                description="This is the Payments page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Payments / Transactions" />
 

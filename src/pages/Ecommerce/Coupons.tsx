@@ -80,8 +80,8 @@ export default function Coupons() {
     return (
         <div>
             <PageMeta
-                title="Coupons | TailAdmin - React.js Admin Dashboard"
-                description="This is the Coupons page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Coupons | Khana Fast "
+                description="This is the Coupons page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Coupons & Discounts" />
 

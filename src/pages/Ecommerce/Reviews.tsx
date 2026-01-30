@@ -185,7 +185,7 @@ export default function Reviews() {
     return (
         <div>
             <PageMeta
-                title="Reviews | TailAdmin - React.js Admin Dashboard"
+                title="Reviews | Khana Fast "
                 description="Reviews page for TailAdmin"
             />
             <PageBreadcrumb pageTitle="Reviews" />

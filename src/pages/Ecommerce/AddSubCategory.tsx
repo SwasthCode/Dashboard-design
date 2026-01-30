@@ -58,7 +58,7 @@ export default function AddSubCategory() {
     return (
         <div>
             <PageMeta
-                title="Add Sub-Category | TailAdmin - React.js Admin Dashboard"
+                title="Add Sub-Category | Khana Fast "
                 description="Add a new sub-category to your store"
             />
             <PageBreadcrumb pageTitle="Add Sub-Category" />

@@ -5,8 +5,8 @@ export default function Tasks() {
     return (
         <div>
             <PageMeta
-                title="Tasks | TailAdmin - React.js Admin Dashboard"
-                description="This is the Tasks page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Tasks | Khana Fast "
+                description="This is the Tasks page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Tasks" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -5,8 +5,8 @@ export default function Analytics() {
     return (
         <div>
             <PageMeta
-                title="Analytics | TailAdmin - React.js Admin Dashboard"
-                description="This is the Analytics page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Analytics | Khana Fast "
+                description="This is the Analytics page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Analytics" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

@@ -439,7 +439,7 @@ export default function Orders() {
         <div>
             <PageMeta
                 title="Orders | Khana Fast"
-                description="Manage your orders in the Khana Fast Admin Dashboard"
+                description="Manage your orders in the  Khana Fast Admin Dashboard"
             />
             <PageBreadcrumb pageTitle="Orders" />
 

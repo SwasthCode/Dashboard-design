@@ -11,8 +11,8 @@ export default function AccountSettings() {
     return (
         <div>
             <PageMeta
-                title="Account Settings | TailAdmin - React.js Admin Dashboard"
-                description="This is the Account Settings page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Account Settings | Khana Fast "
+                description="This is the Account Settings page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Account Settings" />
 

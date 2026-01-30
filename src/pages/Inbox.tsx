@@ -5,8 +5,8 @@ export default function Inbox() {
     return (
         <div>
             <PageMeta
-                title="Inbox | TailAdmin - React.js Admin Dashboard"
-                description="This is the Inbox page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Inbox | Khana Fast "
+                description="This is the Inbox page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Inbox" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm flex flex-col h-[700px]">

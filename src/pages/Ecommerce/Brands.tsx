@@ -126,8 +126,8 @@ export default function Brands() {
     return (
         <div>
             <PageMeta
-                title="Brands | Khana Fast Admin"
-                description="Manage your product brands in the Khana Fast Admin Dashboard"
+                title="Brands |  Khana Fast Admin"
+                description="Manage your product brands in the  Khana Fast Admin Dashboard"
             />
             <PageBreadcrumb pageTitle="Brands" />
 

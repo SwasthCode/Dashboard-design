@@ -5,8 +5,8 @@ export default function PostJob() {
     return (
         <div>
             <PageMeta
-                title="Post Job | TailAdmin - React.js Admin Dashboard"
-                description="This is the Post Job page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Post Job | Khana Fast "
+                description="This is the Post Job page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Post Job" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm min-h-[400px]">

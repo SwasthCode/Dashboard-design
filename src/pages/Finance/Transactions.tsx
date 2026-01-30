@@ -5,8 +5,8 @@ export default function Transactions() {
     return (
         <div>
             <PageMeta
-                title="Transactions | TailAdmin - React.js Admin Dashboard"
-                description="This is the Transactions page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Transactions | Khana Fast "
+                description="This is the Transactions page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Transactions" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm min-h-[400px]">

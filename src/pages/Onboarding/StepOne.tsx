@@ -5,8 +5,8 @@ export default function StepOne() {
     return (
         <div>
             <PageMeta
-                title="Onboarding Step 1 | TailAdmin - React.js Admin Dashboard"
-                description="This is the Onboarding Step 1 page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+                title="Onboarding Step 1 | Khana Fast "
+                description="This is the Onboarding Step 1 page for   Tailwind CSS Admin Dashboard Template"
             />
             <PageBreadcrumb pageTitle="Onboarding Step 1" />
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm min-h-[400px]">
