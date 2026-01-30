@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { loginUser } from '../../store/slices/authSlice';
+import { loginUser, sendOtp } from '../../store/slices/authSlice';
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
@@ -151,19 +151,29 @@ export default function SignInForm() {
   }
 
 
-  const handleSendOtp = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateMobile()) return;
 
-    // 🔥 DUMMY: Accept any 10-digit mobile number
-    console.log(`📱 Sending OTP to ${mobile}...`);
-    console.log("🔐 DUMMY OTP: 1234");
-
-    setOtpSent(true);
-    setTimer(60);
-    setCanResend(false);
-    setErrors({}); // Clear errors on success
+    try {
+      console.log(`📱 Sending OTP to ${mobile}...`);
+      // @ts-ignore
+      const resultAction = await dispatch(sendOtp(mobile));
+      if (sendOtp.fulfilled.match(resultAction)) {
+        console.log("✅ OTP Sent Successfully!", resultAction.payload);
+        setOtpSent(true);
+        setTimer(60);
+        setCanResend(false);
+        setErrors({}); // Clear errors on success
+      } else {
+        const errorMsg = (resultAction.payload as string) || (resultAction.error as any)?.message || 'Failed to send OTP';
+        setErrors({ mobile: errorMsg });
+      }
+    } catch (err: any) {
+      console.error("❌ Send OTP Error:", err);
+      setErrors({ mobile: "An unexpected error occurred." });
+    }
   };
 
   const handleCredentialsLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -240,17 +250,27 @@ export default function SignInForm() {
     }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     setTimer(60);
     setCanResend(false);
     setOtp("");
     setErrors({});
 
-    console.log(`📱 Resending OTP to ${mobile}...`);
-    console.log("🔐 DUMMY OTP: 1234");
-
-    // Kept alert for toast-like notification or replace with toast if available
-    alert(`✅ OTP resent successfully to ${mobile}\n\n🔐 Dummy OTP: 1234\n(For testing only)`);
+    try {
+      console.log(`📱 Resending OTP to ${mobile}...`);
+      // @ts-ignore
+      const resultAction = await dispatch(sendOtp(mobile));
+      if (sendOtp.fulfilled.match(resultAction)) {
+        console.log("✅ OTP Resent Successfully!", resultAction.payload);
+        alert(`✅ OTP resent successfully to ${mobile}`);
+      } else {
+        const errorMsg = (resultAction.payload as string) || (resultAction.error as any)?.message || 'Failed to resend OTP';
+        setErrors({ mobile: errorMsg });
+      }
+    } catch (err: any) {
+      console.error("❌ Resend OTP Error:", err);
+      setErrors({ mobile: "An unexpected error occurred." });
+    }
   };
 
   const resetForm = () => {

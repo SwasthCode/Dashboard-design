@@ -18,6 +18,7 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
+import UserHome from "./pages/Dashboard/UserHome";
 import Users from "./pages/Ecommerce/Users";
 import Orders from "./pages/Ecommerce/Orders";
 // import CreateOrder from "./pages/Ecommerce/CreateOrder";
@@ -71,9 +72,29 @@ import PackerOrders from "./pages/Ecommerce/PackerOrders";
 import ViewOrder from "./pages/Ecommerce/ViewOrder";
 
 const RootAuthGuard = () => {
-  const token = useSelector((state: any) => state.auth.token) || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+  const { token, user } = useSelector((state: any) => state.auth);
+  const storedToken = (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
 
-  if (token) {
+  const finalToken = token || storedToken;
+
+  if (finalToken) {
+    // Basic Role Check: If user has role 3 (User) or is not admin, show UserHome
+    // Assuming role structure from curl: "role": [3]
+    const userRole = user?.role?.[0]; // Access first role
+
+    // Check if role is 3 (User) or strictly not 'admin' (if named roles exist previously)
+    // Here we assume 3 is user based on curl interaction.
+    // Use loose equality (==) to handle both number 3 and string "3"
+    const isUser = userRole == 3 || userRole?.key === 'user' || userRole === 'user';
+
+    if (isUser) {
+      return (
+        <AppLayout>
+          <UserHome />
+        </AppLayout>
+      );
+    }
+
     return (
       <AppLayout>
         <Home />

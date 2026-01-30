@@ -40,29 +40,16 @@ export const loginUser = createAsyncThunk(
         try {
             let response;
             if (credentials.username && credentials.password) {
-                // Username/Password Login
-                // The user specified /auth/login and payload { username, password }
+                // Username/Password Login (Admin / Credentials)
                 response = await https.post('/auth/login', {
                     username: credentials.username,
                     password: credentials.password
                 });
             } else if (credentials.mobile && credentials.otp) {
-                // Mobile/OTP Login (Keeping mock or implementing if API exists, currently user focused on username/pass)
-                // MOCK DATA FOR UI VALIDATION (Legacy/Alternative flow)
-                return new Promise<any>((resolve, reject) => {
-                    setTimeout(() => {
-                        if (credentials.otp === '1234') {
-                            resolve({
-                                data: { // Structure to match API response format roughly
-                                    access_token: 'dummy_access_token_mobile_otp',
-                                    username: credentials.mobile, // Mock user
-                                    role: [{ key: 'user' }]
-                                }
-                            });
-                        } else {
-                            reject(rejectWithValue('Invalid OTP'));
-                        }
-                    }, 1000);
+                // Mobile/OTP Login
+                response = await https.post('/users/verify-otp', {
+                    phone_number: credentials.mobile,
+                    otp: credentials.otp
                 });
             } else {
                 return rejectWithValue('Invalid credentials provided');
@@ -77,6 +64,23 @@ export const loginUser = createAsyncThunk(
 
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || error.message || 'Login failed');
+        }
+    }
+);
+
+// Send OTP Thunk
+export const sendOtp = createAsyncThunk(
+    'auth/sendOtp',
+    async (mobile: string, { rejectWithValue }) => {
+        try {
+            const response: any = await https.post('/users/login', { phone_number: mobile });
+            if (response && response.success) {
+                return response;
+            } else {
+                return rejectWithValue(response?.message || 'Failed to send OTP');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Failed to send OTP');
         }
     }
 );
@@ -142,6 +146,18 @@ const authSlice = createSlice({
             .addCase(loginUser.pending, (state) => {
                 state.status = 'loading';
                 state.error = null;
+            })
+            .addCase(sendOtp.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(sendOtp.fulfilled, (state) => {
+                state.status = 'succeeded';
+                // We don't necessarily update user/token here as it's just sending OTP
+            })
+            .addCase(sendOtp.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload as string;
             })
             .addCase(loginUser.fulfilled, (state, action: PayloadAction<any>) => {
                 state.status = 'succeeded';

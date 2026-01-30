@@ -156,6 +156,21 @@ const AppSidebar: React.FC = () => {
   }, [dispatch]);
 
   const navItems = useMemo(() => {
+    // Define userRoleKeys first so it's available for all checks
+    const userRoleKeys = currentUser?.role?.map((r: any) => typeof r === 'object' ? r.key?.toLowerCase() : String(r).toLowerCase()) || [];
+
+    // Determine if the user is a standard user (role "user" or id 3) AND NOT an admin
+    const isStandardUser = userRoleKeys.includes('user') || userRoleKeys.includes('3');
+    const isAdmin = userRoleKeys.includes('admin') || userRoleKeys.includes('1'); // Assuming 1 is admin
+
+    // If strictly a standard user (and not admin), show limited menu
+    if (isStandardUser && !isAdmin) {
+      const userAllowedItems = ['Dashboard', 'Orders', 'Settings'];
+      return staticNavItems.filter(item => userAllowedItems.includes(item.name));
+    }
+
+    // Otherwise (Admin etc), show full menu with dynamic additions (like Customers)
+
     const roleItems = roles.map(role => ({
       // name: `${role.name} (${roleCounts?.[role._id!] || 0})`,
       name: `${role.name}`,
@@ -175,9 +190,6 @@ const AppSidebar: React.FC = () => {
     // Insert Customers item after Dashboard (index 0)
     const newItems = [...staticNavItems];
     newItems.splice(1, 0, customersItem);
-
-    // Add Picker/Packer specific items if user has the role
-    const userRoleKeys = currentUser?.role?.map((r: any) => typeof r === 'object' ? r.key?.toLowerCase() : r.toLowerCase()) || [];
 
     if (userRoleKeys.includes('picker') || userRoleKeys.includes('admin')) {
       newItems.push({
