@@ -29,6 +29,8 @@ export default function Addresses() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedType, setSelectedType] = useState("");
+    const [selectedDefault, setSelectedDefault] = useState("");
 
     useEffect(() => {
         dispatch(fetchAddresses({}));
@@ -51,13 +53,21 @@ export default function Addresses() {
             ];
         }
 
+        if (selectedType) {
+            filter.type = selectedType;
+        }
+
+        if (selectedDefault) {
+            filter.isDefault = selectedDefault === 'Default';
+        }
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = startDate;
             if (endDate) filter.createdAt.$lte = endDate;
         }
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, startDate, endDate, selectedType, selectedDefault]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -68,10 +78,12 @@ export default function Addresses() {
         return () => clearTimeout(timer);
     }, [dispatch, buildFilter]); // Removed users.length as it's not defined here and addresses.length is not a direct dependency for re-fetching based on filter changes.
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, type, isDefault }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedType(type || "");
+        setSelectedDefault(isDefault || "");
     };
 
     // Calculate pagination
@@ -128,6 +140,24 @@ export default function Addresses() {
                                 placeholder="Search Addresses..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    {
+                                        key: "type",
+                                        label: "Type",
+                                        options: [
+                                            { label: "Home", value: "Home" },
+                                            { label: "Work", value: "Work" },
+                                        ]
+                                    },
+                                    {
+                                        key: "isDefault",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Default", value: "Default" },
+                                            { label: "Non-Default", value: "Non-Default" },
+                                        ]
+                                    }
+                                ]}
                             />
                         </div>
                         <button
@@ -174,9 +204,9 @@ export default function Addresses() {
                                     <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                         Created At
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                                    {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                         Updated At
-                                    </th>
+                                    </th> */}
                                     <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                         Actions
                                     </th>
@@ -189,6 +219,19 @@ export default function Addresses() {
                                             <div className="flex flex-col items-center gap-2">
                                                 <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
                                                 <span>Loading addresses...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                                {!loading && addresses.length === 0 && (
+                                    <tr>
+                                        <td colSpan={9} className="px-4 py-10 text-center text-gray-500">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <svg className="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span className="text-lg font-medium">No addresses found</span>
+                                                <p className="text-sm">Try adjusting your search or filters</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -241,11 +284,11 @@ export default function Addresses() {
                                                 {addr.createdAt ? new Date(addr.createdAt).toLocaleDateString() : "-"}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 whitespace-nowrap">
+                                        {/* <td className="px-4 py-3 whitespace-nowrap">
                                             <span className="text-sm text-gray-600 dark:text-gray-400">
                                                 {addr.updatedAt ? new Date(addr.updatedAt).toLocaleDateString() : "-"}
                                             </span>
-                                        </td>
+                                        </td> */}
                                         <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
                                             <div className="flex items-center justify-center gap-2">
                                                 <button
