@@ -240,6 +240,9 @@ export default function Reviews() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-10">
+                                    S.no
+                                </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                                     Product
                                 </th>
@@ -293,11 +296,14 @@ export default function Reviews() {
                                     </td>
                                 </tr>
                             )}
-                            {currentReviews.map((review) => (
+                            {currentReviews.map((review, index) => (
                                 <tr
                                     key={review._id}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                                 >
+                                    <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+                                    </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center text-gray-500 border border-gray-200 dark:border-gray-700">
