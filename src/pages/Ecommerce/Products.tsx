@@ -362,19 +362,19 @@ export default function Products() {
     const handleClone = async (product: Product) => {
         try {
             // Create a copy of the product and modify it for uniqueness
-            const { _id, createdAt, updatedAt, __v, images, category, subcategory, brand, ...rest } = product;
+            const { _id, createdAt, updatedAt, __v, images, category, subcategory, brand, product_id, ...rest } = product as any;
 
             const clonedProduct = {
                 ...rest,
                 name: `${product.name} (Copy)`,
                 // Send simplified images (URLs only) - the backend should handle this if it accepts existing URLs
-                images: images?.map(img => ({ url: img.url })),
+                images: images?.map((img: any) => ({ url: img.url })),
                 // Ensure IDs are passed for category/subcategory/brand if they were objects
                 category_id: product.category_id || category?._id,
                 subcategory_id: product.subcategory_id || subcategory?._id,
                 brand_id: product.brand_id || brand?._id,
                 // Clear variant IDs
-                variants: product.variants?.map(({ _id, ...v }) => v)
+                variants: product.variants?.map(({ _id, ...v }: any) => v)
             };
 
             await dispatch(addProduct(clonedProduct as any)).unwrap();

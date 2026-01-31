@@ -20,6 +20,10 @@ export default function Orders() {
     const dispatch = useDispatch<AppDispatch>();
 
     const { orders, loading, error } = useSelector((state: RootState) => state.order);
+    const { user } = useSelector((state: RootState) => state.auth);
+
+    const isPicker = user?.role?.some((r: any) => (r === 4 || (typeof r === 'object' && r.role_id === 4))) || false;
+    const isPacker = user?.role?.some((r: any) => (r === 3 || r === 5 || (typeof r === 'object' && (r.role_id === 3 || r.role_id === 5)))) || false;
 
     const [currentPage, setCurrentPage] = useState(1);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -59,71 +63,90 @@ export default function Orders() {
 
 
 
-
     const statusOptions = ["Pending", "Hold", "Ready", "Shipped", "Delivered", "Cancelled", "Returned"];
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
-        const filter: any = {};
+        const conditions: any[] = [];
+
+        // Role-based restrictions
+        const roleConditions: any[] = [];
+        if (isPicker && user?._id) {
+            roleConditions.push({ picker_id: user._id });
+            roleConditions.push({ "picker_obj.user_id": user._id });
+        }
+        if (isPacker && user?._id) {
+            roleConditions.push({ packer_id: user._id });
+            roleConditions.push({ "packer_obj.user_id": user._id });
+        }
+
+        if (roleConditions.length > 0) {
+            if (roleConditions.length === 1) {
+                conditions.push(roleConditions[0]);
+            } else {
+                conditions.push({ $or: roleConditions });
+            }
+        }
 
         if (searchQuery) {
             const cleanSearch = searchQuery.trim().replace("#", "");
-            filter.$or = [
-                { _id: { $regex: cleanSearch, $options: "i" } },
-                { customer_name: { $regex: searchQuery, $options: "i" } },
-                { shipping_address: { $regex: searchQuery, $options: "i" } },
-                { shipping_phone: { $regex: searchQuery, $options: "i" } },
-            ];
+            conditions.push({
+                $or: [
+                    { _id: { $regex: cleanSearch, $options: "i" } },
+                    { customer_name: { $regex: searchQuery, $options: "i" } },
+                    { shipping_address: { $regex: searchQuery, $options: "i" } },
+                    { shipping_phone: { $regex: searchQuery, $options: "i" } },
+                ]
+            });
         }
 
         if (startDate || endDate) {
-            filter.createdAt = {};
-            if (startDate) filter.createdAt.$gte = startDate;
-            if (endDate) filter.createdAt.$lte = endDate;
-        }
-        if (selectedStatuses.length > 0) {
-            filter.status = { $in: selectedStatuses.map((s) => s.toLowerCase()) };
-        }
-        if (selectedPaymentMethods.length > 0) {
-            filter.payment_method = { $in: selectedPaymentMethods };
+            const dateFilter: any = {};
+            if (startDate) dateFilter.$gte = startDate;
+            if (endDate) dateFilter.$lte = endDate;
+            conditions.push({ createdAt: dateFilter });
         }
 
+        if (selectedStatuses.length > 0) {
+            conditions.push({ status: { $in: selectedStatuses.map((s) => s.toLowerCase()) } });
+        }
+
+        if (selectedPaymentMethods.length > 0) {
+            conditions.push({ payment_method: { $in: selectedPaymentMethods } });
+        }
 
         if (minItemCount) {
-            // Note: This might require $expr which is supported in aggregation or find (mongo 3.6+)
-            // If backend doesn't support $expr in find, this might fail or require aggregation.
-            // Attempting standard Query if possible, or using $where (slow but works on some versions).
-            // Ideally: { $expr: { $gte: [{ $size: "$items" }, Number(minItemCount)] } }
             const count = Number(minItemCount);
             if (!isNaN(count)) {
-                filter.$expr = { $gte: [{ $size: "$items" }, count] };
+                conditions.push({ $expr: { $gte: [{ $size: "$items" }, count] } });
             }
         }
 
         if (itemSearch) {
-            filter.items = {
-                $elemMatch: {
-                    $or: [
-                        { name: { $regex: itemSearch, $options: "i" } },
-                        { product_name: { $regex: itemSearch, $options: "i" } }
-                    ]
+            conditions.push({
+                items: {
+                    $elemMatch: {
+                        $or: [
+                            { name: { $regex: itemSearch, $options: "i" } },
+                            { product_name: { $regex: itemSearch, $options: "i" } }
+                        ]
+                    }
                 }
-            };
+            });
         }
+
         if (minQuantity) {
-            // "Min. Quantity" - Interpreting as TOTAL quantity across all items if backend supports it via aggregation or virtual.
-            // If "Min. Quantity" means "At least ONE item has this quantity", use items.quantity.
-            // User said "Min. Quantity" in context of general filtering.
-            // Given I can't easily sum without aggregation in "find", I'll stick to 'items.quantity' matches for now 
-            // essentially "Order contains an item with qty >= X", or try a specific field if one exists.
-            // Reverting to previous logic for "Min Quantity" on items.item.
             const qty = Number(minQuantity);
             if (!isNaN(qty)) {
-                filter["items.quantity"] = { $gte: qty };
+                conditions.push({ "items.quantity": { $gte: qty } });
             }
         }
-        return filter;
-    }, [searchQuery, startDate, endDate, selectedStatuses, selectedPaymentMethods, itemSearch, minQuantity, minItemCount]);
+
+        if (conditions.length === 0) return {};
+        if (conditions.length === 1) return conditions[0];
+        return { $and: conditions };
+
+    }, [searchQuery, startDate, endDate, selectedStatuses, selectedPaymentMethods, itemSearch, minQuantity, minItemCount, isPicker, isPacker, user?._id]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -246,6 +269,9 @@ export default function Orders() {
 
         const itemsHtml = order.items?.map((item) => `
             <tr style="border-bottom: 1px solid #f3f4f6;">
+                <td style="padding: 12px 0; width: 30px;">
+                    <div style="width: 16px; height: 16px; border: 1px solid #d1d5db; border-radius: 3px;"></div>
+                </td>
                 <td style="padding: 12px 0; font-size: 14px; color: #1f2937;">${item.name || item.product_name}</td>
                 <td style="padding: 12px 0; text-align: center; font-size: 14px; color: #1f2937;">${item.quantity}</td>
                 <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #1f2937;">₹${item.price.toLocaleString()}</td>
@@ -282,6 +308,10 @@ export default function Orders() {
                         .total-row { display: flex; justify-content: space-between; font-size: 14px; }
                         .grand-total { border-top: 1px solid #f3f4f6; padding-top: 12px; margin-top: 4px; font-size: 20px; font-weight: 700; color: #111827; }
                         
+                        .signature-remark-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; margin-top: 50px; padding-top: 30px; border-top: 1px solid #f3f4f6; }
+                        .box { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; height: 90px; }
+                        .box-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #9ca3af; margin-bottom: 6px; }
+
                         @media print {
                             body { padding: 20px; }
                             .container { width: 100%; }
@@ -317,6 +347,7 @@ export default function Orders() {
                         <table>
                             <thead>
                                 <tr>
+                                    <th style="width: 30px;"></th>
                                     <th>Service/Product</th>
                                     <th style="text-align: center;">Qty</th>
                                     <th style="text-align: right;">Rate</th>
@@ -331,8 +362,18 @@ export default function Orders() {
                         <div class="footer">
                             <div class="notes-section">
                                 <div class="section-title">Important Note</div>
-                                <p>Thank you for choosing Khana Fast. If you have any questions about this invoice, please reach out to our support team.</p>
-                                <p style="margin-top: 20px;">© 2026 Khana Fast. All rights reserved.</p>
+                                <p>Please check all items upon delivery/packing. This invoice serves as a confirmation of the order fulfillment.</p>
+                                
+                                <div class="signature-remark-grid">
+                                    <div>
+                                        <div class="box-title">Signature</div>
+                                        <div class="box" style="display: flex; align-items: flex-end; justify-content: center; color: #d1d5db; font-size: 9px;">Sign Above</div>
+                                    </div>
+                                    <div>
+                                        <div class="box-title">Remark / Internal Notes</div>
+                                        <div class="box"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="totals-grid">
                                 <div class="total-row">
@@ -446,9 +487,9 @@ export default function Orders() {
             <div className={`flex items-center justify-end gap-1`}>
                 {invoiceButton}
                 {viewButton}
-                {cloneButton}
-                {deleteButton}
-                {order.order_remark && remarkButton}
+                {(!isPicker && !isPacker) && cloneButton}
+                {(!isPicker && !isPacker) && deleteButton}
+                {(order.order_remark || isPicker || isPacker) && remarkButton}
             </div>
         );
     };
@@ -640,7 +681,9 @@ export default function Orders() {
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Address</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Items</th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Delivery Date</th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Payment</th>
+                                {(!isPicker && !isPacker) && (
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Payment</th>
+                                )}
                                 {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Pay Status</th> */}
                                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Price</th>
                                 {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Picker</th>
@@ -705,22 +748,24 @@ export default function Orders() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap"><span className="text-sm text-gray-600 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span></td>
-                                        <td className="px-4 py-3 whitespace-nowrap">
-                                            <div className="flex flex-col items-start gap-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_details?.method?.toLowerCase() === 'online'
-                                                        ? 'bg-blue-50 text-blue-600 border-blue-100'
-                                                        : 'bg-amber-50 text-amber-600 border-amber-100'
-                                                        }`}>
-                                                        {order.payment_details?.method || 'N/A'}
-                                                    </span>
+                                        {(!isPicker && !isPacker) && (
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_details?.method?.toLowerCase() === 'online'
+                                                            ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                                            : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                            }`}>
+                                                            {order.payment_details?.method || 'N/A'}
+                                                        </span>
 
+                                                    </div>
+                                                    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order?.payment_details?.status || 'Pending')}`}>
+                                                        {order.payment_details?.status || 'Pending'}
+                                                    </span>
                                                 </div>
-                                                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order?.payment_details?.status || 'Pending')}`}>
-                                                    {order.payment_details?.status || 'Pending'}
-                                                </span>
-                                            </div>
-                                        </td>
+                                            </td>
+                                        )}
                                         {/* <td className="px-4 py-3 whitespace-nowrap">
                                             <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${order.payment_status?.toLowerCase() === 'paid'
                                                 ? 'bg-green-50 text-green-600 border-green-100'
@@ -766,8 +811,8 @@ export default function Orders() {
                                             </span>
                                         </td> */}
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
-                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(order.status)}`}>
-                                                {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${getStatusColor(isPicker ? (order.picker_obj?.status || order.status) : isPacker ? (order.packer_obj?.status || order.status) : order.status)}`}>
+                                                {isPicker ? (order.picker_obj?.status || order.status) : isPacker ? (order.packer_obj?.status || order.status) : order.status}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">

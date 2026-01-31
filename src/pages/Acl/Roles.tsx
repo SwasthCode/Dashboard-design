@@ -3,10 +3,9 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
-import { fetchRoles, deleteRole, Role } from "../../store/slices/roleSlice";
+import { fetchRoles, Role } from "../../store/slices/roleSlice";
 import AddRoleModal from "./AddRoleModal";
 import EditRoleModal from "./EditRoleModal";
-import DeleteConfirmationModal from "../Ecommerce/DeleteConfirmationModal";
 import Pagination from "../../components/common/Pagination";
 import TableFilter from "../../components/common/TableFilter";
 import { ITEMS_PER_PAGE } from "../../constants/constants";
@@ -17,8 +16,6 @@ export default function Roles() {
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
     const [searchQuery, setSearchQuery] = useState("");
@@ -66,24 +63,6 @@ export default function Roles() {
         setCurrentPage(page);
     };
 
-    const handleDeleteClick = (role: Role) => {
-        setSelectedRole(role);
-        setIsDeleteModalOpen(true);
-    };
-
-    const confirmDelete = async () => {
-        if (selectedRole?._id) {
-            setIsDeleting(true);
-            try {
-                await dispatch(deleteRole(selectedRole._id)).unwrap();
-                setIsDeleteModalOpen(false);
-            } catch (err) {
-                console.error("Failed to delete role:", err);
-            } finally {
-                setIsDeleting(false);
-            }
-        }
-    };
 
     return (
         <div>
@@ -211,9 +190,9 @@ export default function Roles() {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => handleDeleteClick(role)}
-                                                className="p-1.5 text-gray-500 hover:text-red-500 bg-white border border-gray-200 rounded-lg hover:border-red-200 transition-all shadow-sm"
-                                                title="Delete"
+                                                disabled
+                                                className="p-1.5 text-gray-300 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed transition-all shadow-sm"
+                                                title="You cant delete the role , contact to admin"
                                             >
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -251,14 +230,6 @@ export default function Roles() {
                 role={selectedRole}
             />
 
-            <DeleteConfirmationModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                title="Delete Role"
-                message={`Are you sure you want to delete "${selectedRole?.name}"? This action cannot be undone.`}
-                loading={isDeleting}
-            />
         </div>
     );
 }

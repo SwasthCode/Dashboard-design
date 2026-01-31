@@ -221,18 +221,18 @@ const AppSidebar: React.FC = () => {
 
     // Admin sees explicit Picker/Packer menus if needed, or we can leave them out if Admin just browses all orders
     // The previous logic added "Picks" and "Packs" for admins. Keeping that for Admin convenience.
-    if (isAdmin) {
-      newItems.push({
-        icon: <ListIcon />,
-        name: " Picks",
-        path: "/orders/picker"
-      });
-      newItems.push({
-        icon: <BoxCubeIcon />,
-        name: "Packs",
-        path: "/orders/packer"
-      });
-    }
+    // if (isAdmin) {
+    //   newItems.push({
+    //     icon: <ListIcon />,
+    //     name: " Picks",
+    //     path: "/orders/picker"
+    //   });
+    //   newItems.push({
+    //     icon: <BoxCubeIcon />,
+    //     name: "Packs",
+    //     path: "/orders/packer"
+    //   });
+    // }
 
     return newItems;
   }, [roles, roleCounts, currentUser]);

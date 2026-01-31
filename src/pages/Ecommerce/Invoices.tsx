@@ -36,6 +36,7 @@ export default function Invoices() {
     const [searchQuery, setSearchQuery] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("");
 
     // Construct filter for backend
     const buildFilter = useCallback(() => {
@@ -44,7 +45,15 @@ export default function Invoices() {
         if (searchQuery) {
             filter.$or = [
                 { invoice_number: { $regex: searchQuery, $options: 'i' } },
+                { "user_id.first_name": { $regex: searchQuery, $options: 'i' } },
+                { "user_id.last_name": { $regex: searchQuery, $options: 'i' } },
+                { "billing_address.name": { $regex: searchQuery, $options: 'i' } },
+                { "billing_address.shipping_phone": { $regex: searchQuery, $options: 'i' } },
             ];
+        }
+
+        if (selectedStatus) {
+            filter.status = selectedStatus;
         }
 
         if (startDate || endDate) {
@@ -59,7 +68,7 @@ export default function Invoices() {
             }
         }
         return filter;
-    }, [searchQuery, startDate, endDate]);
+    }, [searchQuery, selectedStatus, startDate, endDate]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -72,7 +81,7 @@ export default function Invoices() {
 
     const invoices: Invoice[] = backendInvoices.map((inv: InvoiceType) => ({
         id: (inv.invoice_number || inv._id).slice(-8).toUpperCase(),
-        client: inv.user_id ? `${inv.user_id.first_name} ${inv.user_id.last_name}` : "Unknown Client",
+        client: inv.user_id ? `${inv.user_id.first_name} ${inv.user_id.last_name}` : inv.billing_address?.name || "Unknown Client",
         email: inv.user_id?.email || "Not available",
         phone_number: inv.user_id?.phone_number || inv.billing_address?.shipping_phone || "Not available",
         amount: `₹${inv.total_amount.toLocaleString()}`,
@@ -88,15 +97,16 @@ export default function Invoices() {
             year: "numeric",
         }) : "N/A",
         status: inv.status === "paid" ? "Paid" : inv.status === "pending" ? "Unpaid" : "Unpaid",
-        orderStatus: typeof inv.order_id === 'object' ? inv.order_id.status : undefined,
+        orderStatus: (typeof inv.order_id === 'object' && inv.order_id !== null) ? (inv.order_id as any).status : undefined,
         updatedAt: inv.updatedAt,
         printData: inv,
     }));
 
-    const handleFilterChange = ({ search, startDate: start, endDate: end }: any) => {
+    const handleFilterChange = ({ search, startDate: start, endDate: end, status }: any) => {
         setSearchQuery(search);
         setStartDate(start);
         setEndDate(end);
+        setSelectedStatus(status || "");
     };
 
     const printInvoice = (invoiceData: any) => {
@@ -253,6 +263,17 @@ export default function Invoices() {
                                 placeholder="Search Invoices..."
                                 onFilterChange={handleFilterChange}
                                 className="mb-0"
+                                filters={[
+                                    {
+                                        key: "status",
+                                        label: "Status",
+                                        options: [
+                                            { label: "Pending", value: "pending" },
+                                            { label: "Paid", value: "paid" },
+                                            { label: "Cancelled", value: "cancelled" }, // Adding as it might exist
+                                        ]
+                                    },
+                                ]}
                             />
                         </div>
                     </div>
