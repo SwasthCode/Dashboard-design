@@ -71,6 +71,7 @@ import PickerOrders from "./pages/Ecommerce/PickerOrders";
 import PackerOrders from "./pages/Ecommerce/PackerOrders";
 import ViewOrder from "./pages/Ecommerce/ViewOrder";
 import MyActivity from "./pages/Activity/MyActivity";
+import Payments from "./pages/Ecommerce/Payments";
 
 const RootAuthGuard = () => {
   const { token, user } = useSelector((state: any) => state.auth);
@@ -143,6 +144,7 @@ export default function App() {
             <Route path="/sub-categories/add" element={<AddSubCategory />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/pay" element={<Pay />} />
+            <Route path="/payments" element={<Payments />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/coupons" element={<Coupons />} />
 

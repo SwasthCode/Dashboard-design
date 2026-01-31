@@ -70,6 +70,11 @@ const staticNavItems: NavItem[] = [
     path: "/orders",
   },
   {
+    icon: <TableIcon />,
+    name: "Payment",
+    path: "/payments",
+  },
+  {
     icon: <EnvelopeIcon />,
     name: "Addresses",
     path: "/addresses",

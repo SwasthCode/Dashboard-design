@@ -12,7 +12,7 @@ import Label from "../../components/form/Label";
 import { updateOrderStatus, OrderStatus } from "../../store/slices/orderSlice";
 import { createInvoice } from "../../store/slices/invoiceSlice";
 import { getStatusColor } from "../../utils/helper";
-import { ADJUSTMENT_STATUSES, MAX_DELIVERY_CHARGES_CUT_OFF } from "../../constants/constants";
+import { ADJUSTMENT_STATUSES, DELIVERY_CHARGES_FEE, MAX_DELIVERY_CHARGES_CUT_OFF } from "../../constants/constants";
 
 export default function ViewOrder() {
     const { id } = useParams();
@@ -87,7 +87,8 @@ export default function ViewOrder() {
     }, [selectedOrder, selectedPickerId, pickerRemark, selectedPackerId, packerRemark, orderItems]);
 
     const EDIT_ENABLED_STATUSES = ["ready"];
-    const canEditAssignments = selectedOrder ? EDIT_ENABLED_STATUSES.includes(selectedOrder.status.toLowerCase()) : false;
+    const isCancelled = selectedOrder?.status.toLowerCase() === "cancelled";
+    const canEditAssignments = selectedOrder && !isCancelled ? EDIT_ENABLED_STATUSES.includes(selectedOrder.status.toLowerCase()) : false;
 
     // Calculate Total Automatically
     const subtotal = useMemo(() => {
@@ -96,7 +97,7 @@ export default function ViewOrder() {
 
     const deliveryCharges = useMemo(() => {
         if (subtotal >= MAX_DELIVERY_CHARGES_CUT_OFF) return 0;
-        return 99;
+        return DELIVERY_CHARGES_FEE;
     }, [subtotal]);
 
     const totalAmount = useMemo(() => subtotal + deliveryCharges, [subtotal, deliveryCharges]);
@@ -415,7 +416,7 @@ export default function ViewOrder() {
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-3">
-                                {isOrderDirty && (
+                                {isOrderDirty && !isCancelled && (
                                     <button
                                         onClick={handleSaveOrder}
                                         disabled={updating}
@@ -458,7 +459,9 @@ export default function ViewOrder() {
                                         {!canEditAssignments && (
                                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg">
                                                 <svg className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-tight">Assignments only in 'Ready' status</p>
+                                                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-tight">
+                                                    {isCancelled ? "Order is Cancelled" : "Assignments only in 'Ready' status"}
+                                                </p>
                                             </div>
                                         )}
                                         <div>
@@ -526,7 +529,9 @@ export default function ViewOrder() {
                                         {!canEditAssignments && (
                                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg">
                                                 <svg className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-tight">Assignments only in 'Ready' status</p>
+                                                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-tight">
+                                                    {isCancelled ? "Order is Cancelled" : "Assignments only in 'Ready' status"}
+                                                </p>
                                             </div>
                                         )}
                                         <div>
@@ -616,22 +621,24 @@ export default function ViewOrder() {
                                                 <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                 <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Internal Note</p>
                                             </div>
-                                            <button
-                                                onClick={() => {
-                                                    if (isEditingNote && orderRemark !== (selectedOrder.order_remark || "")) {
-                                                        handleSaveOrder();
-                                                    }
-                                                    setIsEditingNote(!isEditingNote);
-                                                }}
-                                                className="p-1 rounded-md hover:bg-amber-500/20 text-amber-600 dark:text-amber-500 transition-colors"
-                                                title={isEditingNote ? "Save and Finish" : "Edit Note"}
-                                            >
-                                                {isEditingNote ? (
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                                                ) : (
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                )}
-                                            </button>
+                                            {!isCancelled && (
+                                                <button
+                                                    onClick={() => {
+                                                        if (isEditingNote && orderRemark !== (selectedOrder.order_remark || "")) {
+                                                            handleSaveOrder();
+                                                        }
+                                                        setIsEditingNote(!isEditingNote);
+                                                    }}
+                                                    className="p-1 rounded-md hover:bg-amber-500/20 text-amber-600 dark:text-amber-500 transition-colors"
+                                                    title={isEditingNote ? "Save and Finish" : "Edit Note"}
+                                                >
+                                                    {isEditingNote ? (
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                                                    ) : (
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
                                         {isEditingNote ? (
                                             <textarea
@@ -659,17 +666,19 @@ export default function ViewOrder() {
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 118 0m-4 5v2a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h12a3 3 0 013 3" /></svg>
                                         Order Items
                                     </h3>
-                                    <button
-                                        onClick={() => setShowAddRow(!showAddRow)}
-                                        className={`p-2 rounded-lg transition-all ${showAddRow ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10' : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 hover:bg-brand-100'}`}
-                                        title={showAddRow ? "Hide Add Row" : "Add New Product"}
-                                    >
-                                        {showAddRow ? (
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                        ) : (
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        )}
-                                    </button>
+                                    {!isCancelled && (
+                                        <button
+                                            onClick={() => setShowAddRow(!showAddRow)}
+                                            className={`p-2 rounded-lg transition-all ${showAddRow ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10' : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 hover:bg-brand-100'}`}
+                                            title={showAddRow ? "Hide Add Row" : "Add New Product"}
+                                        >
+                                            {showAddRow ? (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left">
@@ -757,8 +766,9 @@ export default function ViewOrder() {
                                                                 <input
                                                                     type="number"
                                                                     value={item.price}
+                                                                    disabled={isCancelled}
                                                                     onChange={(e) => updateItemPrice(index, parseFloat(e.target.value) || 0)}
-                                                                    className="w-20 bg-transparent border-b border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-700 focus:border-brand-500 focus:ring-0 text-xs font-bold text-gray-700 dark:text-gray-300 text-center transition-all px-0"
+                                                                    className={`w-20 bg-transparent border-b border-transparent ${!isCancelled ? 'group-hover:border-gray-200 dark:group-hover:border-gray-700' : ''} focus:border-brand-500 focus:ring-0 text-xs font-bold text-gray-700 dark:text-gray-300 text-center transition-all px-0`}
                                                                 />
                                                             </div>
                                                         </td>
@@ -770,20 +780,23 @@ export default function ViewOrder() {
                                                                     min="1"
                                                                     max={item.stock}
                                                                     value={item.quantity}
+                                                                    disabled={isCancelled}
                                                                     onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
-                                                                    className="w-12 bg-transparent border-b border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-700 focus:border-brand-500 focus:ring-0 text-xs font-black text-gray-900 dark:text-white text-center transition-all px-0"
+                                                                    className={`w-12 bg-transparent border-b border-transparent ${!isCancelled ? 'group-hover:border-gray-200 dark:group-hover:border-gray-700' : ''} focus:border-brand-500 focus:ring-0 text-xs font-black text-gray-900 dark:text-white text-center transition-all px-0`}
                                                                 />
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-5 whitespace-nowrap text-right font-black text-gray-900 dark:text-white tracking-tight text-xs tabular-nums">₹{(item.price * item.quantity).toLocaleString()}</td>
                                                         <td className="px-6 py-5 text-center">
-                                                            <button
-                                                                onClick={() => removeItem(index)}
-                                                                className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                                                                title="Remove Item"
-                                                            >
-                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                                            </button>
+                                                            {!isCancelled && (
+                                                                <button
+                                                                    onClick={() => removeItem(index)}
+                                                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                    title="Remove Item"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                </button>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 ))

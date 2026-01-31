@@ -82,3 +82,4 @@ export const ADJUSTMENT_STATUSES = [
 ]
 export const MAX_DELIVERY_CHARGES_CUT_OFF = 1000
 export const DELIVERY_FEES_PER_KM = 10
+export const DELIVERY_CHARGES_FEE = 99

@@ -128,7 +128,7 @@ const initialState: OrderState = {
 };
 
 // Async Thunks
-export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: { filter?: any } = {}, { rejectWithValue }) => {
+export const fetchOrders = createAsyncThunk('order/fetchOrders', async (params: { filter?: any; select?: string } = {}, { rejectWithValue }) => {
     try {
         // Prepare params, removing empty filter if present
         const queryParams: any = { ...params };
